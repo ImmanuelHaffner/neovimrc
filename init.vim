@@ -213,8 +213,8 @@ xmap <silent> <A-w> gw
 nmap <silent> <C-c> :call NERDComment(0, "toggle")<CR>
 vmap <silent> <C-c> :call NERDComment(1, "toggle")<CR>
 
-nmap <silent> <Tab>   :bnext<CR>
-nmap <silent> <S-Tab> :bprevious<CR>
+nmap <silent> <Tab>   :tabnext<CR>
+nmap <silent> <S-Tab> :tabprevious<CR>
 
 nmap <S-t> :tabnew <C-d>
 
