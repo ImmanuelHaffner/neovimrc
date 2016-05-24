@@ -102,7 +102,7 @@ set sidescroll=1
 set sidescrolloff=15
 set textwidth=120
 
-set undodir=$HOME/.vim/undo/
+set undodir=$HOME/.config/nvim/undo/
 set undofile
 set undolevels=500
 set undoreload=10000
