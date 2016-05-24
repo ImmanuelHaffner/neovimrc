@@ -129,10 +129,10 @@ hi! CursorLineNr term=bold,reverse cterm=bold,reverse ctermfg=6
 "== Functions & Commands {{{============================================================================================
 function! CrosshairToggle()
     if (&cursorcolumn == 1)
-        set nocursorcolumn
+        setlocal nocursorcolumn
         echo "Crosshair: Off"
     else
-        set cursorcolumn
+        setlocal cursorcolumn
         echo "Crosshair: On"
     endif
 endfunc
@@ -149,10 +149,10 @@ endfunc
 
 function! SpellToggle()
     if (&spell == 1)
-        set nospell
+        setlocal nospell
         echo "Spell: Off"
     else
-        set spell
+        setlocal spell
         echo "Spell: On"
     endif
 endfunc
