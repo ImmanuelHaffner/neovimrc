@@ -14,12 +14,12 @@ Plug 'altercation/vim-colors-solarized'
 Plug 'critiqjo/lldb.nvim'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'derekwyatt/vim-fswitch'
-Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMarkdownComposer') }
+Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMarkdownComposer'), 'for': 'markdown' }
 Plug 'fatih/vim-go', { 'for': 'go' }
-Plug 'lervag/vimtex'
+Plug 'lervag/vimtex', { 'for': 'tex' }
 Plug 'mhinz/vim-grepper'
 Plug 'neomake/neomake'
-Plug 'neovimhaskell/haskell-vim'
+Plug 'neovimhaskell/haskell-vim', { 'for': 'haskell' }
 Plug 'pgdouyon/vim-accio'
 Plug 'powerman/vim-plugin-viewdoc'
 Plug 'rdnetto/YCM-Generator', { 'branch': 'stable'}
