@@ -135,7 +135,7 @@ function! CrosshairToggle()
         setlocal cursorcolumn
         echo "Crosshair: On"
     endif
-endfunc
+endfunction
 
 function! ToggleParagraph()
     if &formatoptions =~ "a"
@@ -145,7 +145,7 @@ function! ToggleParagraph()
         setlocal formatoptions+=a
         echo "Paragraphs: On"
     endif
-endfunc
+endfunction
 
 function! SpellToggle()
     if (&spell == 1)
@@ -155,12 +155,12 @@ function! SpellToggle()
         setlocal spell
         echo "Spell: On"
     endif
-endfunc
+endfunction
 
 function! SaveAndQuit()
     exe "mksession! .session.vim"
     exe "wqa"
-endfunc
+endfunction
 
 function! VSearch(direction) range
     let l:saved_reg = @"
@@ -236,5 +236,5 @@ vmap <silent> # :call VSearch('b')<CR>
 
 " Project-specific configuration
 if filereadable(".project.vim")
-    source .project.vim
+    source ".project.vim"
 endif
