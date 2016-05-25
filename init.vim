@@ -87,9 +87,8 @@ set softtabstop=4
 set shiftwidth=4
 set smarttab
 
-set listchars=tab:»-,extends:@,trail:·
+set listchars=tab:┣━,extends:@,trail:·
 set list
-
 set colorcolumn=121
 set cursorline
 set relativenumber
