@@ -236,5 +236,5 @@ vmap <silent> # :call VSearch('b')<CR>
 
 " Project-specific configuration
 if filereadable(".project.vim")
-    source ".project.vim"
+    source .project.vim
 endif
