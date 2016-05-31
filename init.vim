@@ -91,6 +91,7 @@ set listchars=tab:┣━,extends:@,trail:·
 set list
 set colorcolumn=121
 set cursorline
+set number
 set relativenumber
 
 set wrap
