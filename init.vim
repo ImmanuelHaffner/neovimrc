@@ -122,6 +122,8 @@ set splitright
 
 set sessionoptions=buffers,folds,sesdir,tabpages,winpos,winsize,help
 
+let g:tex_flavor = "latex"
+
 hi! ColorColumn term=reverse cterm=reverse
 hi! CursorLineNr term=bold,reverse cterm=bold,reverse ctermfg=6
 "==}}}==================================================================================================================
