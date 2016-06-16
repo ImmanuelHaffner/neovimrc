@@ -94,7 +94,7 @@ set cursorline
 set number
 set relativenumber
 
-set wrap
+set nowrap
 set linebreak
 
 set scrolloff=7
