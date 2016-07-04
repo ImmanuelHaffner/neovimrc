@@ -53,6 +53,10 @@ elseif executable('ack')
     let g:ctrlp_user_command = 'ack %s -l --nocolor -g ""'
 endif
 
+" Markdown Composer
+let g:markdown_composer_open_browser = 1
+let g:markdown_composer_autostart = 1
+
 " indentLine
 let g:indentLine_enabled = 0
 augroup filetype
