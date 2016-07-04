@@ -221,10 +221,11 @@ nmap <silent> <S-Tab> :tabprevious<CR>
 nmap <S-t> :tabnew <C-d>
 
 nmap <silent> <leader>ff :FSHere<CR>
-nmap <silent> <leader>fh <C-W>v:FSHere<CR>
-nmap <silent> <leader>fk <C-W>s:FSHere<CR>
-nmap <silent> <leader>fj <C-W>s<C-W>j:FSHere<CR>
-nmap <silent> <leader>fl <C-W>v<C-W>l:FSHere<CR>
+nmap <silent> <leader>fh <C-W>v<C-W>h:FSHere<CR>
+nmap <silent> <leader>fk <C-W>s<C-W>k:FSHere<CR>
+nmap <silent> <leader>fj <C-W>s:FSHere<CR>
+nmap <silent> <leader>fl <C-W>v:FSHere<CR>
+nmap <silent> <leader>ft :tabnew %<CR>:FSHere<CR>
 
 nmap <silent> <leader>l :exe "source .session.vim"<CR>
 
