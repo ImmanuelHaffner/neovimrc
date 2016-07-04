@@ -27,6 +27,7 @@ Plug 'scrooloose/nerdcommenter'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'Shougo/deoplete.nvim'
 Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
+Plug 'sukima/xmledit', { 'for': ['xml', 'html', 'xhtml'] }
 Plug 'tpope/vim-fugitive'
 Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer', 'for': ['c', 'cpp'] }
 Plug 'vim-airline/vim-airline'
@@ -57,6 +58,9 @@ let g:indentLine_enabled = 0
 augroup filetype
     au FileType c,cpp IndentLinesEnable
 augroup END
+
+" XMLEdit
+let g:xmledit_enable_html = 1
 
 " YouCompleteMe
 let g:ycm_min_num_of_chars_for_completion = 3
