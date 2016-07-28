@@ -56,6 +56,9 @@ endif
 " Markdown Composer
 let g:markdown_composer_open_browser = 1
 let g:markdown_composer_autostart = 1
+augroup FILETYPE
+    au FileType markdown ComposerStart
+augroup END
 
 " indentLine
 let g:indentLine_enabled = 0
