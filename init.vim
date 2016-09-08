@@ -225,6 +225,8 @@ nmap <silent> <A-w> gwgw
 imap <silent> <A-w> <C-o>gwgw
 xmap <silent> <A-w> gw
 
+vmap <silent> <C-s> :sort i<CR>
+
 nmap <silent> <C-c> :call NERDComment(0, "toggle")<CR>
 vmap <silent> <C-c> :call NERDComment(1, "toggle")<CR>
 
