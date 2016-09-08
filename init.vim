@@ -121,6 +121,8 @@ set undoreload=10000
 set nowrapscan
 set hlsearch
 set incsearch
+
+set ignorecase
 set smartcase
 
 set conceallevel=2
