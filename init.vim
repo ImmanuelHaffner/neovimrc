@@ -85,6 +85,7 @@ let g:ycm_confirm_extra_conf = 0
 let mapleader=","
 set confirm
 set wildignorecase
+set wildmode=list:longest
 
 if executable('ag')
     set grepprg=ag\ --nogroup\ --nocolor
@@ -134,6 +135,8 @@ set splitbelow
 set splitright
 
 set sessionoptions=buffers,folds,sesdir,tabpages,winpos,winsize,help
+
+set autoread
 
 let g:tex_flavor = "latex"
 
