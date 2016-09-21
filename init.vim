@@ -82,6 +82,9 @@ let g:ycm_confirm_extra_conf = 0
 "==}}}==================================================================================================================
 
 "== Global configuration {{{============================================================================================
+colorscheme solarized
+set background=dark
+
 let mapleader=","
 set confirm
 set wildignorecase
