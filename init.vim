@@ -15,6 +15,7 @@ Plug 'ctrlpvim/ctrlp.vim'
 Plug 'derekwyatt/vim-fswitch'
 Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMarkdownComposer'), 'for': 'markdown' }
 Plug 'fatih/vim-go', { 'for': 'go' }
+Plug 'jalvesaq/Nvim-R'
 Plug 'lervag/vimtex', { 'for': 'tex' }
 Plug 'mhinz/vim-grepper'
 Plug 'neomake/neomake'
