@@ -1,1 +1,1 @@
-set makeprg=R\ -q\ -f\ %
+setlocal makeprg=R\ -q\ -f\ %
