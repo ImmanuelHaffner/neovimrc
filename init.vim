@@ -80,6 +80,10 @@ let g:ycm_key_list_select_completion = []
 let g:ycm_key_list_previous_completion = []
 let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
 let g:ycm_confirm_extra_conf = 0
+
+" ViewDoc
+let g:viewdoc_openempty=0
+let g:viewdoc_copy_to_search_reg=1
 "==}}}==================================================================================================================
 
 "== Global configuration {{{============================================================================================
