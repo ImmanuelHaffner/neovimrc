@@ -11,6 +11,7 @@ endfunction
 call plug#begin()
 Plug 'airblade/vim-gitgutter'
 Plug 'altercation/vim-colors-solarized'
+Plug 'artur-shaik/vim-javacomplete2', { 'for': ['java'] }
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'derekwyatt/vim-fswitch'
 Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMarkdownComposer'), 'for': 'markdown' }
@@ -27,13 +28,15 @@ Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'sudar/vim-arduino-syntax', { 'for': 'ino' }
 Plug 'sukima/xmledit', { 'for': ['xml', 'html', 'xhtml'] }
 Plug 'tpope/vim-fugitive'
-Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --system-libclang', 'for': ['c', 'cpp', 'python'] }
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'vim-pandoc/vim-pandoc-syntax', { 'for': 'markdown' }
 Plug 'vim-scripts/DoxygenToolkit.vim'
 Plug 'Yggdroot/indentLine'
+Plug 'zchee/deoplete-clang', { 'for': ['c', 'cpp'] }
+Plug 'zchee/deoplete-jedi', { 'for': ['python'] }
 call plug#end()
+"Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --system-libclang', 'for': ['c', 'cpp', 'python', 'tex'] }
 
 " vim-airline
 let g:airline#extensions#tabline#enabled = 1
@@ -43,6 +46,13 @@ let g:airline_powerline_fonts = 1
 let g:grepper = {
             \ 'quickfix': 0
             \ }
+
+" Deoplete
+let g:deoplete#enable_at_startup = 1
+let g:deoplete#sources#clang#libclang_path = '/usr/lib/libclang.so'
+let g:deoplete#sources#clang#clang_header = '/usr/lib/clang/'
+let g:deoplete#sources#clang#flags = ['-W', '-Wall', '-pedantic']
+let g:deoplete#sources#clang#sort_algo = 'priority'
 
 " ctrlp
 if executable('ag')
