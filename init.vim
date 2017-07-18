@@ -25,6 +25,7 @@ Plug 'rdnetto/YCM-Generator', { 'branch': 'stable'}
 Plug 'scrooloose/nerdcommenter'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'skywind3000/asyncrun.vim'
 Plug 'sudar/vim-arduino-syntax', { 'for': 'ino' }
 Plug 'sukima/xmledit', { 'for': ['xml', 'html', 'xhtml'] }
 Plug 'tpope/vim-fugitive'
@@ -93,6 +94,12 @@ let g:viewdoc_copy_to_search_reg=1
 let g:gitgutter_max_signs = 50
 let g:gitgutter_realtime = 0
 let g:gitgutter_eager = 0
+
+" AsyncRun
+let g:airline_section_error = airline#section#create_right(['%{g:asyncrun_status}'])
+augroup vimrc
+    autocmd User AsyncRunStart call asyncrun#quickfix_toggle(8, 1) " Open QuickFix window when AsyncRun is invoked
+augroup END
 "==}}}==================================================================================================================
 
 "== Global configuration {{{============================================================================================
