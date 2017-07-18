@@ -15,25 +15,22 @@ Plug 'ctrlpvim/ctrlp.vim'
 Plug 'derekwyatt/vim-fswitch'
 Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMarkdownComposer'), 'for': 'markdown' }
 Plug 'fatih/vim-go', { 'for': 'go' }
-Plug 'jalvesaq/Nvim-R'
+Plug 'jalvesaq/Nvim-R', { 'for': 'r' }
 Plug 'lervag/vimtex', { 'for': 'tex' }
 Plug 'mhinz/vim-grepper'
-Plug 'neomake/neomake'
 Plug 'neovimhaskell/haskell-vim', { 'for': 'haskell' }
-Plug 'pgdouyon/vim-accio'
 Plug 'powerman/vim-plugin-viewdoc'
 Plug 'rdnetto/YCM-Generator', { 'branch': 'stable'}
 Plug 'scrooloose/nerdcommenter'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
-Plug 'Shougo/deoplete.nvim'
-Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'sudar/vim-arduino-syntax', { 'for': 'ino' }
 Plug 'sukima/xmledit', { 'for': ['xml', 'html', 'xhtml'] }
 Plug 'tpope/vim-fugitive'
 Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --system-libclang', 'for': ['c', 'cpp', 'python'] }
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-Plug 'vim-pandoc/vim-pandoc-syntax'
+Plug 'vim-pandoc/vim-pandoc-syntax', { 'for': 'markdown' }
 Plug 'vim-scripts/DoxygenToolkit.vim'
 Plug 'Yggdroot/indentLine'
 call plug#end()
@@ -57,14 +54,11 @@ endif
 " Markdown Composer
 let g:markdown_composer_open_browser = 1
 let g:markdown_composer_autostart = 1
-augroup FILETYPE
-    au FileType markdown ComposerStart
-augroup END
 
 " indentLine
 let g:indentLine_enabled = 0
 augroup filetype
-    au FileType c,cpp IndentLinesEnable
+    au FileType c,cpp,python,java IndentLinesEnable
 augroup END
 
 " XMLEdit
@@ -84,6 +78,11 @@ let g:ycm_confirm_extra_conf = 0
 " ViewDoc
 let g:viewdoc_openempty=0
 let g:viewdoc_copy_to_search_reg=1
+
+" Gitgutter
+let g:gitgutter_max_signs = 50
+let g:gitgutter_realtime = 0
+let g:gitgutter_eager = 0
 "==}}}==================================================================================================================
 
 "== Global configuration {{{============================================================================================
@@ -113,6 +112,7 @@ set colorcolumn=121
 set cursorline
 set number
 set relativenumber
+set lazyredraw
 
 set nowrap
 set linebreak
@@ -144,12 +144,20 @@ set splitright
 
 set sessionoptions=buffers,folds,sesdir,tabpages,winpos,winsize,help
 
+set nofoldenable
+set foldmethod=manual
+
 set autoread
 
 let g:tex_flavor = "latex"
 
 hi! ColorColumn term=reverse cterm=reverse
 hi! CursorLineNr term=bold,reverse cterm=bold,reverse ctermfg=6
+
+let g:python_host_skip_check = 1
+let g:python_host_prog = '/usr/bin/python2'
+let g:python3_host_skip_check = 1
+let g:python3_host_prog = '/usr/bin/python3'
 "==}}}==================================================================================================================
 
 "== Functions & Commands {{{============================================================================================
