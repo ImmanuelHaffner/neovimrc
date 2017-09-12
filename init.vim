@@ -33,6 +33,7 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'vim-pandoc/vim-pandoc-syntax', { 'for': 'markdown' }
 Plug 'vim-scripts/DoxygenToolkit.vim'
+Plug 'vim-scripts/taglist.vim'
 Plug 'Yggdroot/indentLine'
 Plug 'zchee/deoplete-clang', { 'for': ['c', 'cpp'] }
 Plug 'zchee/deoplete-jedi', { 'for': ['python'] }
@@ -98,6 +99,16 @@ let g:airline_section_error = airline#section#create_right(['%{g:asyncrun_status
 augroup vimrc
     autocmd User AsyncRunStart call asyncrun#quickfix_toggle(8, 1) " Open QuickFix window when AsyncRun is invoked
 augroup END
+
+" taglist
+nmap <silent> <F7> :TlistToggle<CR>
+let g:Tlist_Close_On_Select = 2
+let g:Tlist_Display_Prototype = 2
+let g:Tlist_Enable_Fold_Column = 1
+let g:Tlist_File_Fold_Auto_Close = 2
+let g:Tlist_GainFocus_On_ToggleOpen = 2
+let g:Tlist_WinWidth = 81
+let g:Tlist_Highlight_Tag_On_BufEnter = 2
 "==}}}==================================================================================================================
 
 "== Global configuration {{{============================================================================================
@@ -108,6 +119,8 @@ let mapleader=","
 set confirm
 set wildignorecase
 set wildmode=list:longest
+
+set tags=./.tags
 
 if executable('ag')
     set grepprg=ag\ --nogroup\ --nocolor\ --column
