@@ -112,7 +112,7 @@ set wildignorecase
 set wildmode=list:longest
 
 if executable('ag')
-    set grepprg=ag\ --nogroup\ --nocolor
+    set grepprg=ag\ --nogroup\ --nocolor\ --column
 elseif executable('ack')
     set grepprg=ack\ --nogroup\ --nocolor
 endif
