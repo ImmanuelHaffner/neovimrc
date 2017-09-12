@@ -44,9 +44,7 @@ let g:airline#extensions#tabline#enabled = 1
 let g:airline_powerline_fonts = 1
 
 " vim-grepper
-let g:grepper = {
-            \ 'quickfix': 0
-            \ }
+let g:grepper = { 'quickfix': 0 }
 
 " Deoplete
 let g:deoplete#enable_at_startup = 1
