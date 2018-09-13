@@ -37,6 +37,7 @@ Plug 'vim-scripts/taglist.vim'
 Plug 'Yggdroot/indentLine'
 Plug 'zchee/deoplete-clang', { 'for': ['c', 'cpp'] }
 Plug 'zchee/deoplete-jedi', { 'for': ['python'] }
+Plug 'rhysd/vim-grammarous'
 call plug#end()
 "Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --system-libclang', 'for': ['c', 'cpp', 'python', 'tex'] }
 
@@ -109,6 +110,17 @@ let g:Tlist_File_Fold_Auto_Close = 2
 let g:Tlist_GainFocus_On_ToggleOpen = 2
 let g:Tlist_WinWidth = 81
 let g:Tlist_Highlight_Tag_On_BufEnter = 2
+
+" vim-grammarous
+let g:grammarous#default_comments_only_filetypes = {
+            \ '*' : 1, 'help' : 0, 'markdown' : 0,
+            \ }
+let g:grammarous#use_vim_spelllang = 1
+let g:grammarous#languagetool_cmd = '/usr/bin/languagetool'
+let g:grammarous#use_location_list = 1
+let g:grammarous#disabled_rules = {
+            \ '*' : ['DASH_RULE'],
+            \ }
 "==}}}==================================================================================================================
 
 "== Global configuration {{{============================================================================================
@@ -298,6 +310,9 @@ nmap <silent> <BS> :DeleteTrailingWs<CR>
 
 vmap <silent> * :call VSearch('f')<CR>
 vmap <silent> # :call VSearch('b')<CR>
+
+nmap <silent> ,gn :call grammarous#move_to_next_error(getpos('.')[1 : 2], b:grammarous_result)<CR>:call grammarous#create_and_jump_to_info_window_of(b:grammarous_result)<CR>
+nmap <silent> ,gN :call grammarous#move_to_previous_error(getpos('.')[1 : 2], b:grammarous_result)<CR>:call grammarous#create_and_jump_to_info_window_of(b:grammarous_result)<CR>
 "==}}}==================================================================================================================
 
 " Project-specific configuration
