@@ -44,6 +44,7 @@ call plug#end()
 " vim-airline
 let g:airline#extensions#tabline#enabled = 1
 let g:airline_powerline_fonts = 1
+let g:airline#extensions#tabline#show_buffers = 0
 
 " vim-grepper
 let g:grepper = { 'quickfix': 0 }
