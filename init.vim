@@ -123,6 +123,10 @@ let g:grammarous#use_location_list = 1
 let g:grammarous#disabled_rules = {
             \ '*' : ['DASH_RULE'],
             \ }
+
+" vimtex
+let g:vimtex_compiler_progname = 'nvr'
+
 "==}}}==================================================================================================================
 
 "== Global configuration {{{============================================================================================
