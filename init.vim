@@ -53,9 +53,15 @@ let g:grepper = { 'quickfix': 0 }
 let g:deoplete#enable_at_startup = 1
 let g:deoplete#sources#clang#libclang_path = '/usr/lib/libclang.so'
 let g:deoplete#sources#clang#clang_header = '/usr/lib/clang/'
-let g:deoplete#sources#clang#flags = ['-W', '-Wall', '-pedantic']
 let g:deoplete#sources#clang#sort_algo = 'priority'
 let g:deoplete#complete_method = 'completefunc'
+let g:deoplete#sources#clang#flags = [
+            \ '-triple', 'x86_64-pc-linux-gnu',
+            \
+            \ '-W',
+            \ '-Wall',
+            \ '-pedantic'
+            \ ]
 
 " ctrlp
 if executable('ag')
