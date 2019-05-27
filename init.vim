@@ -22,12 +22,14 @@ Plug 'mhinz/vim-grepper'
 Plug 'neovimhaskell/haskell-vim', { 'for': 'haskell' }
 Plug 'powerman/vim-plugin-viewdoc'
 Plug 'rdnetto/YCM-Generator', { 'branch': 'stable'}
+Plug 'rhysd/vim-grammarous'
 Plug 'scrooloose/nerdcommenter'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'skywind3000/asyncrun.vim'
 Plug 'sudar/vim-arduino-syntax', { 'for': 'ino' }
 Plug 'sukima/xmledit', { 'for': ['xml', 'html', 'xhtml'] }
+Plug 'szymonmaszke/vimpyter'
 Plug 'tpope/vim-fugitive'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
@@ -36,7 +38,6 @@ Plug 'vim-scripts/DoxygenToolkit.vim'
 Plug 'vim-scripts/taglist.vim'
 Plug 'Yggdroot/indentLine'
 Plug 'zchee/deoplete-clang', { 'for': ['c', 'cpp'] }
-Plug 'rhysd/vim-grammarous'
 Plug 'zchee/deoplete-jedi', { 'for': ['python', 'ipynb'] }
 call plug#end()
 "Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --system-libclang', 'for': ['c', 'cpp', 'python', 'tex'] }
@@ -323,8 +324,12 @@ nmap <silent> <BS> :DeleteTrailingWs<CR>
 vmap <silent> * :call VSearch('f')<CR>
 vmap <silent> # :call VSearch('b')<CR>
 
-nmap <silent> ,gn :call grammarous#move_to_next_error(getpos('.')[1 : 2], b:grammarous_result)<CR>:call grammarous#create_and_jump_to_info_window_of(b:grammarous_result)<CR>
-nmap <silent> ,gN :call grammarous#move_to_previous_error(getpos('.')[1 : 2], b:grammarous_result)<CR>:call grammarous#create_and_jump_to_info_window_of(b:grammarous_result)<CR>
+nmap <silent> <leader>gn :call grammarous#move_to_next_error(getpos('.')[1 : 2], b:grammarous_result)<CR>:call grammarous#create_and_jump_to_info_window_of(b:grammarous_result)<CR>
+nmap <silent> <leader>gN :call grammarous#move_to_previous_error(getpos('.')[1 : 2], b:grammarous_result)<CR>:call grammarous#create_and_jump_to_info_window_of(b:grammarous_result)<CR>
+
+autocmd Filetype ipynb nmap <silent> <leader>b :VimpyterInsertPythonBlock<CR>
+autocmd Filetype ipynb nmap <silent> <leader>j :VimpyterStartJupyter<CR>
+autocmd Filetype ipynb nmap <silent> <leader>n :VimpyterStartNteract<CR>
 "==}}}==================================================================================================================
 
 " Project-specific configuration
