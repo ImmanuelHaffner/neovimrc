@@ -36,8 +36,8 @@ Plug 'vim-scripts/DoxygenToolkit.vim'
 Plug 'vim-scripts/taglist.vim'
 Plug 'Yggdroot/indentLine'
 Plug 'zchee/deoplete-clang', { 'for': ['c', 'cpp'] }
-Plug 'zchee/deoplete-jedi', { 'for': ['python'] }
 Plug 'rhysd/vim-grammarous'
+Plug 'zchee/deoplete-jedi', { 'for': ['python', 'ipynb'] }
 call plug#end()
 "Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --system-libclang', 'for': ['c', 'cpp', 'python', 'tex'] }
 
