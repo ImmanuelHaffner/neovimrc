@@ -70,6 +70,10 @@ if executable('ag')
 elseif executable('ack')
     let g:ctrlp_user_command = 'ack %s -l --nocolor -g ""'
 endif
+let g:ctrlp_custom_ignore = {
+            \ 'dir':  '\v[\/]\.(git|hg|svn)$|build',
+            \ 'file': '\v\.(exe|so|dll|a)$',
+            \ }
 
 " Markdown Composer
 let g:markdown_composer_open_browser = 1
