@@ -52,10 +52,16 @@ let g:grepper = { 'quickfix': 0 }
 
 " Deoplete
 let g:deoplete#enable_at_startup = 1
+call deoplete#custom#option({
+            \ 'ignore_case': 1,
+            \ 'min_pattern_length': 1,
+            \ })
+let g:deoplete#complete_method = 'completefunc'
+
+" deoplete-clang
 let g:deoplete#sources#clang#libclang_path = '/usr/lib/libclang.so'
 let g:deoplete#sources#clang#clang_header = '/usr/lib/clang/'
 let g:deoplete#sources#clang#sort_algo = 'priority'
-let g:deoplete#complete_method = 'completefunc'
 let g:deoplete#sources#clang#flags = [
             \ '-triple', 'x86_64-pc-linux-gnu',
             \
@@ -63,6 +69,8 @@ let g:deoplete#sources#clang#flags = [
             \ '-Wall',
             \ '-pedantic'
             \ ]
+let g:deoplete#sources#clang#include_default_arguments = 1
+let g:deoplete#sources#clang#filter_availability_kinds = ['NotAvailable', 'NotAccessible']
 
 " ctrlp
 if executable('ag')
@@ -74,6 +82,8 @@ let g:ctrlp_custom_ignore = {
             \ 'dir':  '\v[\/]\.(git|hg|svn)$|build',
             \ 'file': '\v\.(exe|so|dll|a)$',
             \ }
+let g:ctrlp_cache_dir = $HOME . '/.cache/ctrlp'
+
 
 " Markdown Composer
 let g:markdown_composer_open_browser = 1
@@ -147,7 +157,9 @@ set background=dark
 let mapleader=","
 set confirm
 set wildignorecase
-set wildmode=list:longest
+set wildmode=list,longest
+
+set completeopt=menu,menuone,longest,noselect,preview
 
 set tags=./.tags
 
@@ -215,6 +227,9 @@ let g:python_host_skip_check = 1
 let g:python_host_prog = '/usr/bin/python2'
 let g:python3_host_skip_check = 1
 let g:python3_host_prog = '/usr/bin/python3'
+
+" Set the font and size for the hardcopy command
+set printfont=Courier:h8
 "==}}}==================================================================================================================
 
 "== Functions & Commands {{{============================================================================================
