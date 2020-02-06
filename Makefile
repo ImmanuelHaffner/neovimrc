@@ -7,4 +7,6 @@ install:
 	cp init.vim ~/.config/nvim/init.vim
 	cp -R after/ ~/.config/nvim
 	cp -R ftdetect/ ~/.config/nvim
+	cp -R ftplugin// ~/.config/nvim
+	cp -R indent/ ~/.config/nvim
 	cp -R syntax/ ~/.config/nvim
