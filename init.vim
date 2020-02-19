@@ -120,9 +120,6 @@ let g:gitgutter_eager = 0
 
 " AsyncRun
 let g:airline_section_error = airline#section#create_right(['%{g:asyncrun_status}'])
-augroup vimrc
-    autocmd User AsyncRunStart call asyncrun#quickfix_toggle(8, 1) " Open QuickFix window when AsyncRun is invoked
-augroup END
 
 " taglist
 nmap <silent> <F7> :TlistToggle<CR>
