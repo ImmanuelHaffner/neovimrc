@@ -148,6 +148,14 @@ let g:grammarous#disabled_rules = {
 " vimtex
 let g:vimtex_compiler_progname = 'nvr'
 
+" NERDCommenter
+let g:NERDCreateDefaultMappings = 0
+let g:NERDAllowAnyVisualDelims = 1
+let g:NERDSpaceDelims = 1
+let g:NERDCompactSexyComs = 1
+let g:NERDTrimTrailingWhitespace = 1
+let g:NERDDefaultAlign = 'left'
+
 "==}}}==================================================================================================================
 
 "== Global configuration {{{============================================================================================
