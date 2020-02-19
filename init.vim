@@ -18,6 +18,7 @@ Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMarkdownComposer'), 
 Plug 'fatih/vim-go', { 'for': 'go' }
 Plug 'jalvesaq/Nvim-R', { 'for': 'r' }
 Plug 'lervag/vimtex', { 'for': 'tex' }
+Plug 'mh21/errormarker.vim', { 'for': ['c', 'cpp'] }
 Plug 'mhinz/vim-grepper'
 Plug 'neovimhaskell/haskell-vim', { 'for': 'haskell' }
 Plug 'powerman/vim-plugin-viewdoc'
@@ -144,6 +145,10 @@ let g:grammarous#disabled_rules = {
 
 " vimtex
 let g:vimtex_compiler_progname = 'nvr'
+
+" errormarker
+" Distinguish between warnings and errors
+let &errorformat="%f:%l:%c: %t%*[^:]:%m,%f:%l: %t%*[^:]:%m," . &errorformat
 
 " NERDCommenter
 let g:NERDCreateDefaultMappings = 0
