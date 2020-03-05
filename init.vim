@@ -332,11 +332,6 @@ vmap <silent> <C-r> :!tac<CR>
 nmap <silent> <C-c> :call NERDComment(0, "toggle")<CR>
 vmap <silent> <C-c> :call NERDComment(1, "toggle")<CR>
 
-nmap <silent> <Tab>   :tabnext<CR>
-nmap <silent> <S-Tab> :tabprevious<CR>
-
-nmap <S-t> :tabnew <C-d>
-
 nmap <silent> <leader>ff :FSHere<CR>
 nmap <silent> <leader>fh <C-W>v<C-W>h:FSHere<CR>
 nmap <silent> <leader>fk <C-W>s<C-W>k:FSHere<CR>
