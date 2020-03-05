@@ -302,8 +302,8 @@ endfunction
 command! -nargs=1 V :vertical resize <args>
 command! Q call SaveAndQuit()
 command! DeleteTrailingWs :%s/\s\+$//
-command! Untab2 :%s\t/  /g
-command! Untab4 :%s\t/    /g
+command! Untab2 :%s/\t/  /g
+command! Untab4 :%s/\t/    /g
 "==}}}==================================================================================================================
 
 "== Key mapping {{{=====================================================================================================
