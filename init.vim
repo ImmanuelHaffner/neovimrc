@@ -18,6 +18,7 @@ Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMarkdownComposer'), 
 Plug 'fatih/vim-go', { 'for': 'go' }
 Plug 'jalvesaq/Nvim-R', { 'for': 'r' }
 Plug 'lervag/vimtex', { 'for': 'tex' }
+Plug 'ludovicchabant/vim-gutentags'
 Plug 'mh21/errormarker.vim', { 'for': ['c', 'cpp'] }
 Plug 'mhinz/vim-grepper'
 Plug 'neovimhaskell/haskell-vim', { 'for': 'haskell' }
@@ -157,6 +158,10 @@ let g:NERDSpaceDelims = 1
 let g:NERDCompactSexyComs = 1
 let g:NERDTrimTrailingWhitespace = 1
 let g:NERDDefaultAlign = 'left'
+
+" vim-gutentags
+let g:gutentags_cache_dir = "~/.cache/vim/tags"
+"let g:gutentags_ctags_tagfile = ".tags"
 
 "==}}}==================================================================================================================
 
