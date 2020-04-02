@@ -161,7 +161,6 @@ let g:NERDDefaultAlign = 'left'
 
 " vim-gutentags
 let g:gutentags_cache_dir = "~/.cache/vim/tags"
-"let g:gutentags_ctags_tagfile = ".tags"
 
 "==}}}==================================================================================================================
 
