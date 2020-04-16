@@ -171,7 +171,7 @@ set background=dark
 let mapleader=","
 set confirm
 set wildignorecase
-set wildmode=list,longest
+set wildmode=longest:full,full
 
 set completeopt=menu,menuone,longest,noselect,preview
 
