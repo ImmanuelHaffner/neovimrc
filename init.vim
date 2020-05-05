@@ -16,6 +16,7 @@ Plug 'ctrlpvim/ctrlp.vim'
 Plug 'derekwyatt/vim-fswitch'
 Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMarkdownComposer'), 'for': 'markdown' }
 Plug 'fatih/vim-go', { 'for': 'go' }
+Plug 'gpanders/vim-medieval', { 'for': 'markdown' }
 Plug 'jalvesaq/Nvim-R', { 'for': 'r' }
 Plug 'lervag/vimtex', { 'for': 'tex' }
 Plug 'ludovicchabant/vim-gutentags'
@@ -161,6 +162,9 @@ let g:NERDDefaultAlign = 'left'
 
 " vim-gutentags
 let g:gutentags_cache_dir = "~/.cache/vim/tags"
+
+" vim-medieval
+let g:medieval_langs = [ 'python=python3', 'sh=zsh', 'console=zsh' ]
 
 "==}}}==================================================================================================================
 
@@ -358,6 +362,9 @@ nmap <silent> <leader>gN :call grammarous#move_to_previous_error(getpos('.')[1 :
 autocmd Filetype ipynb nmap <silent> <leader>b :VimpyterInsertPythonBlock<CR>
 autocmd Filetype ipynb nmap <silent> <leader>j :VimpyterStartJupyter<CR>
 autocmd Filetype ipynb nmap <silent> <leader>n :VimpyterStartNteract<CR>
+
+" vim-medieval: Evaluate block and put output in default register.
+autocmd Filetype markdown nmap <silent> <F5> :EvalBlock @"<CR>:cexpr getreg('"')<CR>:copen<CR>:wincmd p<CR>
 "==}}}==================================================================================================================
 
 " Project-specific configuration
