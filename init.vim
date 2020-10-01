@@ -349,6 +349,10 @@ nmap <silent> <leader>ft :tabnew %<CR>:FSHere<CR>
 
 nmap <silent> <leader>l :exe "source .session.vim"<CR>
 
+" Enable toggleing between tabs with <leader>t
+au TabLeave * let g:lasttab = tabpagenr()
+nmap <silent> <leader>t :exe "tabn ".g:lasttab<cr>
+
 nmap <silent> <leader>p :call ToggleParagraph()<CR>
 
 nmap <silent> <BS> :DeleteTrailingWs<CR>
