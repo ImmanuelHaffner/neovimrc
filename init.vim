@@ -24,7 +24,6 @@ Plug 'mh21/errormarker.vim', { 'for': ['c', 'cpp'] }
 Plug 'mhinz/vim-grepper'
 Plug 'neovimhaskell/haskell-vim', { 'for': 'haskell' }
 Plug 'powerman/vim-plugin-viewdoc'
-Plug 'rdnetto/YCM-Generator', { 'branch': 'stable'}
 Plug 'rhysd/vim-grammarous'
 Plug 'scrooloose/nerdcommenter'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
@@ -44,6 +43,7 @@ Plug 'Yggdroot/indentLine'
 Plug 'zchee/deoplete-clang', { 'for': ['c', 'cpp'] }
 Plug 'zchee/deoplete-jedi', { 'for': ['python', 'ipynb'] }
 call plug#end()
+"Plug 'rdnetto/YCM-Generator', { 'branch': 'stable'}
 "Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --system-libclang', 'for': ['c', 'cpp', 'python', 'tex'] }
 
 " vim-airline
