@@ -29,6 +29,7 @@ Plug 'rhysd/vim-grammarous'
 Plug 'scrooloose/nerdcommenter'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'Shougo/echodoc.vim'
 Plug 'skywind3000/asyncrun.vim'
 Plug 'sudar/vim-arduino-syntax', { 'for': 'ino' }
 Plug 'sukima/xmledit', { 'for': ['xml', 'html', 'xhtml'] }
@@ -74,6 +75,10 @@ let g:deoplete#sources#clang#flags = [
             \ ]
 let g:deoplete#sources#clang#include_default_arguments = 1
 let g:deoplete#sources#clang#filter_availability_kinds = ['NotAvailable', 'NotAccessible']
+
+" echodoc
+let g:echodoc#enable_at_startup = 1
+let g:echodoc#type = 'virtual'
 
 " ctrlp
 if executable('ag')
