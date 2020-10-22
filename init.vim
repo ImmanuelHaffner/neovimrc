@@ -1,5 +1,5 @@
 " vim: set foldmethod=marker:
-
+"
 "== Plugin Management & Configuration {{{===============================================================================
 function! BuildMarkdownComposer(info)
     if a:info.status != 'unchanged' || a:info.force
@@ -152,6 +152,9 @@ let g:grammarous#disabled_rules = {
 
 " vimtex
 let g:vimtex_compiler_progname = 'nvr'
+let g:vimtex_compiler_method = 'latexmk'
+let g:latex_view_general_viewer = 'zathura'
+let g:vimtex_view_method = 'zathura'
 
 " errormarker
 " Distinguish between warnings and errors
@@ -184,6 +187,11 @@ let g:medieval_langs = [ 'python=python3', 'sh=zsh', 'console=zsh' ]
 "== Global configuration {{{============================================================================================
 colorscheme solarized
 set background=dark
+
+if empty(v:servername) && exists('*remote_startserver')
+    call remote_startserver('VIM')
+endif
+
 
 let mapleader=","
 set confirm
