@@ -373,6 +373,12 @@ func PreviewWord()
         endif
     endif
 endfun
+
+func FormatParagraph()
+    let old_pos = getpos('.')
+    normal! {V}gw
+    call setpos('.', old_pos)
+endfunc
 "==}}}==================================================================================================================
 
 "== Key mapping {{{=====================================================================================================
@@ -391,7 +397,7 @@ nmap <silent> <F4> :call CrosshairToggle()<CR>
 nmap <silent> <F5> :AsyncRun -program=make<CR>
 nmap <silent> <F6> :cl<CR>
 
-nmap <silent> <A-w> gwgw
+nmap <silent> <A-w> :call FormatParagraph()<CR>
 imap <silent> <A-w> <C-o>gwgw
 xmap <silent> <A-w> gw
 
