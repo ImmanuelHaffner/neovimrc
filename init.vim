@@ -379,6 +379,51 @@ func FormatParagraph()
     normal! {V}gw
     call setpos('.', old_pos)
 endfunc
+
+func! MoveFile(new_file, override)
+    let old_file = expand('%')
+    let old_buf = bufnr('%')
+    let old_buf_info = getbufinfo(old_buf)[0]
+
+    if (old_buf_info.changed)
+        echoerr 'Buffer is changed.  Save or restore before moving the file.'
+        return
+    endif
+
+    if (a:new_file == '')
+        echoerr 'Invalid file name.'
+        return
+    endif
+
+    if (a:new_file == old_file) " nothing to be done
+        return
+    endif
+
+    if (bufloaded('^' . a:new_file . '$'))
+        echoerr 'File "' . a:new_file . '" is already loaded in a buffer.'
+        return
+    endif
+
+    if (a:override)
+        if (filereadable(a:new_file) && !filewritable(a:new_file))
+            echoerr 'Cannot override file "' . a:new_file . '".'
+        endif
+        exe ':saveas! ' . fnameescape(a:new_file)
+    else
+        if (filereadable(a:new_file))
+            echoerr 'File "' . a:new_file . '" already exists.'
+            return
+        endif
+        exe ':saveas ' . fnameescape(a:new_file)
+    endif
+
+    exe ':e ' . fnameescape(a:new_file)
+    exe ':silent !rm ' . fnameescape(old_file)
+    exe ':silent bdelete ' . fnameescape(old_file)
+endfunc
+
+command! -nargs=1 -complete=file -bang Mv :call MoveFile(<f-args>, len(<q-bang>))
+command! -nargs=1 -complete=file -bang Rename :call MoveFile(expand('%:h') . '/' . <q-args> . '.' . expand('%:e'), len(<q-bang>))
 "==}}}==================================================================================================================
 
 "== Key mapping {{{=====================================================================================================
