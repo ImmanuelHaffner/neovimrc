@@ -380,7 +380,7 @@ func FormatParagraph()
     call setpos('.', old_pos)
 endfunc
 
-func! MoveFile(new_file, override)
+func! MoveFile(new_file, override, copy)
     let old_file = expand('%')
     let old_buf = bufnr('%')
     let old_buf_info = getbufinfo(old_buf)[0]
@@ -418,12 +418,16 @@ func! MoveFile(new_file, override)
     endif
 
     exe ':e ' . fnameescape(a:new_file)
-    exe ':silent !rm ' . fnameescape(old_file)
-    exe ':silent bdelete ' . fnameescape(old_file)
+    if (!a:copy)
+        exe ':silent !rm ' . fnameescape(old_file)
+        exe ':silent bdelete ' . fnameescape(old_file)
+    endif
 endfunc
 
-command! -nargs=1 -complete=file -bang Mv :call MoveFile(<f-args>, len(<q-bang>))
-command! -nargs=1 -complete=file -bang Rename :call MoveFile(expand('%:h') . '/' . <q-args> . '.' . expand('%:e'), len(<q-bang>))
+command! -nargs=1 -complete=file -bang Mv :call MoveFile(<f-args>, len(<q-bang>), 0)
+command! -nargs=1 -complete=file -bang Rename :call MoveFile(expand('%:h') . '/' . <q-args> . '.' . expand('%:e'), len(<q-bang>), 0)
+command! -nargs=1 -complete=file -bang Cp :call MoveFile(<f-args>, len(<q-bang>), 1)
+command! -nargs=1 -complete=file -bang Clone :call MoveFile(expand('%:h') . '/' . <q-args> . '.' . expand('%:e'), len(<q-bang>), 1)
 "==}}}==================================================================================================================
 
 "== Key mapping {{{=====================================================================================================
