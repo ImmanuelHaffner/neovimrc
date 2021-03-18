@@ -440,6 +440,9 @@ nmap <A-j> <C-w>j
 nmap <A-k> <C-w>k
 nmap <A-l> <C-w>l
 
+" Open file under cursor in vertically split window
+nnoremap <C-W><C-F> <C-W>vgf
+
 nmap <silent> <F2> :NERDTree<CR>
 nmap <silent> <F3> :call SpellToggle()<CR>
 nmap <silent> <F4> :call CrosshairToggle()<CR>
