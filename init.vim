@@ -19,6 +19,7 @@ Plug 'fatih/vim-go', { 'for': 'go' }
 Plug 'gpanders/vim-medieval', { 'for': 'markdown' }
 Plug 'jalvesaq/Nvim-R', { 'for': 'r' }
 Plug 'lervag/vimtex', { 'for': 'tex' }
+Plug 'lifepillar/pgsql.vim', { 'for': ['sql', 'pgsql'] }
 Plug 'ludovicchabant/vim-gutentags'
 Plug 'mh21/errormarker.vim', { 'for': ['c', 'cpp'] }
 Plug 'mhinz/vim-grepper'
