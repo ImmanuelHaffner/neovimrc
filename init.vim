@@ -483,12 +483,12 @@ vmap <silent> # :call VSearch('b')<CR>
 nmap <silent> <leader>gn :call grammarous#move_to_next_error(getpos('.')[1 : 2], b:grammarous_result)<CR>:call grammarous#create_and_jump_to_info_window_of(b:grammarous_result)<CR>
 nmap <silent> <leader>gN :call grammarous#move_to_previous_error(getpos('.')[1 : 2], b:grammarous_result)<CR>:call grammarous#create_and_jump_to_info_window_of(b:grammarous_result)<CR>
 
-autocmd Filetype ipynb nmap <silent> <leader>b :VimpyterInsertPythonBlock<CR>
-autocmd Filetype ipynb nmap <silent> <leader>j :VimpyterStartJupyter<CR>
-autocmd Filetype ipynb nmap <silent> <leader>n :VimpyterStartNteract<CR>
+autocmd Filetype ipynb nmap <silent><buffer> <leader>b :VimpyterInsertPythonBlock<CR>
+autocmd Filetype ipynb nmap <silent><buffer> <leader>j :VimpyterStartJupyter<CR>
+autocmd Filetype ipynb nmap <silent><buffer> <leader>n :VimpyterStartNteract<CR>
 
 " vim-medieval: Evaluate block and put output in default register.
-autocmd Filetype markdown nmap <silent> <F5> :EvalBlock @"<CR>:cexpr getreg('"')<CR>:copen<CR>:wincmd p<CR>
+autocmd Filetype markdown nmap <silent><buffer> <F5> :EvalBlock @"<CR>:cexpr getreg('"')<CR>:copen<CR>:wincmd p<CR>
 "==}}}==================================================================================================================
 
 " Project-specific configuration
