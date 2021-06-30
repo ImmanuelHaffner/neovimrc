@@ -179,6 +179,12 @@ let g:gutentags_ctags_extra_args = [
       \ '--tag-relative=yes',
       \ '--fields=+ailmnS',
       \ ]
+let g:gutentags_file_list_command = {
+    \ 'markers': {
+        \ '.git': 'git ls-files',
+        \ '.hg': 'hg files',
+        \ },
+    \ }
 
 " vim-medieval
 let g:medieval_langs = [ 'python=python3', 'sh=zsh', 'console=zsh' ]
