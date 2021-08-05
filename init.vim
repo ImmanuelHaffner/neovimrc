@@ -131,7 +131,6 @@ let g:gitgutter_eager = 0
 let g:airline_section_error = airline#section#create_right(['%{g:asyncrun_status}'])
 
 " taglist
-nmap <silent> <F7> :TlistToggle<CR>
 let g:Tlist_Close_On_Select = 2
 let g:Tlist_Display_Prototype = 2
 let g:Tlist_Enable_Fold_Column = 1
@@ -152,6 +151,7 @@ let g:grammarous#disabled_rules = {
             \ }
 
 " vimtex
+let g:tex_flavor = 'latex'
 let g:vimtex_compiler_progname = 'nvr'
 let g:vimtex_compiler_method = 'latexmk'
 let g:latex_view_general_viewer = 'zathura'
@@ -263,8 +263,6 @@ set nofoldenable
 set foldmethod=manual
 
 set autoread
-
-let g:tex_flavor = "latex"
 
 hi! ColorColumn term=reverse cterm=reverse
 hi! CursorLineNr term=bold,reverse cterm=bold,reverse ctermfg=6
@@ -488,6 +486,8 @@ vmap <silent> # :call VSearch('b')<CR>
 
 nmap <silent> <leader>gn :call grammarous#move_to_next_error(getpos('.')[1 : 2], b:grammarous_result)<CR>:call grammarous#create_and_jump_to_info_window_of(b:grammarous_result)<CR>
 nmap <silent> <leader>gN :call grammarous#move_to_previous_error(getpos('.')[1 : 2], b:grammarous_result)<CR>:call grammarous#create_and_jump_to_info_window_of(b:grammarous_result)<CR>
+
+nmap <silent> <F7> :TlistToggle<CR>
 
 autocmd Filetype ipynb nmap <silent><buffer> <leader>b :VimpyterInsertPythonBlock<CR>
 autocmd Filetype ipynb nmap <silent><buffer> <leader>j :VimpyterStartJupyter<CR>
