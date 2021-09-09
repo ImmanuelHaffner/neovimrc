@@ -28,6 +28,7 @@ Plug 'powerman/vim-plugin-viewdoc'
 Plug 'rhysd/vim-grammarous'
 Plug 'scrooloose/nerdcommenter'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
+Plug 'Shougo/deoplete-clangx', { 'for': ['c', 'cpp'] }
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'Shougo/echodoc.vim'
 Plug 'skywind3000/asyncrun.vim'
@@ -41,7 +42,6 @@ Plug 'vim-pandoc/vim-pandoc-syntax', { 'for': 'markdown' }
 Plug 'vim-scripts/DoxygenToolkit.vim'
 Plug 'vim-scripts/taglist.vim'
 Plug 'Yggdroot/indentLine'
-Plug 'zchee/deoplete-clang', { 'for': ['c', 'cpp'] }
 Plug 'zchee/deoplete-jedi', { 'for': ['python', 'ipynb'] }
 call plug#end()
 "Plug 'rdnetto/YCM-Generator', { 'branch': 'stable'}
@@ -63,19 +63,23 @@ call deoplete#custom#option({
             \ })
 let g:deoplete#complete_method = 'completefunc'
 
+" deoplete-clangx
+call deoplete#custom#var('clangx', 'default_c_options',   '-triple x86_64-pc-linux-gnu -W -Wall')
+call deoplete#custom#var('clangx', 'default_cpp_options', '-triple x86_64-pc-linux-gnu -W -Wall -std=c++17')
+
 " deoplete-clang
-let g:deoplete#sources#clang#libclang_path = '/usr/lib/libclang.so'
-let g:deoplete#sources#clang#clang_header = '/usr/lib/clang/'
-let g:deoplete#sources#clang#sort_algo = 'priority'
-let g:deoplete#sources#clang#flags = [
-            \ '-triple', 'x86_64-pc-linux-gnu',
-            \
-            \ '-W',
-            \ '-Wall',
-            \ '-pedantic'
-            \ ]
-let g:deoplete#sources#clang#include_default_arguments = 1
-let g:deoplete#sources#clang#filter_availability_kinds = ['NotAvailable', 'NotAccessible']
+"let g:deoplete#sources#clang#libclang_path = '/usr/lib/libclang.so'
+"let g:deoplete#sources#clang#clang_header = '/usr/lib/clang/'
+"let g:deoplete#sources#clang#sort_algo = 'priority'
+"let g:deoplete#sources#clang#flags = [
+"            \ '-triple', 'x86_64-pc-linux-gnu',
+"            \
+"            \ '-W',
+"            \ '-Wall',
+"            \ '-pedantic'
+"            \ ]
+"let g:deoplete#sources#clang#include_default_arguments = 1
+"let g:deoplete#sources#clang#filter_availability_kinds = ['NotAvailable', 'NotAccessible']
 
 " echodoc
 let g:echodoc#enable_at_startup = 1
