@@ -465,8 +465,8 @@ xmap <silent> <A-w> gw
 vmap <silent> <C-s> :sort i<CR>
 vmap <silent> <C-r> :!tac<CR>
 
-nmap <silent> <C-c> :call NERDComment(0, "toggle")<CR>
-vmap <silent> <C-c> :call NERDComment(1, "toggle")<CR>
+nmap <silent> <C-c> :call nerdcommenter#Comment('n', 'toggle')<CR>
+vmap <silent> <C-c> :call nerdcommenter#Comment('x', 'toggle')<CR>
 
 nmap <silent> <leader>ff :FSHere<CR>
 nmap <silent> <leader>fh <C-W>v<C-W>h:FSHere<CR>
