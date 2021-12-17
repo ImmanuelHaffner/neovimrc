@@ -281,6 +281,9 @@ let g:python3_host_prog = '/usr/bin/python3'
 set printfont=Courier:h8
 
 set updatetime=1500
+
+" don't give |ins-completion-menu| messages
+set shortmess+=c
 "==}}}==================================================================================================================
 
 "== Functions & Commands {{{============================================================================================
