@@ -156,10 +156,9 @@ let g:grammarous#disabled_rules = {
 
 " vimtex
 let g:tex_flavor = 'latex'
-let g:vimtex_compiler_progname = 'nvr'
 let g:vimtex_compiler_method = 'latexmk'
-let g:latex_view_general_viewer = 'zathura'
 let g:vimtex_view_method = 'zathura'
+let g:vimtex_view_zathura_options =  '-x "nvr --servername ' . v:servername . ' --remote-silent %{input} -c %{line}"'
 
 " errormarker
 " Distinguish between warnings and errors
