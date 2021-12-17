@@ -64,10 +64,12 @@ call deoplete#custom#option({
 let g:deoplete#complete_method = 'completefunc'
 
 " deoplete-clangx
+call deoplete#custom#var('clangx', 'clang_binary',   '/usr/bin/clang')
 call deoplete#custom#var('clangx', 'default_c_options',   '-triple x86_64-pc-linux-gnu -W -Wall')
 call deoplete#custom#var('clangx', 'default_cpp_options', '-triple x86_64-pc-linux-gnu -W -Wall -std=c++17')
 
 " deoplete-clang
+" let g:clang_library_path='/usr/lib/libclang.so'
 "let g:deoplete#sources#clang#libclang_path = '/usr/lib/libclang.so'
 "let g:deoplete#sources#clang#clang_header = '/usr/lib/clang/'
 "let g:deoplete#sources#clang#sort_algo = 'priority'
