@@ -232,6 +232,7 @@ set colorcolumn=121
 set cursorline
 set number
 set relativenumber
+" set signcolumn=number " merge sign column (e.g. used by GitGutter) and number column
 set lazyredraw
 
 set nowrap
