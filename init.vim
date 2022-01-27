@@ -85,7 +85,8 @@ call deoplete#custom#var('clangx', 'default_cpp_options', '-triple x86_64-pc-lin
 
 " echodoc
 let g:echodoc#enable_at_startup = 1
-let g:echodoc#type = 'virtual'
+let g:echodoc#type = 'floating'
+highlight link EchoDocFloat Pmenu
 
 " ctrlp
 if executable('ag')
@@ -209,6 +210,7 @@ let mapleader=","
 set confirm
 set wildignorecase
 set wildmode=longest:full,full
+set noshowmode
 
 set completeopt=menu,menuone,longest,noselect,preview
 
