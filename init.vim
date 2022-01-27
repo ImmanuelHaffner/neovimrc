@@ -11,38 +11,38 @@ endfunction
 call plug#begin()
 Plug 'airblade/vim-gitgutter'
 Plug 'altercation/vim-colors-solarized'
-Plug 'artur-shaik/vim-javacomplete2', { 'for': ['java'] }
+Plug 'artur-shaik/vim-javacomplete2'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'derekwyatt/vim-fswitch'
-Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMarkdownComposer'), 'for': 'markdown' }
-Plug 'fatih/vim-go', { 'for': 'go' }
-Plug 'gpanders/vim-medieval', { 'for': 'markdown' }
-Plug 'jalvesaq/Nvim-R', { 'for': 'r' }
-Plug 'lervag/vimtex', { 'for': 'tex' }
-Plug 'lifepillar/pgsql.vim', { 'for': ['sql', 'pgsql'] }
+Plug 'euclio/vim-markdown-composer', { 'do': function('BuildMarkdownComposer') }
+Plug 'fatih/vim-go'
+Plug 'gpanders/vim-medieval'
+Plug 'jalvesaq/Nvim-R'
+Plug 'lervag/vimtex'
+Plug 'lifepillar/pgsql.vim'
 Plug 'ludovicchabant/vim-gutentags'
-Plug 'mh21/errormarker.vim', { 'for': ['c', 'cpp'] }
+Plug 'mh21/errormarker.vim'
 Plug 'mhinz/vim-grepper'
-Plug 'neovimhaskell/haskell-vim', { 'for': 'haskell' }
+Plug 'neovimhaskell/haskell-vim'
 Plug 'powerman/vim-plugin-viewdoc'
 Plug 'rhysd/vim-grammarous'
 Plug 'scrooloose/nerdcommenter'
-Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
-Plug 'Shougo/deoplete-clangx', { 'for': ['c', 'cpp'] }
+Plug 'scrooloose/nerdtree'
+Plug 'Shougo/deoplete-clangx'
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'Shougo/echodoc.vim'
 Plug 'skywind3000/asyncrun.vim'
-Plug 'sudar/vim-arduino-syntax', { 'for': 'ino' }
-Plug 'sukima/xmledit', { 'for': ['xml', 'html', 'xhtml'] }
+Plug 'sudar/vim-arduino-syntax'
+Plug 'sukima/xmledit'
 Plug 'szymonmaszke/vimpyter'
 Plug 'tpope/vim-fugitive'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-Plug 'vim-pandoc/vim-pandoc-syntax', { 'for': 'markdown' }
+Plug 'vim-pandoc/vim-pandoc-syntax'
 Plug 'vim-scripts/DoxygenToolkit.vim'
 Plug 'vim-scripts/taglist.vim'
 Plug 'Yggdroot/indentLine'
-Plug 'zchee/deoplete-jedi', { 'for': ['python', 'ipynb'] }
+Plug 'zchee/deoplete-jedi'
 call plug#end()
 "Plug 'rdnetto/YCM-Generator', { 'branch': 'stable'}
 "Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --system-libclang', 'for': ['c', 'cpp', 'python', 'tex'] }
