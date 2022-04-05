@@ -162,6 +162,8 @@ let g:tex_flavor = 'latex'
 let g:vimtex_compiler_method = 'latexmk'
 let g:vimtex_view_method = 'zathura'
 let g:vimtex_view_zathura_options =  '-x "nvr --servername ' . v:servername . ' --remote-silent %{input} -c %{line}"'
+" This is new style
+call deoplete#custom#var('omni', 'input_patterns', { 'tex': g:vimtex#re#deoplete })
 
 " errormarker
 " Distinguish between warnings and errors
