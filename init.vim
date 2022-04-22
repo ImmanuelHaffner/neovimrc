@@ -392,12 +392,6 @@ func PreviewWord()
     endif
 endfun
 
-func FormatParagraph()
-    let old_pos = getpos('.')
-    normal! {V}gw
-    call setpos('.', old_pos)
-endfunc
-
 func! MoveFile(new_file, override, copy)
     let old_file = expand('%')
     let old_buf = bufnr('%')
@@ -467,8 +461,8 @@ nmap <silent> <F4> :call CrosshairToggle()<CR>
 nmap <silent> <F5> :AsyncRun -program=make<CR>
 nmap <silent> <F6> :cl<CR>
 
-nmap <silent> <A-w> :call FormatParagraph()<CR>
-imap <silent> <A-w> <C-o>gwgw
+nmap <silent> <A-w> gwap
+imap <silent> <A-w> <C-o>gwap
 xmap <silent> <A-w> gw
 
 vmap <silent> <C-s> :sort i<CR>
