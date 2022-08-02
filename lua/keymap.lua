@@ -4,6 +4,7 @@ local utils = require('lua/utils')
 
 function M.setup()
     local has_wk, wk = pcall(require, 'which-key')
+    local has_bufferline, bufferline = pcall(require, 'bufferline')
 
     ----- Global mappings {{{-------------------------------------------------------------------------------------------
     -- Select a session
@@ -58,7 +59,7 @@ function M.setup()
     if has_wk then
         wk.register({
             name = 'Telescope',
-            ['f'] = { function() require('telescope.builtin').find_files() end, 'Find file' },
+            f = { function() require('telescope.builtin').find_files() end, 'Find file' },
             g = {
                 f = { function() require('telescope.builtin').git_files() end, 'Find file tracked in Git' },
                 b = { function() require('telescope.builtin').git_branches() end, 'Find Git branch' },
@@ -66,6 +67,17 @@ function M.setup()
                 h = { function() require('telescope.builtin').git_bcommits() end, 'Find buffer\'s Git commit (history)' },
             },
         }, { prefix = 'f' })
+    end
+
+    if has_bufferline then
+        if has_wk then
+            wk.register({
+                name = 'Bufferline',
+                t = { '<cmd>BufferLineCycleNext<cr>', 'Goto next tab' },
+                T = { '<cmd>BufferLineCyclePrev<cr>', 'Goto previous tab' },
+            }, { prefix = 'g', silent = true })
+        else
+        end
     end
     --}}}---------------------------------------------------------------------------------------------------------------
 

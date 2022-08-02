@@ -213,6 +213,16 @@ function M.setup()
             close_icon = '',
             buffer_close_icon = '',
             sort_by = 'tabs',
+            offsets = {
+                {
+                    filetype = 'NvimTree',
+                    text = function()
+                        return require'lua/utils'.shorten_path(vim.fn.getcwd(), 20)
+                    end,
+                    highlight = 'Directory',
+                    text_align = 'left',
+                }
+            }
         }
     }
     --}}}---------------------------------------------------------------------------------------------------------------
