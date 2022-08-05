@@ -449,15 +449,20 @@ function M.setup()
         }
     }
     gls.right[8] = {
+        CursorPos = {
+            provider = function()
+                local _, line, col, _, colwanted = unpack(vim.fn.getcurpos())
+                return line .. ',' .. col .. ' '
+            end,
+            icon = '   ',
+            highlight = { colors.gray2, colors.purple },
+        }
+    }
+    gls.right[9] = {
         PerCent = {
             provider = 'LinePercent',
             separator = '',
-            separator_highlight = function()
-                if vim.fn.empty(vim.g['asyncrun_status']) ~= 1 then
-                    return { colors.blue, colors.red1 }
-                end
-                return { colors.blue, colors.bg }
-            end,
+            separator_highlight = { colors.blue, colors.purple },
             highlight = {colors.gray2, colors.blue}
         }
     }
