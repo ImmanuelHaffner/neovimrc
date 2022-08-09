@@ -1,0 +1,3 @@
+#!/bin/bash
+
+nvim -O "+windo set diff cursorbind scrollbind" "$@"

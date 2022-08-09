@@ -13,3 +13,7 @@ install:
 	cp -R ftplugin// ~/.config/nvim
 	cp -R indent/ ~/.config/nvim
 	cp -R syntax/ ~/.config/nvim
+	# Install nvimdiff thin wrapper
+	mkdir -p ~/.local/bin
+	cp nvimdiff ~/.local/bin
+	chmod a+x ~/.local/bin/nvimdiff
