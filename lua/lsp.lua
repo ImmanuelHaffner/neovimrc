@@ -67,11 +67,13 @@ function M.setup()
     }
 
     require('lspconfig')['ltex'].setup{
-        on_attach = on_attach
+        on_attach = on_attach,
+        capabilities = require'cmp_nvim_lsp'.update_capabilities(vim.lsp.protocol.make_client_capabilities()),
     }
 
     require('lspconfig')['texlab'].setup{
-        on_attach = on_attach
+        on_attach = on_attach,
+        capabilities = require'cmp_nvim_lsp'.update_capabilities(vim.lsp.protocol.make_client_capabilities()),
     }
     --}}}---------------------------------------------------------------------------------------------------------------
 

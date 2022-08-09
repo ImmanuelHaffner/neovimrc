@@ -50,7 +50,7 @@ function M.setup()
             -- some optional icons
             requires = { 'kyazdani42/nvim-web-devicons', opt = true }
         }
-        use {'akinsho/bufferline.nvim', tag = "v2.*", requires = { 'kyazdani42/nvim-web-devicons', opt = true } }
+        use { 'akinsho/bufferline.nvim', tag = 'v2.*', requires = { 'kyazdani42/nvim-web-devicons', opt = true } }
         use { 'dccsillag/magma-nvim', run = ':UpdateRemotePlugins' }
         use { 'euclio/vim-markdown-composer', run = { 'cargo build --release', ':UpdateRemotePlugins' } }
         use { 'Shatur/neovim-session-manager', requires = { 'nvim-lua/plenary.nvim' } }
@@ -59,10 +59,14 @@ function M.setup()
             config = function() require('which-key').setup() end
         }
         use { 'ray-x/lsp_signature.nvim' }
+        use { 'petertriho/cmp-git', requires = 'nvim-lua/plenary.nvim' }
         use {
             'hrsh7th/nvim-cmp',
             requires = {
-                'hrsh7th/cmp-nvim-lsp'
+                'hrsh7th/cmp-nvim-lsp',
+                'hrsh7th/cmp-buffer',
+                'hrsh7th/cmp-path',
+                'hrsh7th/cmp-cmdline',
             }
         }
 

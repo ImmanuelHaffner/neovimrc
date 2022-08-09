@@ -124,11 +124,42 @@ function M.setup()
     --}}}---------------------------------------------------------------------------------------------------------------
 
     ----- nvim-cmp {{{--------------------------------------------------------------------------------------------------
-    require'cmp'.setup{
-        sources = {
-            { name = 'nvim_lsp' }
-        }
+    local cmp = require'cmp'
+    cmp.setup{
+        sources = cmp.config.sources({
+            { name = 'nvim_lsp' },
+            { name = 'path' },
+        }, {
+            { name = 'buffer' },
+        }),
+        mapping = cmp.mapping.preset.insert{
+            ['C-n'] = cmp.mapping.select_next_item(),
+            ['C-p'] = cmp.mapping.select_prev_item(),
+            ['C-b'] = cmp.mapping.scroll_docs(8),
+            ['C-f'] = cmp.mapping.scroll_docs(-8),
+        },
     }
+    cmp.setup.filetype('gitcommit', {
+        sources = cmp.config.sources({
+            { name = 'cmp_git' },
+        }, {
+            { name = 'buffer' },
+        })
+    })
+    cmp.setup.cmdline('/', {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = {
+            { name = 'buffer' }
+        }
+    })
+    cmp.setup.cmdline(':', {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = cmp.config.sources({
+            { name = 'path' }
+        }, {
+            { name = 'cmdline' }
+        })
+    })
     --}}}---------------------------------------------------------------------------------------------------------------
 
     ----- lsp_signature {{{---------------------------------------------------------------------------------------------
