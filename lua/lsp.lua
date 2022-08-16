@@ -47,7 +47,11 @@ function M.setup()
                 i = { function() buf.implementation() end, 'Goto implementation' },
                 t = { function() buf.type_definition() end, 'Goto type definition' },
             },
-            k = { function() buf.hover() end, 'Tooltip for item under cursor' },
+            h = {
+                h = { function() buf.hover() end, 'Tooltip for item under cursor' },
+                s = { function() buf.signature_help() end, 'Show signature help' },
+                -- vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
+            },
             ['rn'] = { function() buf.rename() end, 'Refactor rename item under cursor' },
             ['ca'] = { function() buf.code_action() end, 'Perform code action for item under cursor' },
             ['cf'] = { function() buf.formatting() end, 'Perform formatting (whole file)' },
@@ -55,8 +59,6 @@ function M.setup()
             ['s<tab>'] = { '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', 'Open source/header file in horizontal split' },
             ['v<tab>'] = { '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', 'Open source/header file in vertical split' },
         }, { prefix = '<leader>', buffer = bufnr })
-
-        -- vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
     end
     --}}}---------------------------------------------------------------------------------------------------------------
 
