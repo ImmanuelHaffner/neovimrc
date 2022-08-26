@@ -50,6 +50,7 @@ function M.setup()
             h = {
                 h = { function() buf.hover() end, 'Tooltip for item under cursor' },
                 s = { function() buf.signature_help() end, 'Show signature help' },
+                r = { function() buf.references() end, 'Show references' },
                 -- vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
             },
             ['rn'] = { function() buf.rename() end, 'Refactor rename item under cursor' },
