@@ -232,6 +232,12 @@ function M.setup()
         options = {
             mode = 'tabs',
             right_mouse_command = nil,
+            tab_size = 32,
+            max_name_length = 32,
+            max_prefix_length = 0,
+            name_formatter = function(buf)
+                return require'lua/utils'.shorten_relative_path(buf.path, 32)
+            end,
             diagnostics = 'nvim_lsp',
             diagnostics_indicator = function(count, level, diagnostics_dict, context)
                 local s = ' '
