@@ -1,5 +1,9 @@
 local M = {}
 
+function M.select(cond, tru, fals)
+    if cond then return tru else return fals end
+end
+
 function M.is_buffer_empty()
     -- Check whether the current buffer is empty
     return vim.fn.empty(vim.fn.expand('%:t')) == 1
@@ -31,50 +35,75 @@ function M.search_for_visual_selection(forward)
     vim.api.nvim_win_set_cursor(0, cursor_pos)
 end
 
-function M.shorten_path(path, max_len)
-    local home_dir = os.getenv('HOME')
-    local short_path = ''
-
-    -- rewrite $HOME to '~'
-    local s, e = path:find(home_dir)
-    local is_in_home = s == 1
-    if is_in_home then
-        path = path:sub(e + 1, -1)
-        short_path = '~'
+function M.split_str(str, sep)
+    if sep == nil then
+        sep = '%s' -- split on white-space
     end
+    local fields = {}
+    for field in string.gmatch(str, "([^"..sep.."]+)") do
+        table.insert(fields, field)
+    end
+    return fields
+end
+
+function M.shorten_path(path, max_len)
+    if path == '' then return path end
 
     local len = path:len()
-    local pos = 1
-    while true do
-        local s, e = path:find('/[^/]+', pos) -- find next field
-        if s == nil then
-            break
-        end
+    local fields = M.split_str(path, '/')
+    print('fields: ' .. vim.inspect(fields))
 
-        local field = path:sub(s, e) -- extract field
+    -- Shorten fields until path is short enough
+    for idx, field in ipairs(fields) do
+        if len <= max_len then break end -- overall short enough
+        if idx == #fields then break end -- don't shorten last field
 
-        -- Never shorten the last field
-        if e == path:len() then
-            short_path = short_path .. field
-            break
-        end
-
-        -- Shorten the field
-        local short_field = field:sub(1, 2) .. ''
+        local short_field = field:sub(1, 1) .. ''
         local saved = field:len() - (short_field:len() - 2) -- subtract 2 for unicode char 
-
-        -- Select short or full field
-        if len > max_len and saved > 0 then
-            len = len - saved
-            short_path = short_path .. short_field
-        else
-            short_path = short_path .. field
-        end
-
-        pos = e + 1
+        len = len - saved
+        print(idx .. ': ' .. field .. ' to ' .. short_field .. ', new len is ' .. len)
+        fields[idx] = short_field
     end
 
+    -- Reconstruct path
+    local s, e = path:find('/', 1)
+    local starts_with_sep = s == 1
+    print('path starts with separator? ' .. tostring(starts_with_sep))
+    local short_path = M.select(starts_with_sep, '/', '')
+    short_path = short_path .. fields[1] -- first field
+    for idx = 2, #fields do
+        short_path = short_path .. '/' .. fields[idx]
+    end
     return short_path
 end
+
+function M.shorten_absolute_path(path, max_len)
+    local home_dir = os.getenv('HOME')
+    local s, e = path:find(home_dir)
+    if s == 1 then -- path is in HOME
+        return '~' .. M.shorten_path(path:sub(e + 1, -1), max_len - 1)
+    else
+        return M.shorten_path(peth, max_len)
+    end
+end
+
+function M.shorten_relative_path(path, max_len)
+    print('shorten relative path ' .. path)
+    local pwd = vim.fn.getcwd()
+    if pwd == '/' then
+        return M.shorten_absolute_path(path, max_len)
+    end
+
+    pwd = pwd .. '/'
+    local s, e = path:find(pwd)
+    if s == 1 then -- path is in CWD
+        local rel_path = path:sub(e + 1, -1)
+        print('actually shorten ' .. rel_path)
+        return M.shorten_path(rel_path, max_len)
+    else
+        return M.shorten_path(path, max_len)
+    end
+end
+
 
 return M
