@@ -1,5 +1,7 @@
 local M = { }
 
+local utils = require'lua/utils'
+
 function M.setup()
 
     --- NeoSolarized {{{------------------------------------------------------------------------------------------------
@@ -236,7 +238,7 @@ function M.setup()
             max_name_length = 32,
             max_prefix_length = 0,
             name_formatter = function(buf)
-                return require'lua/utils'.shorten_relative_path(buf.path, 32)
+                return utils.shorten_relative_path(buf.path, 32)
             end,
             diagnostics = 'nvim_lsp',
             diagnostics_indicator = function(count, level, diagnostics_dict, context)

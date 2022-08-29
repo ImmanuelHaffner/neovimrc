@@ -17,9 +17,7 @@ end
 function M.get_visual_selection()
     local start_row, start_col = unpack(vim.api.nvim_buf_get_mark(0, '<'))
     local end_row,   end_col   = unpack(vim.api.nvim_buf_get_mark(0, '>'))
-    -- print(vim.inspect({start_row, start_col, end_row, end_col}))
     local lines = vim.api.nvim_buf_get_text(0, start_row - 1, start_col, end_row - 1, end_col + 1, {})
-    -- print(vim.inspect(lines))
     return table.concat(lines, '\n')
 end
 
@@ -51,7 +49,6 @@ function M.shorten_path(path, max_len)
 
     local len = path:len()
     local fields = M.split_str(path, '/')
-    print('fields: ' .. vim.inspect(fields))
 
     -- Shorten fields until path is short enough
     for idx, field in ipairs(fields) do
@@ -61,14 +58,12 @@ function M.shorten_path(path, max_len)
         local short_field = field:sub(1, 1) .. ''
         local saved = field:len() - (short_field:len() - 2) -- subtract 2 for unicode char 
         len = len - saved
-        print(idx .. ': ' .. field .. ' to ' .. short_field .. ', new len is ' .. len)
         fields[idx] = short_field
     end
 
     -- Reconstruct path
     local s, e = path:find('/', 1)
     local starts_with_sep = s == 1
-    print('path starts with separator? ' .. tostring(starts_with_sep))
     local short_path = M.select(starts_with_sep, '/', '')
     short_path = short_path .. fields[1] -- first field
     for idx = 2, #fields do
@@ -78,8 +73,9 @@ function M.shorten_path(path, max_len)
 end
 
 function M.shorten_absolute_path(path, max_len)
+    if path == nil or path == '' then return path end
     local home_dir = os.getenv('HOME')
-    local s, e = path:find(home_dir)
+    local s, e = path:find(home_dir, 1, true) -- plain search
     if s == 1 then -- path is in HOME
         return '~' .. M.shorten_path(path:sub(e + 1, -1), max_len - 1)
     else
@@ -88,18 +84,14 @@ function M.shorten_absolute_path(path, max_len)
 end
 
 function M.shorten_relative_path(path, max_len)
-    print('shorten relative path ' .. path)
-    local pwd = vim.fn.getcwd()
-    if pwd == '/' then
-        return M.shorten_absolute_path(path, max_len)
-    end
-
-    pwd = pwd .. '/'
-    local s, e = path:find(pwd)
+    if path == nil or path == '' then return path end
+    local cwd = vim.fn.getcwd() .. '/'
+    local s, e = path:find(cwd, 1, true) -- plain search
     if s == 1 then -- path is in CWD
         local rel_path = path:sub(e + 1, -1)
-        print('actually shorten ' .. rel_path)
         return M.shorten_path(rel_path, max_len)
+    elseif path:sub(1, 1) == '/' then -- path starts with '/'
+        return M.shorten_absolute_path(path, max_len)
     else
         return M.shorten_path(path, max_len)
     end
