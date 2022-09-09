@@ -135,10 +135,11 @@ function M.setup()
             { name = 'buffer' },
         }),
         mapping = cmp.mapping.preset.insert{
-            ['C-n'] = cmp.mapping.select_next_item(),
-            ['C-p'] = cmp.mapping.select_prev_item(),
-            ['C-b'] = cmp.mapping.scroll_docs(8),
-            ['C-f'] = cmp.mapping.scroll_docs(-8),
+            ['<C-b>'] = cmp.mapping.scroll_docs(8),
+            ['<C-f>'] = cmp.mapping.scroll_docs(-8),
+            ['<C-n>'] = cmp.mapping.select_next_item(),
+            ['<C-p>'] = cmp.mapping.select_prev_item(),
+            ['<C-e>'] = cmp.mapping.abort(),
         },
     }
     cmp.setup.filetype('gitcommit', {
