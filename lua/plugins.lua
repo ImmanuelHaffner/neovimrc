@@ -97,7 +97,7 @@ function M.setup()
         }
         use {
             'p00f/clangd_extensions.nvim',
-            requires = { 'neovim/nvim-lspconfig' }
+            requires = { 'neovim/nvim-lspconfig' },
         }
         use {
             'https://git.sr.ht/~whynothugo/lsp_lines.nvim',
