@@ -269,7 +269,7 @@ function M.setup()
                 {
                     filetype = 'NvimTree',
                     text = function()
-                        return require'lua/utils'.shorten_path(vim.fn.getcwd(), 20)
+                        return require'lua/utils'.shorten_relative_path(vim.fn.getcwd(), 20)
                     end,
                     highlight = 'Directory',
                     text_align = 'left',
