@@ -39,6 +39,7 @@ function M.setup()
         use 'Yggdroot/indentLine'
         use {
             'kyazdani42/nvim-tree.lua',
+            tag = 'nightly',
             requires = {
                 'kyazdani42/nvim-web-devicons', opt = true -- optional, for file icons
             },
