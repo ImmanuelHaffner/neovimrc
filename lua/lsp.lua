@@ -84,6 +84,21 @@ function M.setup()
         on_attach = on_attach,
         capabilities = require'cmp_nvim_lsp'.update_capabilities(vim.lsp.protocol.make_client_capabilities()),
     }
+
+    require('lspconfig')['pylsp'].setup{
+        on_attach = on_attach,
+        capabilities = require'cmp_nvim_lsp'.update_capabilities(vim.lsp.protocol.make_client_capabilities()),
+        settings = {
+            pylsp = {
+                plugins = {
+                    pycodestyle = {
+                        ignore = { 'W391' },
+                        maxLineLength = 100
+                    }
+                }
+            }
+        }
+    }
     --}}}---------------------------------------------------------------------------------------------------------------
 
 end
