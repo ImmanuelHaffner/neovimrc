@@ -64,30 +64,31 @@ function M.setup()
     --}}}---------------------------------------------------------------------------------------------------------------
 
     ----- Server configurations {{{-------------------------------------------------------------------------------------
-    require'clangd_extensions'.setup({
-        server = {
-            on_attach = on_attach,
-            capabilities = require'cmp_nvim_lsp'.update_capabilities(vim.lsp.protocol.make_client_capabilities()),
-        }
-    })
-    -- require('lspconfig')['clangd'].setup{
-    --     on_attach = on_attach,
-    --     capabilities = require'cmp_nvim_lsp'.update_capabilities(vim.lsp.protocol.make_client_capabilities()),
-    -- }
+    local capabilities = require'cmp_nvim_lsp'.default_capabilities()
+    -- require'clangd_extensions'.setup({
+    --     server = {
+    --         on_attach = on_attach,
+    --         capabilities = capabilities,
+    --     }
+    -- })
+    require('lspconfig')['clangd'].setup{
+        on_attach = on_attach,
+        capabilities = capabilities,
+    }
 
     require('lspconfig')['ltex'].setup{
         on_attach = on_attach,
-        capabilities = require'cmp_nvim_lsp'.update_capabilities(vim.lsp.protocol.make_client_capabilities()),
+        capabilities = capabilities,
     }
 
     require('lspconfig')['texlab'].setup{
         on_attach = on_attach,
-        capabilities = require'cmp_nvim_lsp'.update_capabilities(vim.lsp.protocol.make_client_capabilities()),
+        capabilities = capabilities,
     }
 
     require('lspconfig')['pylsp'].setup{
         on_attach = on_attach,
-        capabilities = require'cmp_nvim_lsp'.update_capabilities(vim.lsp.protocol.make_client_capabilities()),
+        capabilities = capabilities,
         settings = {
             pylsp = {
                 plugins = {
@@ -102,7 +103,7 @@ function M.setup()
 
     require('lspconfig')['bashls'].setup{
         on_attach = on_attach,
-        capabilities = require'cmp_nvim_lsp'.update_capabilities(vim.lsp.protocol.make_client_capabilities()),
+        capabilities = capabilities,
     }
     --}}}---------------------------------------------------------------------------------------------------------------
 
