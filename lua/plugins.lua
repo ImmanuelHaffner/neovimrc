@@ -70,6 +70,7 @@ function M.setup()
                 'hrsh7th/cmp-cmdline',
             }
         }
+        use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
 
         -- Telescope {{{------------------------------------------------------------------------------------------------
         use {
