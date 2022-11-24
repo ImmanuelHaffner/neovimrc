@@ -11,7 +11,7 @@ function M.setup()
     --- Treesitter {{{--------------------------------------------------------------------------------------------------
     require'nvim-treesitter.configs'.setup {
         -- A list of parser names, or 'all'
-        ensure_installed = { 'bash', 'c', 'lua', 'rust', 'python' },
+        ensure_installed = { 'bash', 'c', 'lua', 'rust', 'python', 'comment' },
 
         -- Install parsers synchronously (only applied to `ensure_installed`)
         sync_install = false,
