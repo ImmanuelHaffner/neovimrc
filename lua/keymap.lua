@@ -43,6 +43,9 @@ function M.setup()
         }
     end
 
+    -- Stop highlight search with <Esc> in normal mode
+    vim.keymap.set('n', '<Esc>', ':nohlsearch<CR>', { silent = true })
+
     -- Delete trailing whitespaces
     vim.keymap.set('n', '<BS>', ':%s/\\s\\+$//<CR>:w<CR>', { silent = true })
 
