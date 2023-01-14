@@ -72,6 +72,18 @@ function M.setup()
         }
         -- use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
 
+        use {
+            "folke/todo-comments.nvim",
+            requires = "nvim-lua/plenary.nvim",
+            config = function()
+                require("todo-comments").setup {
+                    -- your configuration comes here
+                    -- or leave it empty to use the default settings
+                    -- refer to the configuration section below
+                }
+            end
+        }
+
         -- Telescope {{{------------------------------------------------------------------------------------------------
         use {
             'nvim-telescope/telescope.nvim', tag = '0.1.0',
