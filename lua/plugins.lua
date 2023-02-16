@@ -98,16 +98,17 @@ function M.setup()
         --}}}-----------------------------------------------------------------------------------------------------------
 
         -- LanguageServerProtocol (LSP) plugins {{{---------------------------------------------------------------------
+        -- use {
+        --     'williamboman/nvim-lsp-installer',
+        --     config = function()
+        --         require('nvim-lsp-installer').setup({automatic_installation = true})
+        --     end
+        -- }
+
         use {
-            'williamboman/nvim-lsp-installer',
-            config = function()
-                require('nvim-lsp-installer').setup({automatic_installation = true})
-            end
-        }
-        use {
-            'neovim/nvim-lspconfig',
-            commit = 'dcb7ebb36f0d2aafcc640f520bb1fc8a9cc1f7c8',
-            requires = { 'williamboman/nvim-lsp-installer' }
+            "williamboman/mason.nvim",
+            "williamboman/mason-lspconfig.nvim",
+            "neovim/nvim-lspconfig",
         }
         use {
             'p00f/clangd_extensions.nvim',
