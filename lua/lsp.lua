@@ -64,7 +64,9 @@ function M.setup()
     --}}}---------------------------------------------------------------------------------------------------------------
 
     ----- Server configurations {{{-------------------------------------------------------------------------------------
-    require("mason").setup()
+    require("mason").setup{
+        automatic_installation = true -- autmatically install servers listed in lspconfig
+    }
     require("mason-lspconfig").setup()
 
     local capabilities = require'cmp_nvim_lsp'.default_capabilities()
