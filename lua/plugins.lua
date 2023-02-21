@@ -16,7 +16,10 @@ function M.setup()
         use 'wbthomason/packer.nvim'
 
         -- Plugins -----------------------------------------------------------------------------------------------------
-        use 'airblade/vim-gitgutter'
+        use {
+            'lewis6991/gitsigns.nvim',
+            -- tag = 'release' -- To use the latest release (do not use this if you run Neovim nightly or dev builds!)
+        }
         use 'altercation/vim-colors-solarized'
         use 'ctrlpvim/ctrlp.vim'
         use 'euclidianAce/BetterLua.vim'
@@ -33,7 +36,7 @@ function M.setup()
         use 'scrooloose/nerdcommenter'
         use 'skywind3000/asyncrun.vim'
         use 'sukima/xmledit'
-        use 'tpope/vim-fugitive'
+        -- use 'tpope/vim-fugitive'
         use 'vim-pandoc/vim-pandoc-syntax'
         use 'vim-scripts/DoxygenToolkit.vim'
         use 'Yggdroot/indentLine'
