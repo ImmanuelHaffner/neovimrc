@@ -257,18 +257,18 @@ function M.setup()
             { name = 'buffer' },
         })
     })
-    cmp.setup.cmdline('/', {
-        mapping = cmp.mapping.preset.cmdline(),
-        sources = {
-            { name = 'buffer' }
-        }
-    })
-    cmp.setup.cmdline(':', {
-        mapping = cmp.mapping.preset.cmdline(),
-        sources = cmp.config.sources({
-            { name = 'cmdline' }
-        })
-    })
+    -- cmp.setup.cmdline('/', {
+    --     mapping = cmp.mapping.preset.cmdline(),
+    --     sources = {
+    --         { name = 'buffer' }
+    --     }
+    -- })
+    -- cmp.setup.cmdline(':', {
+    --     mapping = cmp.mapping.preset.cmdline(),
+    --     sources = cmp.config.sources({
+    --         { name = 'cmdline' }
+    --     })
+    -- })
     --}}}---------------------------------------------------------------------------------------------------------------
 
     ----- lsp_signature {{{---------------------------------------------------------------------------------------------
