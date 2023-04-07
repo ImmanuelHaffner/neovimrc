@@ -8,7 +8,7 @@ function M.setup()
 
     -- When this option is set, the screen will not be redrawn while executing macros, registers and other commands that
     -- have not been typed.
-    vim.opt.lazyredraw = true
+    vim.opt.lazyredraw = false
 
     -- Changes the effect of the |:mksession| command.  It is a comma- separated list of words.  Each word enables
     -- saving and restoring something.
