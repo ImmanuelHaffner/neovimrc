@@ -110,6 +110,9 @@ function M.setup()
 
         use {
             "williamboman/mason.nvim",
+            run = ":MasonUpdate"
+        }
+        use {
             "williamboman/mason-lspconfig.nvim",
             "neovim/nvim-lspconfig",
         }
