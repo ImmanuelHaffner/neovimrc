@@ -64,6 +64,7 @@ function M.setup()
             name = 'Telescope',
             f = { function() require('telescope.builtin').find_files() end, 'Find file' },
             b = { function() require('telescope.builtin').buffers() end, 'Select buffer' },
+            c = { function() require('telescope.builtin').tags() end, 'Select ctag' },
             g = {
                 f = { function() require('telescope.builtin').git_files() end, 'Find file tracked in Git' },
                 b = { function() require('telescope.builtin').git_branches() end, 'Find Git branch' },
