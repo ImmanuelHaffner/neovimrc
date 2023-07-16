@@ -40,21 +40,17 @@ function M.setup()
         use 'vim-pandoc/vim-pandoc-syntax'
         use 'vim-scripts/DoxygenToolkit.vim'
         use 'Yggdroot/indentLine'
+        use 'kyazdani42/nvim-web-devicons'
         use {
             'kyazdani42/nvim-tree.lua',
             tag = 'nightly',
-            requires = {
-                'kyazdani42/nvim-web-devicons', opt = true -- optional, for file icons
-            },
             config = function() require'nvim-tree'.setup() end,
         }
         use {
             'glepnir/galaxyline.nvim',
             branch = 'main',
-            -- some optional icons
-            requires = { 'kyazdani42/nvim-web-devicons', opt = true }
         }
-        use { 'akinsho/bufferline.nvim', tag = 'v2.*', requires = { 'kyazdani42/nvim-web-devicons', opt = true } }
+        use { 'akinsho/bufferline.nvim', tag = 'v2.*' }
         use { 'dccsillag/magma-nvim', run = ':UpdateRemotePlugins' }
         use { 'euclio/vim-markdown-composer', run = { 'cargo build --release', ':UpdateRemotePlugins' } }
         use { 'Shatur/neovim-session-manager', requires = { 'nvim-lua/plenary.nvim' } }
