@@ -11,8 +11,12 @@ function M.setup()
     if has_wk then
         wk.register({
             name = 'Sessions',
-            l = { function() require('session_manager').load_session() end, "Load a session" }
-        }, { prefix = '<Leader>' })
+            s = {
+                l = { function() require('session_manager').load_session() end, "Load a session" },
+                s = { function() require('session_manager').save_current_session() end, "Save current session" },
+            },
+        },
+        { prefix = '<Leader>' })
     end
 
     -- Toggle spell checking
