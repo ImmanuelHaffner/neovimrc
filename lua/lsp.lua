@@ -6,21 +6,22 @@ function M.setup()
     local buf = vim.lsp.buf
 
     ----- Key bindings {{{----------------------------------------------------------------------------------------------
-    wk.register({
-        name = 'Sessions',
-        l = { function() require('session_manager').load_session() end, "Load a session" }
-    }, { prefix = '<Leader>' })
-
     -- Mappings. See `:help vim.diagnostic.*` for documentation on any of the below functions
     local opts = { noremap = true, silent = true }
 
     wk.register({
-        name = 'LSP',
         ['?'] = { function() diag.open_float() end, 'Show diagnostic under cursor' },
         ['[d'] = { function() diag.goto_prev() end, 'Goto previous diagnostic' },
         [']d'] = { function() diag.goto_next() end, 'Goto next diagnostic' },
-        ['<leader>d'] = { function() diag.setloclist() end, 'Show all diagnostics' }
+        ['<leader>l'] = {
+            name = 'LSP',
+            d = { function() diag.setloclist() end, 'Show all diagnostics' }
+        }
     })
+    -- wk.register({
+    --     name = 'LSP',
+    -- }, { prefix = '<leader>l', buffer = bufnr })
+
 
     -- Use an on_attach function to only map the following keys
     -- after the language server attaches to the current buffer
@@ -59,7 +60,7 @@ function M.setup()
             ['<tab>'] = { '<cmd>ClangdSwitchSourceHeader<cr>', 'Switch between source/header file' },
             ['s<tab>'] = { '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', 'Open source/header file in horizontal split' },
             ['v<tab>'] = { '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', 'Open source/header file in vertical split' },
-        }, { prefix = '<leader>', buffer = bufnr })
+        }, { prefix = '<leader>l', buffer = bufnr })
     end
     --}}}---------------------------------------------------------------------------------------------------------------
 

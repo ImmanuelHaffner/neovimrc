@@ -11,12 +11,9 @@ function M.setup()
     if has_wk then
         wk.register({
             name = 'Sessions',
-            s = {
-                l = { function() require('session_manager').load_session() end, "Load a session" },
-                s = { function() require('session_manager').save_current_session() end, "Save current session" },
-            },
-        },
-        { prefix = '<Leader>' })
+            l = { function() require('session_manager').load_session() end, "Load a session" },
+            s = { function() require('session_manager').save_current_session() end, "Save current session" },
+        }, { prefix = '<leader>s' })
     end
 
     -- Toggle spell checking
@@ -70,12 +67,13 @@ function M.setup()
             b = { function() require('telescope.builtin').buffers() end, 'Select buffer' },
             c = { function() require('telescope.builtin').tags() end, 'Select ctag' },
             g = {
+                name = 'Find Git ...',
                 f = { function() require('telescope.builtin').git_files() end, 'Find file tracked in Git' },
                 b = { function() require('telescope.builtin').git_branches() end, 'Find Git branch' },
                 c = { function() require('telescope.builtin').git_commits() end, 'Find Git commit' },
                 h = { function() require('telescope.builtin').git_bcommits() end, 'Find buffer\'s Git commit (history)' },
             },
-        }, { prefix = 'f' })
+        }, { prefix = '<leader>f' })
     end
 
     if has_bufferline then
