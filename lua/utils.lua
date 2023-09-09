@@ -1,4 +1,12 @@
-local M = {}
+local M = { }
+
+function M.toggle(tbl, opt)
+    tbl[opt] = not tbl[opt]
+end
+
+function M.ends_with(str, ending)
+    return ending == "" or str:sub(-#ending) == ending
+end
 
 function M.select(cond, tru, fals)
     if cond then return tru else return fals end
@@ -26,9 +34,9 @@ function M.search_for_visual_selection(forward)
     local selection = M.get_visual_selection()
     local escaped = vim.fn.escape(selection, '/\\')
     if forward then
-        pcall(vim.cmd, '/' .. escaped)
+        pcall(vim.cmd, '/\\V' .. escaped)
     else
-        pcall(vim.cmd, '?' .. escaped)
+        pcall(vim.cmd, '?\\V' .. escaped)
     end
     vim.api.nvim_win_set_cursor(0, cursor_pos)
 end
@@ -96,6 +104,5 @@ function M.shorten_relative_path(path, max_len)
         return M.shorten_path(path, max_len)
     end
 end
-
 
 return M

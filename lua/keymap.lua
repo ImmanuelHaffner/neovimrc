@@ -1,93 +1,32 @@
 local M = { }
 
-local utils = require('lua/utils')
+-- Remember last tab
+vim.api.nvim_create_autocmd('TabLeave', { command = 'let g:lasttab = tabpagenr()' })
 
 function M.setup()
-    local has_wk, wk = pcall(require, 'which-key')
-    local has_bufferline, bufferline = pcall(require, 'bufferline')
-
-    ----- Global mappings {{{-------------------------------------------------------------------------------------------
-    -- Select a session
-    if has_wk then
-        wk.register({
-            name = 'Sessions',
-            l = { function() require('session_manager').load_session() end, "Load a session" },
-            s = { function() require('session_manager').save_current_session() end, "Save current session" },
-        }, { prefix = '<leader>s' })
+    local Utils = require'utils'
+    local ok, wk = pcall(require, 'which-key')
+    if not ok then
+        vim.print('Failed to load plugin \'which-key\'')
+        return
     end
 
-    -- Toggle spell checking
-    vim.keymap.set('n', '<F3>', function()
-        vim.opt.spell = not vim.o.spell
-    end)
+    -- Normal mode
+    wk.register({
+        ['<Esc>']  = { '<cmd>nohlsearch<cr>', 'Hide search results' },
+        ['<BS>']   = { ':%s/\\s\\+$//<cr>:w<cr>', 'Remove trailing whitespaces' },
+        ['<F3>']   = { function() Utils.toggle(vim.o, 'spell') end, 'Toggle spell' },
+        ['<F4>']   = { function() Utils.toggle(vim.o, 'cursorcolumn') end, 'Toggle crosshair' },
+        ['g<Tab>'] = { '<cmd>exe "tabn " . g:lasttab<cr>', 'Switch to previous tab' },
+    }, { silent = true })
 
-    -- Toggle cursor column
-    vim.keymap.set('n', '<F4>', function()
-        vim.o.cursorcolumn = not vim.o.cursorcolumn
-    end)
-
-    vim.keymap.set('n', '<F5>', ':AsyncRun -program=make<CR>')
-
-    -- Sort visual lines
-    vim.keymap.set('v', '<C-s>', ':sort i<CR>', { silent = true })
-
-    -- Revert visual lines
-    vim.keymap.set('v', '<C-r>', ':!tac<CR>', { silent = true })
-
-    -- Switch to previous tab
-    vim.api.nvim_create_autocmd('TabLeave', { command = 'let g:lasttab = tabpagenr()' })
-    --vim.keymap.set('n', 'g<Tab>', ':exe "tabn ".g:lasttab<CR>', { silent = true })
-    if has_wk then
-        wk.register{
-            name = 'Tabs',
-            ['g<Tab>'] = { '<cmd>exe "tabn ".g:lasttab<cr>', 'Switch to previous tab' }
-        }
-    end
-
-    -- Stop highlight search with <Esc> in normal mode
-    vim.keymap.set('n', '<Esc>', ':nohlsearch<CR>', { silent = true })
-
-    -- Delete trailing whitespaces
-    vim.keymap.set('n', '<BS>', ':%s/\\s\\+$//<CR>:w<CR>', { silent = true })
-
-    vim.keymap.set('x', '*', ':lua require("lua/utils").search_for_visual_selection(true)<cr>', { silent = true })
-    vim.keymap.set('x', '?', ':lua require("lua/utils").search_for_visual_selection(false)<cr>', { silent = true })
-    --}}}---------------------------------------------------------------------------------------------------------------
-
-    ----- Plugin mappings {{{-------------------------------------------------------------------------------------------
-    vim.keymap.set('n', '<C-c>', ":call nerdcommenter#Comment('n', 'toggle')<CR>", { silent = true })
-    vim.keymap.set('v', '<C-c>', ":call nerdcommenter#Comment('x', 'toggle')<CR>", { silent = true })
-
-    vim.keymap.set('n', '<F2>', ':NvimTreeToggle<CR>', { silent = true })
-
-    if has_wk then
-        wk.register({
-            name = 'Telescope',
-            f = { function() require('telescope.builtin').find_files() end, 'Find file' },
-            b = { function() require('telescope.builtin').buffers() end, 'Select buffer' },
-            c = { function() require('telescope.builtin').tags() end, 'Select ctag' },
-            g = {
-                name = 'Find Git ...',
-                f = { function() require('telescope.builtin').git_files() end, 'Find file tracked in Git' },
-                b = { function() require('telescope.builtin').git_branches() end, 'Find Git branch' },
-                c = { function() require('telescope.builtin').git_commits() end, 'Find Git commit' },
-                h = { function() require('telescope.builtin').git_bcommits() end, 'Find buffer\'s Git commit (history)' },
-            },
-        }, { prefix = '<leader>f' })
-    end
-
-    if has_bufferline then
-        if has_wk then
-            wk.register({
-                name = 'Bufferline',
-                t = { '<cmd>BufferLineCycleNext<cr>', 'Goto next tab' },
-                T = { '<cmd>BufferLineCyclePrev<cr>', 'Goto previous tab' },
-            }, { prefix = 'g', silent = true })
-        else
-        end
-    end
-    --}}}---------------------------------------------------------------------------------------------------------------
-
+    -- Visual mode
+    wk.register({
+        ['<C-s>'] = { ':sort i<cr>', 'Sort selected lines' },
+        ['<C-r>'] = { ':!tac<cr>', 'Revert selected lines' },
+        ['*']     = { ':lua Utils.search_for_visual_selection(true)<cr>', 'Search for visual selection' },
+        ['?']     = { ':lua Utils.search_for_visual_selection(false)<cr>', 'Reverse search for visual selection' },
+    }, { silent = false, mode = 'v' })
 end
 
 return M

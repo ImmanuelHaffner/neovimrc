@@ -1,0 +1,46 @@
+return {
+    { 'hrsh7th/nvim-cmp',
+        dependencies = {
+            'hrsh7th/cmp-nvim-lsp',
+            'hrsh7th/cmp-buffer',
+            'hrsh7th/cmp-path',
+            'hrsh7th/cmp-cmdline',
+            'petertriho/cmp-git',
+        },
+        config = function()
+            local cmp = require'cmp'
+            cmp.setup{
+                sources = cmp.config.sources({
+                    { name = 'nvim_lsp' },
+                }, {
+                    { name = 'buffer' },
+                }),
+                mapping = cmp.mapping.preset.insert{
+                    ['<C-b>'] = cmp.mapping.scroll_docs(8),
+                    ['<C-f>'] = cmp.mapping.scroll_docs(-8),
+                    ['<C-n>'] = cmp.mapping.select_next_item(),
+                    ['<C-p>'] = cmp.mapping.select_prev_item(),
+                    ['<C-e>'] = cmp.mapping.abort(),
+                },
+                sorting = {
+                    comparators = {
+                        cmp.config.compare.offset,
+                        cmp.config.compare.exact,
+                        cmp.config.compare.recently_used,
+                        cmp.config.compare.kind,
+                        cmp.config.compare.sort_text,
+                        cmp.config.compare.length,
+                        cmp.config.compare.order,
+                    },
+                },
+            }
+            cmp.setup.filetype('gitcommit', {
+                sources = cmp.config.sources({
+                    { name = 'git' },
+                }, {
+                    { name = 'buffer' },
+                })
+            })
+        end,
+    },
+}
