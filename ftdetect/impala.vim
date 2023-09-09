@@ -1,1 +1,1 @@
-au BufRead,BufNewFile *.impala set filetype=impala
+autocmd BufNewFile,BufReadPost *.impala setlocal filetype=impala

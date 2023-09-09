@@ -9,8 +9,7 @@ if exists("b:did_indent")
 endif
 let b:did_indent = 1
 
-" WebAssembly text format is S-expression. We can reuse LISP indentation
-" logic.
+" WebAssembly text format is S-expression. We can reuse LISP indentation logic.
 setlocal indentexpr=lispindent('.')
 setlocal noautoindent nosmartindent
 

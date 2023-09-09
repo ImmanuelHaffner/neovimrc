@@ -1,1 +1,1 @@
-au BufRead,BufNewFile *.thorin set filetype=thorin
+autocmd BufNewFile,BufReadPost *.thorin setlocal filetype=thorin
