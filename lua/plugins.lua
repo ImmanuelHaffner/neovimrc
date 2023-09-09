@@ -16,10 +16,7 @@ function M.setup()
         use 'wbthomason/packer.nvim'
 
         -- Plugins -----------------------------------------------------------------------------------------------------
-        use {
-            'lewis6991/gitsigns.nvim',
-            -- tag = 'release' -- To use the latest release (do not use this if you run Neovim nightly or dev builds!)
-        }
+        use { 'lewis6991/gitsigns.nvim', tag = 'release' }
         use 'altercation/vim-colors-solarized'
         use 'ctrlpvim/ctrlp.vim'
         use 'euclidianAce/BetterLua.vim'

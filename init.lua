@@ -7,6 +7,7 @@ require('lua/plugins-conf').setup()     -- plugins configuration
 require('lua/user_commands').setup()    -- user commands
 require('lua/lsp').setup()              -- LSP server configurations
 
+-- Support for project-specific config {{{------------------------------------------------------------------------------
 function load_project_config()
     if vim.fn.filereadable('.project.lua') == 1 then
         vim.cmd[[luafile .project.lua]]
@@ -21,5 +22,5 @@ vim.api.nvim_create_autocmd('DirChanged', {
     pattern = 'global',
     callback = load_project_config,
 })
-
 load_project_config()
+---}}}------------------------------------------------------------------------------------------------------------------
