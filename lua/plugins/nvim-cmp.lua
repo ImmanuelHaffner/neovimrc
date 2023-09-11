@@ -35,6 +35,12 @@ return {
                         cmp.config.compare.order,
                     },
                 },
+                formatting = {
+                    format = function(entry, vim_item)
+                        vim_item.abbr = string.sub(vim_item.abbr, 1, 40)
+                        return vim_item
+                    end
+                },
             }
             cmp.setup.filetype('gitcommit', {
                 sources = cmp.config.sources({
