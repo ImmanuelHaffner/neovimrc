@@ -3,16 +3,14 @@ all:
 
 install:
 	mkdir -p ~/.config/nvim
-	#rm -f ~/.config/nvim/init.lua
-	#cp init.vim ~/.config/nvim/init.vim
 	rm -f ~/.config/nvim/init.vim
 	cp init.lua ~/.config/nvim/init.lua
-	cp -R lua/ ~/.config/nvim/lua
-	cp -R after/ ~/.config/nvim
-	cp -R ftdetect/ ~/.config/nvim
-	cp -R ftplugin// ~/.config/nvim
-	cp -R indent/ ~/.config/nvim
-	cp -R syntax/ ~/.config/nvim
+	cp -Rf lua/ ~/.config/nvim
+	cp -Rf after/ ~/.config/nvim
+	cp -Rf ftdetect/ ~/.config/nvim
+	cp -Rf ftplugin// ~/.config/nvim
+	cp -Rf indent/ ~/.config/nvim
+	cp -Rf syntax/ ~/.config/nvim
 	# Install nvimdiff thin wrapper
 	mkdir -p ~/.local/bin
 	cp nvimdiff ~/.local/bin
