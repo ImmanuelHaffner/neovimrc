@@ -19,6 +19,16 @@ return {
                 autosave_only_in_session = false, -- Always autosaves session. If true, only autosaves after a session is active.
                 max_path_length = 80,  -- Shorten the display path if length exceeds this threshold. Use 0 if don't want to shorten the path at all.
             }
+
+            -- Quit function
+            quit = vim.api.nvim_create_user_command('Q', function()
+                vim.cmd[[
+                SessionManager save_current_session
+                wqa
+                ]]
+            end, {})
+
+            -- Keymap
             require'which-key'.register({
                 name = 'Sessions',
                 l = { function() require('session_manager').load_session() end, "Load a session" },
