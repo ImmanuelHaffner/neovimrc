@@ -25,10 +25,12 @@ return {
         end,
     },
     { 'williamboman/mason-lspconfig.nvim', dependencies = { 'williamboman/mason.nvim' } },
+    { 'https://git.sr.ht/~p00f/clangd_extensions.nvim' },
     { 'neovim/nvim-lspconfig',
         dependencies = {
             'williamboman/mason-lspconfig.nvim',
             'folke/which-key.nvim',
+            'https://git.sr.ht/~p00f/clangd_extensions.nvim',
         },
         config = function()
             local lsp = require'lspconfig'
@@ -47,6 +49,8 @@ return {
                     vim.api.nvim_buf_set_option(bufnr, 'formatexpr', 'v:lua.vim.lsp.formatexpr()')
                 end
 
+
+                -- Keymaps
                 local wk = require'which-key'
                 local buf = vim.lsp.buf
                 wk.register({
@@ -74,7 +78,12 @@ return {
             local capabilities = require'cmp_nvim_lsp'.default_capabilities()
 
             lsp['clangd'].setup{
-                on_attach = on_attach,
+                on_attach = function(client, bufnr)
+                    on_attach(client, bufnr)
+                    -- Clangd extensions
+                    require("clangd_extensions.inlay_hints").setup_autocmd()
+                    require("clangd_extensions.inlay_hints").set_inlay_hints()
+                end,
                 capabilities = capabilities,
             }
 

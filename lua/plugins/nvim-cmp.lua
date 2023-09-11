@@ -6,6 +6,7 @@ return {
             'hrsh7th/cmp-path',
             'hrsh7th/cmp-cmdline',
             'petertriho/cmp-git',
+            'https://git.sr.ht/~p00f/clangd_extensions.nvim',
         },
         config = function()
             local cmp = require'cmp'
@@ -27,6 +28,7 @@ return {
                         cmp.config.compare.offset,
                         cmp.config.compare.exact,
                         cmp.config.compare.recently_used,
+                        require'clangd_extensions.cmp_scores',
                         cmp.config.compare.kind,
                         cmp.config.compare.sort_text,
                         cmp.config.compare.length,
