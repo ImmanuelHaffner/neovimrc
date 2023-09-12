@@ -49,12 +49,22 @@ return {
                     vim.api.nvim_buf_set_option(bufnr, 'formatexpr', 'v:lua.vim.lsp.formatexpr()')
                 end
 
-
-                -- Keymaps
+                -- Keymaps {{{------------------------------------------------------------------------------------------
                 local wk = require'which-key'
                 local buf = vim.lsp.buf
+                local diag = vim.diagnostic
+
+                -- Diagnostics navigation
+                wk.register({
+                    ['?'] = { function() diag.open_float() end, 'Show diagnostic under cursor' },
+                    ['[d'] = { function() diag.goto_prev() end, 'Goto previous diagnostic' },
+                    [']d'] = { function() diag.goto_next() end, 'Goto next diagnostic' },
+                }, { buffer = bufnr })
+
+                -- LSP commands
                 wk.register({
                     name = 'LSP',
+                    d = { function() diag.setloclist() end, 'Show all diagnostics' },
                     g = {
                         d = { function() buf.declaration() end, 'Goto declaration' },
                         D = { function() buf.definition() end, 'Goto definition' },
@@ -73,6 +83,7 @@ return {
                     ['s<tab>'] = { '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', 'Open source/header file in horizontal split' },
                     ['v<tab>'] = { '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', 'Open source/header file in vertical split' },
                 }, { prefix = '<leader>l', buffer = bufnr })
+                --}}}---------------------------------------------------------------------------------------------------
             end
 
             local capabilities = require'cmp_nvim_lsp'.default_capabilities()
