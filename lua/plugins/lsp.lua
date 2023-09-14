@@ -8,6 +8,7 @@ return {
         end,
     },
     { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim',
+        enabled = false, -- avoid for now as it does not play well with others
         dependencies = { 'neovim/nvim-lspconfig' },
         config = function()
             require'lsp_lines'.setup()
