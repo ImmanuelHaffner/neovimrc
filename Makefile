@@ -2,8 +2,8 @@ all:
 	@echo -e "Invoke\n  $$ make install\nto install configuration files."
 
 install:
+	rm -rf ~/.config/nvim
 	mkdir -p ~/.config/nvim
-	rm -f ~/.config/nvim/init.vim
 	cp init.lua ~/.config/nvim/init.lua
 	cp -Rf lua/ ~/.config/nvim
 	cp -Rf after/ ~/.config/nvim
