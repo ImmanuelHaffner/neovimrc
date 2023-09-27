@@ -27,8 +27,7 @@ return {
             ts.load_extension'fzf'
             ts.load_extension'ui-select'
 
-            local wk = require'which-key'
-            wk.register({
+            require'which-key'.register({
                 name = 'Telescope',
                 f = { function() require('telescope.builtin').find_files() end, 'Find file' },
                 b = { function() require('telescope.builtin').buffers() end, 'Select buffer' },

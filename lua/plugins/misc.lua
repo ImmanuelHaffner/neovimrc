@@ -14,5 +14,4 @@ return {
     { 'dccsillag/magma-nvim', build = ':UpdateRemotePlugins' },
     { 'euclio/vim-markdown-composer', build = { 'cargo build --release', ':UpdateRemotePlugins' } },
     { 'petertriho/cmp-git', dependencies = { 'nvim-lua/plenary.nvim' } },
-    { "folke/todo-comments.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
 }

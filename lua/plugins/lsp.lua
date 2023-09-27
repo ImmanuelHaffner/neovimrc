@@ -17,9 +17,6 @@ return {
             })
         end
     },
-    { 'folke/trouble.nvim',
-        dependencies = { 'kyazdani42/nvim-web-devicons' },
-    },
     { 'williamboman/mason.nvim',
         build = ':MasonUpdate',
         config = function()
