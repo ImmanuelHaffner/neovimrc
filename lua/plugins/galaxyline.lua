@@ -190,9 +190,8 @@ return {
             }
             gls.right[5] = {
                 GitIcon = {
-                    provider = function() return '  ' end,
-                    condition = buffer_not_empty and
-                    require('galaxyline.provider_vcs').check_git_workspace,
+                    provider = function() return '  ' end,
+                    condition = buffer_not_empty and require('galaxyline.provider_vcs').check_git_workspace,
                     highlight = {colors.middlegrey, colors.bg}
                 }
             }
@@ -204,6 +203,13 @@ return {
                 }
             }
             gls.right[7] = {
+                Space = {
+                    provider = function() return ' ' end,
+                    condition = buffer_not_empty and require('galaxyline.provider_vcs').check_git_workspace,
+                    highlight = {colors.middlegrey, colors.bg}
+                }
+            }
+            gls.right[8] = {
                 AsyncRun = {
                     provider = function() return vim.g.asyncrun_status .. ' ' end,
                     condition = function() return vim.g['asyncrun_status'] ~= '' end,
@@ -214,7 +220,7 @@ return {
                     event = { 'AsyncRunPre', 'AsyncRunStart', 'AsyncRunStop' },
                 }
             }
-            gls.right[8] = {
+            gls.right[9] = {
                 CursorPos = {
                     provider = function()
                         local _, line, col, _, colwanted = unpack(vim.fn.getcurpos())
@@ -224,7 +230,7 @@ return {
                     highlight = { colors.gray2, colors.purple },
                 }
             }
-            gls.right[9] = {
+            gls.right[10] = {
                 PerCent = {
                     provider = 'LinePercent',
                     separator = '',
