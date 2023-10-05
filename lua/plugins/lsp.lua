@@ -27,14 +27,28 @@ return {
     },
     { 'williamboman/mason-lspconfig.nvim', dependencies = { 'williamboman/mason.nvim' } },
     { 'https://git.sr.ht/~p00f/clangd_extensions.nvim' },
+    { 'nvim-lua/lsp-status.nvim',
+        config = function()
+            local lsp_status = require'lsp-status'
+            lsp_status.config{
+                diagnostics = false,
+                show_filename = false,
+                status_symbol = '',
+            }
+        end
+    },
     { 'neovim/nvim-lspconfig',
         dependencies = {
             'williamboman/mason-lspconfig.nvim',
             'folke/which-key.nvim',
             'https://git.sr.ht/~p00f/clangd_extensions.nvim',
+            'nvim-lua/lsp-status.nvim',
         },
         config = function()
             local lsp = require'lspconfig'
+            local lsp_status = require'lsp-status'
+
+            lsp_status.register_progress()
 
             -- Use an on_attach function to only map the following keys
             -- after the language server attaches to the current buffer
@@ -88,6 +102,7 @@ return {
             end
 
             local capabilities = require'cmp_nvim_lsp'.default_capabilities()
+            capabilities = vim.tbl_extend('keep', capabilities, lsp_status.capabilities)
 
             lsp['clangd'].setup{
                 on_attach = function(client, bufnr)
@@ -95,8 +110,11 @@ return {
                     -- Clangd extensions
                     require("clangd_extensions.inlay_hints").setup_autocmd()
                     require("clangd_extensions.inlay_hints").set_inlay_hints()
+                    -- lsp-status
+                    lsp_status.on_attach(client)
                 end,
                 capabilities = capabilities,
+                handlers = lsp_status.extensions.clangd.setup(),
             }
 
             lsp['ltex'].setup{

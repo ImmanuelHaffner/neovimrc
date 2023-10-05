@@ -121,6 +121,14 @@ return {
                     separator_highlight = {colors.section_bg, colors.bg}
                 }
             }
+            -- LSP status (current function)
+            gls.left[4] = {
+                LSPStatus = {
+                    provider = function() return require'lsp-status'.status() end,
+                    condition = function() return #vim.lsp.buf_get_clients() > 0 end,
+                    highlight = {colors.middlegrey, colors.bg}
+                }
+            }
             gls.left[9] = {
                 DiagnosticError = {
                     provider = 'DiagnosticError',
