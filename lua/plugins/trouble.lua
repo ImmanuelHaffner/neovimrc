@@ -5,12 +5,16 @@ return {
             'nvim-telescope/telescope.nvim',
             'folke/which-key.nvim',
         },
-        setup = function()
+        config = function()
             require'trouble'.setup()
-            require'which-key'.register({
+            local wk = require'which-key'
+            wk.register({
                 name = 'Telescope',
                 t = { '<cmd>TodoTelescope<cr>', 'Find todo notes' },
             }, { prefix = '<leader>f', silent = true })
-        end,
+            wk.register({
+                ['<F9>'] = { '<cmd>Trouble<cr>', 'Open Trouble' },
+            }, { silent = true })
+        end
     },
 }
