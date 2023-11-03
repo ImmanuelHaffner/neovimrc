@@ -43,6 +43,7 @@ return {
             'folke/which-key.nvim',
             'https://git.sr.ht/~p00f/clangd_extensions.nvim',
             'nvim-lua/lsp-status.nvim',
+            'barreiroleo/ltex_extra.nvim',
         },
         config = function()
             local lsp = require'lspconfig'
@@ -118,7 +119,13 @@ return {
             }
 
             lsp['ltex'].setup{
-                on_attach = on_attach,
+                on_attach = function(client, bufnr)
+                    on_attach(client, bufnr)
+                    require("ltex_extra").setup{
+                        load_langs = { 'en_US', 'de_DE', },
+                        path = '.ltex',
+                    }
+                end,
                 capabilities = capabilities,
             }
 
