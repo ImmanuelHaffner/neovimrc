@@ -1,9 +1,9 @@
 local M = { }
 
--- Remember last tab
-vim.api.nvim_create_autocmd('TabLeave', { command = 'let g:lasttab = tabpagenr()' })
-
 function M.setup()
+    -- Remember last tab
+    vim.api.nvim_create_autocmd('TabLeave', { command = 'let g:lasttab = tabpagenr()' })
+
     local Utils = require'utils'
     local ok, wk = pcall(require, 'which-key')
     if not ok then
