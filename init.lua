@@ -34,6 +34,9 @@ require("lazy").setup(plugins, lazyopts)
 -- Load our keymap
 require'keymap'.setup()
 
+-- Install our autocmds
+require'autocmd'.setup()
+
 -- Support for project-specific config {{{------------------------------------------------------------------------------
 function load_project_config()
     if vim.fn.filereadable('.project.lua') == 1 then
