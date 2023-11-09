@@ -99,6 +99,14 @@ return {
                     ['s<tab>'] = { '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', 'Open source/header file in horizontal split' },
                     ['v<tab>'] = { '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', 'Open source/header file in vertical split' },
                 }, { prefix = '<leader>l', buffer = bufnr })
+
+                -- LSP inlay hints toggle, if supported by LSP
+                -- if client.supports_method('textDocument/inlayHint') then
+                --     wk.register({
+                --         name = 'Toggles',
+                --         h = { function() vim.lsp.inlay_hint(bufnr, nil) end, 'Toggle inlay hints' },
+                --     }, { prefix = '<leader>lt', buffer = bufrn })
+                -- end
                 --}}}---------------------------------------------------------------------------------------------------
             end
 
