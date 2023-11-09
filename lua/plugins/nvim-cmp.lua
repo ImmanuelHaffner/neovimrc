@@ -7,6 +7,7 @@ return {
             'hrsh7th/cmp-cmdline',
             'petertriho/cmp-git',
             'https://git.sr.ht/~p00f/clangd_extensions.nvim',
+            'windwp/nvim-autopairs',
         },
         config = function()
             local cmp = require'cmp'
@@ -51,6 +52,12 @@ return {
                     { name = 'buffer' },
                 })
             })
+
+            local cmp_autopairs = require('nvim-autopairs.completion.cmp')
+            cmp.event:on(
+                'confirm_done',
+                cmp_autopairs.on_confirm_done()
+            )
         end,
     },
 }
