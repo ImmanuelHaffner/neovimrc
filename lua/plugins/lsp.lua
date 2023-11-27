@@ -100,6 +100,8 @@ return {
                     ['v<tab>'] = { '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', 'Open source/header file in vertical split' },
                 }, { prefix = '<leader>l', buffer = bufnr })
                 --}}}---------------------------------------------------------------------------------------------------
+
+                lsp_status.on_attach(client)
             end
 
             local capabilities = require'cmp_nvim_lsp'.default_capabilities()
@@ -111,11 +113,12 @@ return {
                     -- Clangd extensions
                     require("clangd_extensions.inlay_hints").setup_autocmd()
                     require("clangd_extensions.inlay_hints").set_inlay_hints()
-                    -- lsp-status
-                    lsp_status.on_attach(client)
                 end,
                 capabilities = capabilities,
                 handlers = lsp_status.extensions.clangd.setup(),
+                init_options = {
+                    clangdFileStatus = true,
+                },
             }
 
             lsp['ltex'].setup{
