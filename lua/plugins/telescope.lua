@@ -32,6 +32,7 @@ return {
                 f = { function() require('telescope.builtin').find_files() end, 'Find file' },
                 b = { function() require('telescope.builtin').buffers() end, 'Select buffer' },
                 c = { function() require('telescope.builtin').tags() end, 'Select ctag' },
+                l = { function() require('telescope.builtin').live_grep() end, 'Live grep' },
                 g = {
                     name = 'Find Git ...',
                     f = { function() require('telescope.builtin').git_files() end, 'Find file tracked in Git' },
@@ -39,6 +40,11 @@ return {
                     c = { function() require('telescope.builtin').git_commits() end, 'Find Git commit' },
                     h = { function() require('telescope.builtin').git_bcommits() end, 'Find buffer\'s Git commit (history)' },
                 },
+                s = {
+                    name = 'Code search ...',
+                    t = { function() require('telescope.builtin').lsp_type_definitions() end, 'Find types' },
+                },
+                r = { function() require('telescope.builtin').resume() end, 'Resume' },
             }, { prefix = '<leader>f' })
         end
     },
