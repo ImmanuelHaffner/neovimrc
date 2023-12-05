@@ -9,10 +9,6 @@ return {
             require'trouble'.setup()
             local wk = require'which-key'
             wk.register({
-                name = 'Telescope',
-                t = { '<cmd>TodoTelescope<cr>', 'Find todo notes' },
-            }, { prefix = '<leader>f', silent = true })
-            wk.register({
                 ['<F9>'] = { '<cmd>Trouble<cr>', 'Open Trouble' },
             }, { silent = true })
         end
