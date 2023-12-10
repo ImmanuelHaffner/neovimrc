@@ -1,7 +1,7 @@
 return {
     { 'ludovicchabant/vim-gutentags',
         config = function()
-            vim.g.gutentags_cache_dir = os.getenv('HOME') .. '/.cache/vim/tags'
+            vim.g.gutentags_cache_dir = os.getenv('HOME') .. '/.cache/nvim/tags'
             vim.g.gutentags_generate_on_new = true
             vim.g.gutentags_generate_on_missing = true
             vim.g.gutentags_generate_on_write = true
