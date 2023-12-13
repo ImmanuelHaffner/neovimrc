@@ -27,6 +27,16 @@ function M.setup()
         ['*']     = { ':lua Utils.search_for_visual_selection(true)<cr>', 'Search for visual selection' },
         ['?']     = { ':lua Utils.search_for_visual_selection(false)<cr>', 'Reverse search for visual selection' },
     }, { silent = false, mode = 'v' })
+
+    -- Temrinal mode
+    wk.register({
+        ['<C-l>'] = { function()
+            vim.fn.feedkeys("", 'n')
+            local sb = vim.bo.scrollback
+            vim.bo.scrollback = 1
+            vim.bo.scrollback = sb
+        end, 'Clear terminal' },
+    }, { silent = true, mode = 't' })
 end
 
 return M
