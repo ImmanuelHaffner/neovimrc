@@ -34,6 +34,9 @@ require("lazy").setup(plugins, lazyopts)
 -- Load our keymap
 require'keymap'.setup()
 
+-- Load our functions
+require'functions'.setup()
+
 -- Install our autocmds
 require'autocmd'.setup()
 
