@@ -35,12 +35,6 @@ function M.setup()
     -- Highlight the text line of the cursor with CursorLine |hl-CursorLine|.
     vim.opt.cursorline = true
 
-    -- Configure colors of cursorline and colorcolumn
-    vim.cmd[[
-    hi! ColorColumn term=reverse cterm=reverse
-    hi! CursorLineNr term=bold,reverse cterm=bold,reverse ctermfg=6
-    ]]
-
     -- Print the line number in front of each line.
     vim.opt.number = true
 
