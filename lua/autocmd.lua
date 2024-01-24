@@ -44,6 +44,16 @@ function M.setup()
         command = "echohl WarningMsg | echo 'File changed on disk. Buffer reloaded.' | echohl None",
     })
     --}}}---------------------------------------------------------------------------------------------------------------
+
+    ----- Configure quickfix window {{{---------------------------------------------------------------------------------
+    vim.api.nvim_create_autocmd({'BufWinEnter'}, {
+        callback = function(args)
+            if vim.bo[args.buf].buftype == 'quickfix' then
+                vim.wo.colorcolumn = 0
+            end
+        end,
+    })
+    --}}}---------------------------------------------------------------------------------------------------------------
 end
 
 return M
