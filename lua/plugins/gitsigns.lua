@@ -17,12 +17,12 @@ return {
                     -- Navigation
                     wk.register({
                         name = 'Gitsign navigation',
-                        [']c'] = { function()
+                        [']h'] = { function()
                             if vim.wo.diff then return ']c' end
                             vim.schedule(function() gs.next_hunk() end)
                             return '<Ignore>'
                             end, 'Next Git hunk' },
-                        ['[c'] = { function()
+                        ['[h'] = { function()
                             if vim.wo.diff then return ']c' end
                             vim.schedule(function() gs.prev_hunk() end)
                             return '<Ignore>'
