@@ -44,6 +44,7 @@ return {
                     name = 'Code search ...',
                     t = { function() require('telescope.builtin').lsp_type_definitions() end, 'Find types' },
                     s = { function() require('telescope.builtin').lsp_dynamic_workspace_symbols() end, 'Find symbols' },
+                    d = { function() require('telescope.builtin').diagnostics{ severity_limit = vim.diagnostic.severity.WARN } end, 'Search diagnostics' },
                 },
                 r = { function() require('telescope.builtin').resume() end, 'Resume' },
             }, { prefix = '<leader>f' })
