@@ -43,6 +43,7 @@ return {
                 s = {
                     name = 'Code search ...',
                     t = { function() require('telescope.builtin').lsp_type_definitions() end, 'Find types' },
+                    s = { function() require('telescope.builtin').lsp_dynamic_workspace_symbols() end, 'Find symbols' },
                 },
                 r = { function() require('telescope.builtin').resume() end, 'Resume' },
             }, { prefix = '<leader>f' })
