@@ -19,6 +19,10 @@ return {
                     'planner_unit_tests',
                     'sql_parser_tests',
                 },
+                icecc = {
+                    path = '/home/immanuel/Documents/Firebolt/code/packdb/icecc.sh',
+                    jobs = 200,
+                },
                 notify = true,
             },
             git_clang_format = 'git-clang-format --binary /opt/clang-format-static/clang-format-14 --force --',
