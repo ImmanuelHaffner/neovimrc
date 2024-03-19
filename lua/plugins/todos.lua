@@ -9,6 +9,8 @@ return {
             require'todo-comments'.setup{
                 highlight = {
                     comments_only = true,  -- use treesitter to only consider notes in comments
+                    pattern = [[.*<(KEYWORDS)\s*(\(\w*\))?:]],
+                    keyword = 'bg',
                 },
             }
             -- Next todo
