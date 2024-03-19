@@ -131,24 +131,23 @@ return {
             gls.left[4] = {
                 DiagnosticError = {
                     provider = 'DiagnosticError',
+                    condition = buffer_not_empty,
                     icon = '  ',
                     highlight = {colors.red1, colors.bg},
-                    separator = "",
-                    separator_highlight = {colors.bg, colors.section_bg},
                 }
             }
             gls.left[5] = {
                 DiagnosticWarn = {
                     provider = 'DiagnosticWarn',
+                    condition = buffer_not_empty,
                     icon = '  ',
-                    highlight = {colors.orange, colors.section_bg},
-                    separator = "",
-                    separator_highlight = {colors.section_bg, colors.bg},
+                    highlight = {colors.orange, colors.bg},
                 }
             }
             gls.left[6] = {
                 DiagnosticInfo = {
                     provider = 'DiagnosticInfo',
+                    condition = buffer_not_empty,
                     icon = '  ',
                     highlight = {colors.blue, colors.bg},
                     separator = "",
@@ -169,14 +168,19 @@ return {
                         return ' ' .. navic.get_location() .. ' '
                     end,
                     condition = function()
-                        return navic.is_available()
+                        return buffer_not_empty() and navic.is_available()
                     end,
                     highlight = {colors.middlegrey, colors.section_bg},
+                    separator = "",
+                    separator_highlight = {colors.section_bg, colors.bg},
                 }
             }
             gls.left[10] = {
                 color = {
-                    provider = function() return "" end,
+                    provider = function() return '' end,
+                    condition = function()
+                        return not (buffer_not_empty() and navic.is_available())
+                    end,
                     highlight = {colors.section_bg, colors.bg},
                 }
             }
