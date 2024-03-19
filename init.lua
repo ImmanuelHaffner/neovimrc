@@ -41,7 +41,7 @@ require'functions'.setup()
 require'autocmd'.setup()
 
 if vim.g.neovide then
-  require'neovide'.setup()
+    require'neovide'.setup()
 end
 
 -- Support for project-specific config {{{------------------------------------------------------------------------------
