@@ -1,5 +1,6 @@
 return {
     { 'kyazdani42/nvim-tree.lua',
+        enabled = false,
         tag = 'nightly',
         dependencies = {
             'folke/which-key.nvim',
