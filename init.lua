@@ -40,6 +40,10 @@ require'functions'.setup()
 -- Install our autocmds
 require'autocmd'.setup()
 
+if vim.g.neovide then
+  require'neovide'.setup()
+end
+
 -- Support for project-specific config {{{------------------------------------------------------------------------------
 function load_project_config()
     if vim.fn.filereadable('.project.lua') == 1 then
