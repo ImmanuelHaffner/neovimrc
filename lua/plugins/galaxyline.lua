@@ -1,9 +1,16 @@
 return {
     { 'glepnir/galaxyline.nvim',
+        dependencies = {
+            'SmiteshP/nvim-navic',
+            'nvim-lua/lsp-status.nvim',
+        },
         branch = 'main',
         config = function()
             local gl = require'galaxyline'
             local Utils = require'utils'
+
+            local lsp_status = require'lsp-status'
+            local navic = require'nvim-navic'
 
             local gls = gl.section
             gl.short_line_list = {'defx', 'packager', 'vista', 'NvimTree'}
@@ -121,47 +128,56 @@ return {
                     separator_highlight = {colors.section_bg, colors.bg}
                 }
             }
-            -- LSP status (current function)
             gls.left[4] = {
-                LSPStatus = {
-                    provider = function() return require'lsp-status'.status() end,
-                    condition = function() return #vim.lsp.buf_get_clients() > 0 end,
-                    highlight = {colors.middlegrey, colors.bg}
-                }
-            }
-            gls.left[9] = {
                 DiagnosticError = {
                     provider = 'DiagnosticError',
                     icon = '  ',
-                    highlight = {colors.red1, colors.bg}
+                    highlight = {colors.red1, colors.bg},
+                    separator = "",
+                    separator_highlight = {colors.bg, colors.section_bg},
                 }
             }
-            gls.left[10] = {
-                Space = {
-                    provider = function() return ' ' end,
-                    highlight = {colors.section_bg, colors.bg}
-                }
-            }
-            gls.left[11] = {
+            gls.left[5] = {
                 DiagnosticWarn = {
                     provider = 'DiagnosticWarn',
                     icon = '  ',
-                    highlight = {colors.orange, colors.bg}
+                    highlight = {colors.orange, colors.section_bg},
+                    separator = "",
+                    separator_highlight = {colors.section_bg, colors.bg},
                 }
             }
-            gls.left[12] = {
-                Space = {
-                    provider = function() return ' ' end,
-                    highlight = {colors.section_bg, colors.bg}
-                }
-            }
-            gls.left[13] = {
+            gls.left[6] = {
                 DiagnosticInfo = {
                     provider = 'DiagnosticInfo',
                     icon = '  ',
-                    highlight = {colors.blue, colors.section_bg},
-                    separator = ' ',
-                    separator_highlight = {colors.section_bg, colors.bg}
+                    highlight = {colors.blue, colors.bg},
+                    separator = "",
+                    separator_highlight = {colors.bg, colors.section_bg},
+                }
+            }
+            -- LSP status (current function)
+            -- gls.left[8] = {
+            --     LSPStatus = {
+            --         provider = function() return vim.inspect(lsp_status.messages()) end,
+            --         condition = function() return #vim.lsp.buf_get_clients() > 0 end,
+            --         highlight = {colors.middlegrey, colors.section_bg},
+            --     }
+            -- }
+            gls.left[9] = {
+                nvimNavic = {
+                    provider = function()
+                        return ' ' .. navic.get_location() .. ' '
+                    end,
+                    condition = function()
+                        return navic.is_available()
+                    end,
+                    highlight = {colors.middlegrey, colors.section_bg},
+                }
+            }
+            gls.left[10] = {
+                color = {
+                    provider = function() return "" end,
+                    highlight = {colors.section_bg, colors.bg},
                 }
             }
 

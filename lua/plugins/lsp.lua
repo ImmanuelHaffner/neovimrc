@@ -44,10 +44,12 @@ return {
             'https://git.sr.ht/~p00f/clangd_extensions.nvim',
             'nvim-lua/lsp-status.nvim',
             'barreiroleo/ltex_extra.nvim',
+            'SmiteshP/nvim-navic',
         },
         config = function()
             local lsp = require'lspconfig'
             local lsp_status = require'lsp-status'
+            local navic = require'nvim-navic'
 
             lsp_status.register_progress()
 
@@ -102,6 +104,9 @@ return {
                 --}}}---------------------------------------------------------------------------------------------------
 
                 lsp_status.on_attach(client)
+                if client.server_capabilities.documentSymbolProvider then
+                    navic.attach(client, bufnr)
+                end
             end
 
             local capabilities = require'cmp_nvim_lsp'.default_capabilities()
