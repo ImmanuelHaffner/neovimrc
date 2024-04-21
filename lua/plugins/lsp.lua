@@ -124,6 +124,7 @@ return {
                 init_options = {
                     clangdFileStatus = true,
                 },
+                filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda', 'proto', 'yacc', 'lex', },
             }
 
             lsp['ltex'].setup{
