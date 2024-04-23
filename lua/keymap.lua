@@ -28,7 +28,7 @@ function M.setup()
         ['?']     = { ':lua Utils.search_for_visual_selection(false)<cr>', 'Reverse search for visual selection' },
     }, { silent = false, mode = 'v' })
 
-    -- Temrinal mode
+    -- Terminal mode
     wk.register({
         ['<C-l>'] = { function()
             vim.fn.feedkeys("", 'n')
