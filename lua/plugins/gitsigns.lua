@@ -38,7 +38,7 @@ return {
                         S = { gs.stage_buffer, 'Stage buffer' },
                         R = { gs.reset_buffer, 'Reset buffer' },
                         p = { gs.preview_hunk, 'Preview hunk' },
-                        b = { function() gs.blame_line{full=true} end, 'Blame current line' },
+                        b = { function() gs.blame_line{full=false} end, 'Blame current line' },
                         d = { gs.diffthis, 'Diff current hunk' },
                         D = { function() gs.diffthis('~') end, 'Diff current file' },
                         t = {
