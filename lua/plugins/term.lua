@@ -40,6 +40,9 @@ return {
             wk.register({
                 l = { function() lazygit:toggle() end, "Lazygit" }
             }, { prefix = '<leader>g', silent = true })
+            wk.register({
+                t = { '<cmd>TermSelect<cr>', "Select toggle term" }
+            }, { prefix = '<leader>f', silent = true })
         end
     },
     { 'tknightz/telescope-termfinder.nvim',
