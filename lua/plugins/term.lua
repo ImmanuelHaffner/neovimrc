@@ -10,6 +10,8 @@ return {
             term.setup{
                 open_mapping = [[<c-\>]],
                 shade_terminals = false,
+                autochdir = true,
+                auto_scroll = false,
             }
 
             local Terminal  = require'toggleterm.terminal'.Terminal
