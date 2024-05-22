@@ -26,7 +26,7 @@ return {
             -- Search todo notes with telescope
             require'which-key'.register({
                 name = 'Telescope',
-                t = { '<cmd>TodoTelescope<cr>', 'Find todo notes' },
+                n = { '<cmd>TodoTelescope<cr>', 'Find todo notes' },
             }, { prefix = '<leader>f', silent = true })
 
             -- Show todo notes in trouble view
