@@ -1,11 +1,26 @@
 local M = { }
 
 function M.setup()
+    general_settings_group = vim.api.nvim_create_augroup('General settings', { clear = true })
+
+
+    vim.api.nvim_create_autocmd('FileType', {
+        callback = function()
+            if vim.o.filetype == 'qf' then
+                vim.cmd[[wincmd J]]
+                vim.cmd[[resize 15]]
+            end
+        end,
+        group = general_settings_group,
+        desc = 'Place Quickfix window at the very bottom',
+    })
+
     ----- Remove comment leader on o/O {{{------------------------------------------------------------------------------
     vim.api.nvim_create_autocmd('BufEnter', {
         callback = function()
-            vim.opt.formatoptions:remove { 'o' }
+            vim.opt.formatoptions:remove{ 'o' }
         end,
+        group = general_settings_group,
         desc = 'Disable New Line Comment',
     })
     --}}}---------------------------------------------------------------------------------------------------------------
@@ -36,6 +51,7 @@ function M.setup()
     -- https://vi.stackexchange.com/questions/13692/prevent-focusgained-autocmd-running-in-command-line-editing-mode
     vim.api.nvim_create_autocmd({'FocusGained', 'BufEnter', 'CursorHold', 'CursorHoldI'}, {
         command = "if mode() !~ '\v(c|r.?|!|t)' && getcmdwintype() == '' | checktime | endif",
+        group = general_settings_group,
     })
 
     -- Notification after file change
@@ -52,6 +68,7 @@ function M.setup()
                 vim.wo.colorcolumn = 0
             end
         end,
+        group = general_settings_group,
     })
     --}}}---------------------------------------------------------------------------------------------------------------
 
@@ -63,6 +80,7 @@ function M.setup()
                 vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'i', false)
             end
         end,
+        group = general_settings_group,
     })
     --}}}---------------------------------------------------------------------------------------------------------------
 end
