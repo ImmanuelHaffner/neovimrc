@@ -16,7 +16,6 @@ return {
                     'clickhouse',
                     'sql_test',
                     'planner_tests',
-                    'planner_unit_tests',
                     'sql_parser_tests',
                 },
                 icecc = {
