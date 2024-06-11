@@ -65,7 +65,7 @@ function M.setup()
     vim.api.nvim_create_autocmd({'BufWinEnter'}, {
         callback = function(args)
             if vim.bo[args.buf].buftype == 'quickfix' then
-                vim.wo.colorcolumn = 0
+                vim.wo.colorcolumn = '0'  -- no color column
             end
         end,
         group = general_settings_group,
