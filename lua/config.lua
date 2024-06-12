@@ -80,7 +80,7 @@ function M.setup()
     vim.opt.wildignorecase = true
 
     -- Character you have to type to start wildcard expansion in the command-line
-    vim.opt.wildchar = vim.api.nvim_replace_termcodes('<Tab>', true, true, true)[1]
+    vim.opt.wildcharm = vim.api.nvim_replace_termcodes('<Tab>', true, true, true):byte()
 
     -- Enable wildmenu "enhanced mode", showing completions *above* the command line.
     vim.opt.wildmenu = true
