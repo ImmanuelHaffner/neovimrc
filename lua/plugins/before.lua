@@ -7,6 +7,7 @@ return {
         config = function()
             local before = require('before')
             before.setup()
+            require'telescope'.load_extension('before')
 
             local wk = require'which-key'
             wk.register({
