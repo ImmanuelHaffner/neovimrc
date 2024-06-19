@@ -25,7 +25,7 @@ return {
             -- you can enable a preset for easier configuration
             presets = {
                 bottom_search = true, -- use a classic bottom cmdline for search
-                command_palette = true, -- position the cmdline and popupmenu together
+                command_palette = false, -- position the cmdline and popupmenu together
                 long_message_to_split = true, -- long messages will be sent to a split
                 inc_rename = false, -- enables an input dialog for inc-rename.nvim
                 lsp_doc_border = false, -- add a border to hover docs and signature help
@@ -34,12 +34,38 @@ return {
                 cmdline_popup = {
                     relative = 'editor',
                     position = {
-                        row = '20%',
+                        row = 10,
                         col = '50%',
                     },
                     size = {
                         width = '60%',
                         height = 'auto',
+                    },
+                },
+                popupmenu = {
+                    relative = 'editor',
+                    position = {
+                        row = 12,
+                        col = '50%',
+                    },
+                    size = {
+                        width = '60%',
+                        height = 'auto',
+                    },
+                    win_options = {
+                        winbar = "",
+                        foldenable = false,
+                        cursorline = true,
+                        cursorlineopt = 'line',
+                        winhighlight = {
+                            Normal = 'NormalFloat', -- change to NormalFloat to make it look like other floats
+                            FloatBorder = 'NoiceCmdlinePopupBorder', -- border highlight
+                            CursorLine = 'NoicePopupmenuSelected', -- used for highlighting the selected item
+                            PmenuMatch = 'NoicePopupmenuMatch', -- used to highlight the part of the item that matches the input
+                        },
+                    },
+                    border = {
+                        padding = { 0, 1 },
                     },
                 },
             },
