@@ -1,6 +1,6 @@
 return {
     { 'lewis6991/gitsigns.nvim',
-        tag = 'v0.6',
+        tag = 'v0.9.0',
         dependencies = { 'folke/which-key.nvim' },
         config = function()
             require'gitsigns'.setup{
