@@ -20,7 +20,7 @@ function M.setup()
 
     -- This option helps to avoid all the |hit-enter| prompts caused by file messages, for example  with CTRL-G, and to
     -- avoid some other messages. It is a list of flags.
-    vim.g.shortmess = 'filnxtToOFc'
+    vim.g.shortmess = 'aOstTWIcCF'
 
     ----- Visuals {{{---------------------------------------------------------------------------------------------------
     -- Enables 24-bit RGB color in the TUI.
