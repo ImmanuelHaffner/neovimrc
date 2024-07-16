@@ -26,7 +26,6 @@ return {
         end,
     },
     { 'williamboman/mason-lspconfig.nvim', dependencies = { 'williamboman/mason.nvim' } },
-    { 'https://git.sr.ht/~p00f/clangd_extensions.nvim' },
     { 'nvim-lua/lsp-status.nvim',
         config = function()
             local lsp_status = require'lsp-status'
@@ -40,7 +39,7 @@ return {
     { 'neovim/nvim-lspconfig',
         dependencies = {
             'williamboman/mason-lspconfig.nvim',
-            'folke/which-key.nvim',
+            -- 'folke/which-key.nvim',
             'https://git.sr.ht/~p00f/clangd_extensions.nvim',
             'nvim-lua/lsp-status.nvim',
             'barreiroleo/ltex_extra.nvim',
@@ -68,49 +67,69 @@ return {
                 end
 
                 -- Keymaps {{{------------------------------------------------------------------------------------------
-                local wk = require'which-key'
+                local opts = { buffer = bufnr, noremap = true, silent = true }
+                -- local wk = require'which-key'
                 local buf = vim.lsp.buf
                 local diag = vim.diagnostic
 
                 -- Diagnostics navigation
-                wk.add{
-                    buffer = bufnr,
-                    { '?', function() vim.diagnostic.open_float() end, desc = 'Show diagnostic under cursor' },
-                    { '[d', function() vim.diagnostic.goto_prev() end, desc = 'Goto previous diagnostic' },
-                    { ']d', function() diag.goto_next() end, desc = 'Goto next diagnostic' },
-                }
+                vim.keymap.set('n', '?', vim.diagnostic.open_float, opts)
+                vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
+                vim.keymap.set('n', '[d', vim.diagnostic.goto_next, opts)
+                -- wk.add{
+                --     {
+                --         buffer = bufnr,
+                --         { '?', vim.diagnostic.open_float, desc = 'Show diagnostic under cursor' },
+                --         { '[d', vim.diagnostic.goto_prev, desc = 'Goto previous diagnostic' },
+                --         { ']d', diag.goto_next, desc = 'Goto next diagnostic' },
+                --     }
+                -- }
 
                 -- LSP commands
-                wk.add{
-                    buffer = bufnr,
-                    { '<leader>l', group = 'LSP' },
-                    { '<leader>ld', function() diag.setloclist() end, desc = 'Show all diagnostics' },
-                    { '<leader>lr', function() buf.rename() end, desc = 'Refactor rename item under cursor' },
-                    { '<leader>l<tab>', '<cmd>ClangdSwitchSourceHeader<cr>', desc = 'Switch between source/header file' },
-                    { '<leader>ls<tab>', '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', desc = 'Open source/header file in horizontal split' },
-                    { '<leader>lv<tab>', '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', desc = 'Open source/header file in vertical split' },
-                    {
-                        { '<leader>lg', group = 'Goto …' },
-                        { '<leader>lgd', function() buf.declaration() end, desc = 'Goto declaration' },
-                        { '<leader>lgD', function() buf.definition() end, desc = 'Goto definition' },
-                        { '<leader>lgi', function() buf.implementation() end, desc = 'Goto implementation' },
-                        { '<leader>lgt', function() buf.type_definition() end, desc = 'Goto type definition' },
-                    },
-                    {
-                        { '<leader>lh', 'Help …' },
-                        { '<leader>lhh', function() buf.hover() end, desc = 'Tooltip for item under cursor' },
-                        { '<leader>lhs', function() buf.signature_help() end, desc = 'Show signature help' },
-                        { '<leader>lhr', function() buf.references() end, desc = 'Show references' },
-                    },
-                    {
-                        { '<leader>lc', 'Code …' },
-                        { '<leader>lca', function() buf.code_action() end, desc = 'Perform code action for item under cursor' },
-                        { '<leader>lcf', function() buf.formatting() end, desc = 'Perform formatting (whole file)' },
-                    },
-                }
+                -- wk.add{
+                --     buffer = bufnr,
+                --     { '<leader>l', group = 'LSP' },
+                --     { '<leader>ld', function() diag.setloclist() end, desc = 'Show all diagnostics' },
+                --     { '<leader>lr', function() buf.rename() end, desc = 'Refactor rename item under cursor' },
+                --     { '<leader>l<tab>', '<cmd>ClangdSwitchSourceHeader<cr>', desc = 'Switch between source/header file' },
+                --     { '<leader>ls<tab>', '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', desc = 'Open source/header file in horizontal split' },
+                --     { '<leader>lv<tab>', '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', desc = 'Open source/header file in vertical split' },
+                --     {
+                --         { '<leader>lg', group = 'Goto …' },
+                --         { '<leader>lgd', function() buf.declaration() end, desc = 'Goto declaration' },
+                --         { '<leader>lgD', function() buf.definition() end, desc = 'Goto definition' },
+                --         { '<leader>lgi', function() buf.implementation() end, desc = 'Goto implementation' },
+                --         { '<leader>lgt', function() buf.type_definition() end, desc = 'Goto type definition' },
+                --     },
+                --     {
+                --         { '<leader>lh', 'Help …' },
+                --         { '<leader>lhh', function() buf.hover() end, desc = 'Tooltip for item under cursor' },
+                --         { '<leader>lhs', function() buf.signature_help() end, desc = 'Show signature help' },
+                --         { '<leader>lhr', function() buf.references() end, desc = 'Show references' },
+                --     },
+                --     {
+                --         { '<leader>lc', 'Code …' },
+                --         { '<leader>lca', function() buf.code_action() end, desc = 'Perform code action for item under cursor' },
+                --         { '<leader>lcf', function() buf.formatting() end, desc = 'Perform formatting (whole file)' },
+                --     },
+                -- }
+                vim.keymap.set('n', '<leader>ld', function() diag.setloclist() end, opts)
+                vim.keymap.set('n', '<leader>lr', function() buf.rename() end, opts)
+                vim.keymap.set('n', '<leader>l<tab>', '<cmd>ClangdSwitchSourceHeader<cr>', opts)
+                vim.keymap.set('n', '<leader>ls<tab>', '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', opts)
+                vim.keymap.set('n', '<leader>lv<tab>', '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', opts)
+                vim.keymap.set('n', '<leader>lgd', function() buf.declaration() end, opts)
+                vim.keymap.set('n', '<leader>lgD', function() buf.definition() end, opts)
+                vim.keymap.set('n', '<leader>lgi', function() buf.implementation() end, opts)
+                vim.keymap.set('n', '<leader>lgt', function() buf.type_definition() end, opts)
+                vim.keymap.set('n', '<leader>lhh', function() buf.hover() end, opts)
+                vim.keymap.set('n', '<leader>lhs', function() buf.signature_help() end, opts)
+                vim.keymap.set('n', '<leader>lhr', function() buf.references() end, opts)
+                vim.keymap.set('n', '<leader>lca', function() buf.code_action() end, opts)
+                vim.keymap.set('n', '<leader>lcf', function() buf.formatting() end, opts)
                 --}}}---------------------------------------------------------------------------------------------------
 
-                lsp_status.on_attach(client)
+                -- lsp_status.on_attach(client)
                 if client.server_capabilities.documentSymbolProvider then
                     navic.attach(client, bufnr)
                 end
@@ -124,7 +143,7 @@ return {
                     on_attach(client, bufnr)
                     -- Clangd extensions
                     require("clangd_extensions.inlay_hints").setup_autocmd()
-                    -- require("clangd_extensions.inlay_hints").set_inlay_hints()
+                    require("clangd_extensions.inlay_hints").set_inlay_hints()
                 end,
                 capabilities = capabilities,
                 handlers = lsp_status.extensions.clangd.setup(),
