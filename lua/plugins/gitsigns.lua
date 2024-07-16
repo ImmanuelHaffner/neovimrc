@@ -16,18 +16,20 @@ return {
 
                     -- Navigation
                     wk.add{
-                        group = 'Gitsign navigation',
                         { ']h', function()
-                            if vim.wo.diff then return ']c' end
-                            vim.schedule(function() gs.next_hunk() end)
-                            return '<Ignore>'
-                            end, desc = 'Next Git hunk'
+                                if vim.wo.diff then return ']c' end
+                                vim.schedule(function() gs.next_hunk() end)
+                                return '<Ignore>'
+                            end,
+                            desc = 'Next Git hunk'
                         },
                         { '[h', function()
-                            if vim.wo.diff then return ']c' end
-                            vim.schedule(function() gs.prev_hunk() end)
-                            return '<Ignore>'
-                            end, desc = 'Previous Git hunk' },
+                                if vim.wo.diff then return ']c' end
+                                vim.schedule(function() gs.prev_hunk() end)
+                                return '<Ignore>'
+                            end,
+                            desc = 'Previous Git hunk'
+                        },
                     }
 
                     -- Actions
@@ -54,11 +56,11 @@ return {
                     }
 
                     -- Text object
-                    wk.add{
-                        group = 'Gitsign',
-                        mode = { 'o', 'x' },
-                        { 'gh', ':<C-U>Gitsigns select_hunk<CR>', desc = 'Gitsign select hunk' },
-                    }
+                    -- wk.add{
+                    --     mode = { 'o', 'x' },
+                    --     { 'g', group = 'Gitsign' },
+                    --     { 'gh', ':<C-U>Gitsigns select_hunk<CR>', desc = 'Gitsign select hunk' },
+                    -- }
                 end
             }
         end,
