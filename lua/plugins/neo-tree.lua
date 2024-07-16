@@ -6,7 +6,6 @@ return {
             'kyazdani42/nvim-web-devicons', -- not strictly required, but recommended
             'MunifTanjim/nui.nvim',
             '3rd/image.nvim', -- Optional image support in preview window: See `# Preview Mode` for more information
-            'folke/which-key.nvim',
         },
         config = function()
             local neotree = require'neo-tree'
@@ -17,9 +16,9 @@ return {
                     },
                 },
             }
-            require'which-key'.register({
-                ['<F2>'] = { ':Neotree action=focus reveal<CR>', 'Open Neo-tree (filesystem)' },
-            }, { silent = true })
-        end
+        end,
+        keys = {
+            { '<F2>', ':Neotree action=focus reveal<CR>', desc = 'Open Neo-tree (filesystem)' },
+        }
     },
 }

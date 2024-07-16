@@ -73,34 +73,41 @@ return {
                 local diag = vim.diagnostic
 
                 -- Diagnostics navigation
-                wk.register({
-                    ['?'] = { function() diag.open_float() end, 'Show diagnostic under cursor' },
-                    ['[d'] = { function() diag.goto_prev() end, 'Goto previous diagnostic' },
-                    [']d'] = { function() diag.goto_next() end, 'Goto next diagnostic' },
-                }, { buffer = bufnr })
+                wk.add{
+                    buffer = bufnr,
+                    { '?', function() vim.diagnostic.open_float() end, desc = 'Show diagnostic under cursor' },
+                    { '[d', function() vim.diagnostic.goto_prev() end, desc = 'Goto previous diagnostic' },
+                    { ']d', function() diag.goto_next() end, desc = 'Goto next diagnostic' },
+                }
 
                 -- LSP commands
-                wk.register({
-                    name = 'LSP',
-                    d = { function() diag.setloclist() end, 'Show all diagnostics' },
-                    g = {
-                        d = { function() buf.declaration() end, 'Goto declaration' },
-                        D = { function() buf.definition() end, 'Goto definition' },
-                        i = { function() buf.implementation() end, 'Goto implementation' },
-                        t = { function() buf.type_definition() end, 'Goto type definition' },
+                wk.add{
+                    buffer = bufnr,
+                    { '<leader>l', group = 'LSP' },
+                    { '<leader>ld', function() diag.setloclist() end, desc = 'Show all diagnostics' },
+                    { '<leader>lr', function() buf.rename() end, desc = 'Refactor rename item under cursor' },
+                    { '<leader>l<tab>', '<cmd>ClangdSwitchSourceHeader<cr>', desc = 'Switch between source/header file' },
+                    { '<leader>ls<tab>', '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', desc = 'Open source/header file in horizontal split' },
+                    { '<leader>lv<tab>', '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', desc = 'Open source/header file in vertical split' },
+                    {
+                        { '<leader>lg', group = 'Goto …' },
+                        { '<leader>lgd', function() buf.declaration() end, desc = 'Goto declaration' },
+                        { '<leader>lgD', function() buf.definition() end, desc = 'Goto definition' },
+                        { '<leader>lgi', function() buf.implementation() end, desc = 'Goto implementation' },
+                        { '<leader>lgt', function() buf.type_definition() end, desc = 'Goto type definition' },
                     },
-                    h = {
-                        h = { function() buf.hover() end, 'Tooltip for item under cursor' },
-                        s = { function() buf.signature_help() end, 'Show signature help' },
-                        r = { function() buf.references() end, 'Show references' },
+                    {
+                        { '<leader>lh', 'Help …' },
+                        { '<leader>lhh', function() buf.hover() end, desc = 'Tooltip for item under cursor' },
+                        { '<leader>lhs', function() buf.signature_help() end, desc = 'Show signature help' },
+                        { '<leader>lhr', function() buf.references() end, desc = 'Show references' },
                     },
-                    ['rn'] = { function() buf.rename() end, 'Refactor rename item under cursor' },
-                    ['ca'] = { function() buf.code_action() end, 'Perform code action for item under cursor' },
-                    ['cf'] = { function() buf.formatting() end, 'Perform formatting (whole file)' },
-                    ['<tab>'] = { '<cmd>ClangdSwitchSourceHeader<cr>', 'Switch between source/header file' },
-                    ['s<tab>'] = { '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', 'Open source/header file in horizontal split' },
-                    ['v<tab>'] = { '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', 'Open source/header file in vertical split' },
-                }, { prefix = '<leader>l', buffer = bufnr })
+                    {
+                        { '<leader>lc', 'Code …' },
+                        { '<leader>lca', function() buf.code_action() end, desc = 'Perform code action for item under cursor' },
+                        { '<leader>lcf', function() buf.formatting() end, desc = 'Perform formatting (whole file)' },
+                    },
+                }
                 --}}}---------------------------------------------------------------------------------------------------
 
                 lsp_status.on_attach(client)

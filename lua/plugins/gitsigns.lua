@@ -15,50 +15,50 @@ return {
                     end
 
                     -- Navigation
-                    wk.register({
-                        name = 'Gitsign navigation',
-                        [']h'] = { function()
+                    wk.add{
+                        group = 'Gitsign navigation',
+                        { ']h', function()
                             if vim.wo.diff then return ']c' end
                             vim.schedule(function() gs.next_hunk() end)
                             return '<Ignore>'
-                            end, 'Next Git hunk' },
-                        ['[h'] = { function()
+                            end, desc = 'Next Git hunk'
+                        },
+                        { '[h', function()
                             if vim.wo.diff then return ']c' end
                             vim.schedule(function() gs.prev_hunk() end)
                             return '<Ignore>'
-                            end, 'Previous Git hunk' },
-                    }, { buffer = bufnr, expr = true })
+                            end, desc = 'Previous Git hunk' },
+                    }
 
                     -- Actions
-                    wk.register({
-                        name = 'Gitsign',
-                        s = { gs.stage_hunk, 'Stage hunk' },
-                        r = { gs.reset_hunk, 'Reset hunk' },
-                        u = { gs.undo_stage_hunk, 'Undo stage hunk' },
-                        S = { gs.stage_buffer, 'Stage buffer' },
-                        R = { gs.reset_buffer, 'Reset buffer' },
-                        p = { gs.preview_hunk, 'Preview hunk' },
-                        b = { function() gs.blame_line{full=false} end, 'Blame current line' },
-                        d = { gs.diffthis, 'Diff current hunk' },
-                        D = { function() gs.diffthis('~') end, 'Diff current file' },
-                        t = {
-                            name = 'Toggles',
-                            b = { gs.toggle_current_line_blame, 'Toggle current line blame' },
-                            d = { gs.toggle_deleted, 'Toggle deleted' },
+                    wk.add{
+                        { '<leader>g', group = 'Git' },
+                        { '<leader>gs', group = 'Gitsign' },
+                        {
+                            mode = { 'n', 'v' },
+                            { '<leader>gss', gs.stage_hunk, desc = 'Stage hunk' },
+                            { '<leader>gsr', gs.reset_hunk, desc = 'Reset hunk' },
                         },
-                    }, { prefix = '<leader>gs', buffer = bufnr })
-                    -- Actions - Visual mode
-                    wk.register({
-                        name = 'Gitsign',
-                        s = { gs.stage_hunk, 'Stage hunk' },
-                        r = { gs.reset_hunk, 'Reset hunk' },
-                    }, { mode = 'v', prefix = '<leader>gs', buffer = bufnr })
+                        { '<leader>gsu', gs.undo_stage_hunk, desc = 'Undo stage hunk' },
+                        { '<leader>gsS', gs.stage_buffer, desc = 'Stage buffer' },
+                        { '<leader>gsR', gs.reset_buffer, desc = 'Reset buffer' },
+                        { '<leader>gsp', gs.preview_hunk, desc = 'Preview hunk' },
+                        { '<leader>gsb', function() gs.blame_line{full=false} end, desc = 'Blame current line' },
+                        { '<leader>gsd', gs.diffthis, desc = 'Diff current hunk' },
+                        { '<leader>gsD', function() gs.diffthis('~') end, desc = 'Diff current file' },
+                        {
+                            { '<leader>gst', group = 'Toggles' },
+                            { '<leader>gstb', gs.toggle_current_line_blame, desc = 'Toggle current line blame' },
+                            { '<leader>gstd', gs.toggle_deleted, desc = 'Toggle deleted' },
+                        },
+                    }
 
                     -- Text object
-                    wk.register({
-                        name = 'Gitsign',
-                        ['gh'] = { ':<C-U>Gitsigns select_hunk<CR>', 'Gitsign select hunk' },
-                    }, { mode = { 'o', 'x' }, buffer = bufnr })
+                    wk.add{
+                        group = 'Gitsign',
+                        mode = { 'o', 'x' },
+                        { 'gh', ':<C-U>Gitsigns select_hunk<CR>', desc = 'Gitsign select hunk' },
+                    }
                 end
             }
         end,

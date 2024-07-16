@@ -8,10 +8,10 @@ return {
             vim.notify = require'notify'
 
             local wk = require'which-key'
-            wk.register({
-                name = 'Notify',
-                d = { function() require'notify'.dismiss() end, 'Dismiss all notifications' },
-            }, { prefix = '<leader>n', silent = true })
+            wk.add{
+                { '<leader>n', group = 'Notify' },
+                { '<leader>nd', function() require'notify'.dismiss() end, desc = 'Dismiss all notifications' },
+            }
         end,
     }
 }

@@ -29,11 +29,14 @@ return {
             end, {})
 
             -- Keymap
-            require'which-key'.register({
-                name = 'Sessions',
-                l = { function() require('session_manager').load_session() end, "Load a session" },
-                s = { function() require('session_manager').save_current_session() end, "Save current session" },
-            }, { prefix = '<leader>s' })
+            require'which-key'.add{
+                { '<leader>s', group = 'Sessions' },
+                { '<leader>sl', function() require('session_manager').load_session() end, desc = "Load a session" },
+                { '<leader>ss', function()
+                    require('session_manager').save_current_session()
+                    vim.notify('Session saved.', vim.log.levels.INFO, { title = 'Session Manager' })
+                end, desc = "Save current session" },
+            }
         end
     },
 }

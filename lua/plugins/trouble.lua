@@ -8,9 +8,9 @@ return {
         config = function()
             require'trouble'.setup()
             local wk = require'which-key'
-            wk.register({
-                ['<F9>'] = { '<cmd>Trouble<cr>', 'Open Trouble' },
-            }, { silent = true })
+            wk.add{
+                { '<F9>', '<cmd>Trouble<cr>', desc = 'Open Trouble' },
+            }
         end
     },
 }

@@ -10,10 +10,9 @@ return {
             require'nvim-tree'.setup{
                 view = { width = 40 },
             }
-            require'which-key'.register({
-                name = 'NVim Tree',
-                ['<F2>'] = { '<cmd>NvimTreeToggle<cr>', 'Toggle NvimTree' },
-            }, { silent = true })
         end,
+        keys = {
+            { '<F2>', '<cmd>NvimTreeToggle<cr>', desc = 'Toggle NvimTree' },
+        }
     },
 }

@@ -9,15 +9,15 @@ return {
             'folke/which-key.nvim',
         },
         opts = { lsp = { auto_attach = true } },
-        config = function(lazy, opts)
+        config = function(_, opts)
             vim.print('Setting up navbuddy...')
             require'nvim-navbuddy'.setup(opts)
 
             local wk = require'which-key'
-            wk.register({
-                name = 'LSP',
-                n = { '<cmd>Navbuddy<cr>', 'Open Navbuddy' },
-            }, { prefix = '<leader>l', silent = true })
+            wk.add{
+                { '<leader>l', group = 'LSP' },
+                { '<leader>ln', '<cmd>Navbuddy<cr>', desc = 'Open Navbuddy' },
+            }
         end
     }
 }

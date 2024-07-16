@@ -13,27 +13,14 @@ return {
                     keyword = 'bg',
                 },
             }
-            -- Next todo
-            vim.keymap.set("n", "]t", function()
-                require("todo-comments").jump_next()
-            end, { desc = "Next todo comment" })
 
-            -- Previous todo
-            vim.keymap.set("n", "[t", function()
-                require("todo-comments").jump_prev()
-            end, { desc = "Previous todo comment" })
-
-            -- Search todo notes with telescope
-            require'which-key'.register({
-                name = 'Telescope',
-                n = { '<cmd>TodoTelescope<cr>', 'Find todo notes' },
-            }, { prefix = '<leader>f', silent = true })
-
-            -- Show todo notes in trouble view
-            require'which-key'.register({
-                name = 'Todos',
-                t = { '<cmd>TodoTrouble<cr>', 'todo notes in trouble view' },
-            }, { prefix = '<leader>t', silent = true })
+            require'which-key'.add{
+                { ']t', function() require("todo-comments").jump_next() end, desc = "Next todo comment" },
+                { '[t', function() require("todo-comments").jump_prev() end, desc = "Next todo comment" },
+                { '<leader>fn', '<cmd>TodoTelescope<cr>', desc = 'Find todo notes' },
+                { '<leader>t', group = 'Todo …' },
+                { '<leader>tt', '<cmd>TodoTrouble<cr>', desc = 'Todo notes in trouble view' },
+            }
         end,
     },
 }

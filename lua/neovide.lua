@@ -25,11 +25,12 @@ function M.setup()
 
     -- Neovide keymaps
     local wk = require'which-key'
-    wk.register({
-        ['<C-+>'] = { function() M.resize_gui_font(1) end, 'increase font size' },
-        ['<C-->'] = { function() M.resize_gui_font(-1) end, 'decrease font size' },
-        ['<C-=>'] = { function() M.reset_gui_font() end, 'reset font size' },
-    }, { mode = { 'n', 'i' }, noremap = true, silent = true })
+    wk.add{
+        mode = { 'n', 'i' },
+        { '<C-+>', function() M.resize_gui_font(1) end, desc = 'increase font size' },
+        { '<C-->', function() M.resize_gui_font(-1) end, desc = 'decrease font size' },
+        { '<C-=>', function() M.reset_gui_font() end, desc = 'reset font size' },
+    }
 end
 
 return M

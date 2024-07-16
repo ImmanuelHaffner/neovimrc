@@ -1,7 +1,6 @@
 return {
     { 'akinsho/bufferline.nvim',
         tag = 'v4.6.1',
-        dependencies = { 'folke/which-key.nvim' },
         config = function()
             local Utils = require'utils'
 

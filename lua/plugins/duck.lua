@@ -7,11 +7,11 @@ return {
             local duck = require'duck'
             local wk = require'which-key'
             duck.hatch()
-            wk.register({
-                name = 'Duck',
-                d = { function() duck.hatch() end, 'Hatch duck' },
-                c = { function() duck.cook() end, 'Cook duck' },
-            }, { prefix = '<leader>d', silent = true })
+            wk.add{
+                { '<leader>d', group = 'Duck' },
+                { '<leader>dd', function() duck.hatch() end, desc = 'Hatch duck' },
+                { '<leader>dc', function() duck.cook() end, desc = 'Cook duck' },
+            }
         end
     }
 }

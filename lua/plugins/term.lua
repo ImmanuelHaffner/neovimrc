@@ -36,28 +36,22 @@ return {
             function _lazygit_toggle()
                 lazygit:toggle()
             end
-
-            wk.register({
-                l = { function() lazygit:toggle() end, "Lazygit" }
-            }, { prefix = '<leader>g', silent = true })
-            wk.register({
-                t = { '<cmd>TermSelect<cr>', "Select toggle term" }
-            }, { prefix = '<leader>f', silent = true })
-        end
+            wk.add{
+                { '<leader>gl', function() lazygit:toggle() end, desc = 'Lazygit' },
+                { '<leader>ft', '<cmd>TermSelect<cr>', desc = 'Select toggle term' },
+            }
+        end,
     },
     { 'tknightz/telescope-termfinder.nvim',
         dependencies = {
             'akinsho/toggleterm.nvim',
             'nvim-telescope/telescope.nvim',
-            'folke/which-key.nvim',
         },
         config = function()
             require'telescope'.load_extension'termfinder'
-
-            require'which-key'.register({
-                name = 'Telescope',
-                ['\\'] = { ':Telescope termfinder find<cr>', 'Find terminal' },
-            }, { prefix = '<leader>f', silent = true })
         end,
+        keys = {
+            { '<leader>f\\', ':Telescope termfinder find<cr>', desc = 'Find terminal' },
+        }
     },
 }
