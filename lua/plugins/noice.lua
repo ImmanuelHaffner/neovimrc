@@ -1,5 +1,6 @@
 return {
     { 'folke/noice.nvim',
+        tag = 'v4.4.2',
         event = 'VeryLazy',
         dependencies = {
             -- if you lazy-load any plugin below, make sure to add proper `module='...'` entries
