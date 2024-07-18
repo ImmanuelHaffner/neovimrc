@@ -40,7 +40,7 @@ function M.setup()
         end, desc = 'Clear terminal' },
         {
             expr = true,
-            { '<C-r>', function()
+            { '<C-v>', function()
                 local next_char_code = vim.fn.getchar()
                 local next_char = vim.fn.nr2char(next_char_code)
                 return '<C-\\><C-N>"'..next_char..'pi'
