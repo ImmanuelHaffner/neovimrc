@@ -1,5 +1,13 @@
 return {
     { 'folke/which-key.nvim',
+        tag = 'v3.6.0',
+        opts = {
+            modes = {
+                o = false, -- Operator pending mode
+                c = false, -- Command mode
+                t = false, -- Terminal mode
+            }
+        },
         keys = {
             {
                 '<leader>?',
