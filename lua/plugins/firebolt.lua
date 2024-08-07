@@ -9,6 +9,7 @@ return {
         opts = {
             dirs = {
                 '/home/immanuel/Documents/Firebolt/code/packdb',
+                '/home/immanuel/Documents/Firebolt/code/packdb-2',
                 '/home/immanuel/code/packdb',
             },
             build = {
