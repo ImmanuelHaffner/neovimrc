@@ -17,6 +17,11 @@ function M.setup()
         { '<BS>', ':%s/\\s\\+$//<cr>:w<cr>', desc = 'Remove trailing whitespaces' },
         { '<F3>', function() Utils.toggle(vim.o, 'spell') end, desc = 'Toggle spell' },
         { '<F4>', function() Utils.toggle(vim.o, 'cursorcolumn') end, desc = 'Toggle crosshair' },
+        { '<F7>', function()
+            if Utils.toggle_quickfix() then
+                vim.fn.feedkeys('G', 'n')  -- scroll to end
+            end
+        end, desc = 'Toggle QuickFix window' },
         { 'g<Tab>', '<cmd>exe "tabn " . g:lasttab<cr>', desc = 'Switch to previous tab' },
     }
 
