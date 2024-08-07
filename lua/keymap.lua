@@ -33,7 +33,7 @@ function M.setup()
     wk.add{
         mode = { 't' },
         { '<C-l>', function()
-            vim.fn.feedkeys("", 'n')
+            vim.fn.feedkeys('', 'n')
             local sb = vim.bo.scrollback
             vim.bo.scrollback = 1
             vim.bo.scrollback = sb
