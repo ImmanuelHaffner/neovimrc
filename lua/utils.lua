@@ -105,4 +105,23 @@ function M.shorten_relative_path(path, max_len)
     end
 end
 
+-- Returns true iff quickfix window was opened and is now visible and focused
+function M.toggle_quickfix()
+    -- If quickfix window exists, close it.
+    for _, win in pairs(vim.fn.getwininfo()) do
+        if win['quickfix'] == 1 then
+            vim.cmd[[cclose]]
+            return false
+        end
+    end
+
+    -- Quickfix window does not exist.  If there is content, open quickfix window.
+    if not vim.tbl_isempty(vim.fn.getqflist()) then
+        vim.cmd[[copen]]
+        return true
+    end
+
+    return false
+end
+
 return M
