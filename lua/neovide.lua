@@ -18,7 +18,6 @@ function M.reset_gui_font()
     M.refresh_gui_font()
 end
 
-
 function M.setup()
     M.reset_gui_font()
     vim.g.neovide_hide_mouse_when_typing = true

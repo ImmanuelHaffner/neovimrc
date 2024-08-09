@@ -116,12 +116,8 @@ function M.toggle_quickfix()
     end
 
     -- Quickfix window does not exist.  If there is content, open quickfix window.
-    if not vim.tbl_isempty(vim.fn.getqflist()) then
-        vim.cmd[[copen]]
-        return true
-    end
-
-    return false
+    vim.cmd[[copen]]
+    return true
 end
 
 return M
