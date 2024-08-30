@@ -63,7 +63,8 @@ function M.shorten_path(path, max_len)
         if len <= max_len then break end -- overall short enough
         if idx == #fields then break end -- don't shorten last field
 
-        local short_field = field:sub(1, 1) .. ''
+        local PATH_SHORTEN_SYMBOL = '…'  -- symbol to shorten path: …, 
+        local short_field = field:sub(1, 1) .. PATH_SHORTEN_SYMBOL
         local saved = field:len() - (short_field:len() - 2) -- subtract 2 for unicode char 
         len = len - saved
         fields[idx] = short_field
