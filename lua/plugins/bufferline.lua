@@ -8,11 +8,11 @@ return {
                 options = {
                     mode = 'tabs',
                     right_mouse_command = nil,
-                    tab_size = 32,
-                    max_name_length = 32,
+                    tab_size = 60,
+                    max_name_length = 58,
                     max_prefix_length = 0,
                     name_formatter = function(buf)
-                        return Utils.shorten_relative_path(buf.path, 32)
+                        return Utils.shorten_relative_path(buf.path, 58)
                     end,
                     diagnostics = 'nvim_lsp',
                     diagnostics_indicator = function(count, level, diagnostics_dict, context)
