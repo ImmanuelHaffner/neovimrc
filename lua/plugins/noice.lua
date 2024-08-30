@@ -97,7 +97,7 @@ return {
                     },
                 },
                 mini = {
-                    timeout = 6000,
+                    timeout = 3000,
                     position = {
                         row = -2,
                         col = '100%',
