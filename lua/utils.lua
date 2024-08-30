@@ -99,6 +99,8 @@ function M.shorten_relative_path(path, max_len)
     if s == 1 then -- path is in CWD
         local rel_path = path:sub(e + 1, -1)
         return M.shorten_path(rel_path, max_len)
+    elseif path:sub(1, 1) == '~' then -- path starts with '~'
+        return M.shorten_path(path:sub(3, -1), max_len)
     elseif path:sub(1, 1) == '/' then -- path starts with '/'
         return M.shorten_absolute_path(path, max_len)
     else
