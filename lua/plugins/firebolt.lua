@@ -13,7 +13,7 @@ return {
                 '/home/immanuel/code/packdb',
             },
             build = {
-                jobs = 14,
+                jobs = 10,
                 targets = {
                     'clickhouse',
                     'sql_test',
