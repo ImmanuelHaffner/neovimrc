@@ -59,6 +59,25 @@ return {
                     },
                     opts = { skip = true },
                 },
+                -- Route short warning and error messages to Notify
+                {
+                    filter = {
+                        event = 'msg_show',
+                        any = {
+                            {
+                                error = true,
+                                max_height = 3,
+                                max_width = 60,
+                            },
+                            {
+                                warning = true,
+                                max_height = 3,
+                                max_width = 60,
+                            },
+                        },
+                    },
+                    view = 'notify',
+                },
                 -- Route short messages in general to mini.
                 {
                     filter = {
