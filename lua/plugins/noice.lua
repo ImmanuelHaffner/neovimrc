@@ -42,6 +42,7 @@ return {
                 view_search = 'virtualtext', -- view for search count messages. Set to `false` to disable
             },
             routes = {
+                -- Don't show a message for the "File written" prompt.
                 {
                     filter = {
                         event = 'msg_show',
@@ -50,6 +51,7 @@ return {
                     },
                     opts = { skip = true },
                 },
+                -- Don't show a message for the search match count while searching.
                 {
                     filter = {
                         event = 'msg_show',
@@ -57,6 +59,7 @@ return {
                     },
                     opts = { skip = true },
                 },
+                -- Route short messages in general to mini.
                 {
                     filter = {
                         event = 'msg_show',
