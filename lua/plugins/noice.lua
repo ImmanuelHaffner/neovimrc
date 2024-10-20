@@ -59,6 +59,15 @@ return {
                     },
                     opts = { skip = true },
                 },
+                -- Don't show a message when search hits end of file.
+                {
+                    filter = {
+                        event = 'msg_show',
+                        kind = 'emsg',
+                        any = { { find = 'E384:' }, { find = 'E385:' } }
+                    },
+                    opts = { skip = true },
+                },
                 -- Route short warning and error messages to Notify
                 {
                     filter = {
