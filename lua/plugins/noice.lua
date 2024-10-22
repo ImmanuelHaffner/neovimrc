@@ -68,6 +68,15 @@ return {
                     },
                     opts = { skip = true },
                 },
+                -- Don't show a message when running a command with AsyncRun
+                {
+                    filter = {
+                        event = 'msg_show',
+                        kind = 'emsg',
+                        find = 'Running command:',
+                    },
+                    opts = { skip = true },
+                },
                 -- Route short warning and error messages to Notify
                 {
                     filter = {
