@@ -33,6 +33,7 @@ return {
                 diagnostics = false,
                 show_filename = false,
                 status_symbol = '',
+                current_function = false,  -- we use navic for that
             }
         end
     },

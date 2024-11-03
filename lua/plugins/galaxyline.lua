@@ -12,6 +12,34 @@ return {
             local lsp_status = require'lsp-status'
             local navic = require'nvim-navic'
 
+            local function get_lsp_progress()
+              local lsp_messages = lsp_status.messages()
+              local message_list = {}
+              local spinner_frames = { '⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷' }
+
+              for _, msg in ipairs(lsp_messages) do
+                if msg.progress then
+                  local message = msg.title
+                  if msg.message then message = message .. ' ' .. msg.message end
+
+                  -- this percentage format string escapes a percent sign once to show a percentage and one more
+                  -- time to prevent errors in vim statusline's because of it's treatment of % chars
+                  if msg.percentage then message = message .. string.format(" (%.0f%%)", msg.percentage) end
+
+                  if msg.spinner then
+                    message = spinner_frames[(msg.spinner % #spinner_frames) + 1] .. ' ' .. message
+                  end
+                  table.insert(message_list, message)
+                elseif msg.status then
+                    if msg.content ~= 'idle' then
+                        table.insert(message_list, msg.content)
+                    end
+                end
+              end
+
+              return table.concat(message_list, ' ')
+            end
+
             local gls = gl.section
             gl.short_line_list = {'defx', 'packager', 'vista', 'NvimTree'}
 
@@ -155,13 +183,13 @@ return {
                 }
             }
             -- LSP status (current function)
-            -- gls.left[8] = {
-            --     LSPStatus = {
-            --         provider = function() return vim.inspect(lsp_status.messages()) end,
-            --         condition = function() return #vim.lsp.buf_get_clients() > 0 end,
-            --         highlight = {colors.middlegrey, colors.section_bg},
-            --     }
-            -- }
+            gls.left[8] = {
+                LSPStatus = {
+                    provider = function() return ' ' .. get_lsp_progress() .. ' ' end,
+                    condition = function() return #vim.lsp.buf_get_clients() > 0 end,
+                    highlight = {colors.middlegrey, colors.section_bg},
+                }
+            }
             gls.left[9] = {
                 nvimNavic = {
                     provider = function()
