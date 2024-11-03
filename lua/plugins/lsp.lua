@@ -162,6 +162,7 @@ return {
                     }
                 end,
                 capabilities = capabilities,
+                filetypes = { 'tex', },
             }
 
             lsp['texlab'].setup{
