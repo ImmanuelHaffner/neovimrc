@@ -51,6 +51,20 @@ return {
                     },
                     opts = { skip = true },
                 },
+                -- Suppress errors from the ltex LSP with `vim.schedule` and lsp-status.  There is a bug with ltex-ls
+                -- LSP that we want to silence.
+                {
+                    filter = {
+                        any = {
+                            {
+                                event = 'msg_show',
+                                kind = 'emsg',
+                                find = 'vim.schedule',
+                            },
+                        },
+                    },
+                    opts = { skip = true },
+                },
                 -- Don't show a message for the search match count while searching.
                 {
                     filter = {
