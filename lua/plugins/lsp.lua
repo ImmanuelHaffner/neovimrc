@@ -129,7 +129,7 @@ return {
                 vim.keymap.set('n', '<leader>lcf', function() buf.formatting() end, opts)
                 --}}}---------------------------------------------------------------------------------------------------
 
-                -- lsp_status.on_attach(client)
+                lsp_status.on_attach(client)
                 if client.server_capabilities.documentSymbolProvider then
                     navic.attach(client, bufnr)
                 end
