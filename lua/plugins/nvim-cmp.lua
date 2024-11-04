@@ -11,6 +11,7 @@ return {
         },
         config = function()
             local cmp = require'cmp'
+            local types = require'cmp.types'
             cmp.setup{
                 sources = cmp.config.sources({
                     { name = 'nvim_lsp' },
@@ -58,6 +59,7 @@ return {
                         local win_width = vim.api.nvim_win_get_width(0)
 
                         local truncate = function(str, frac)
+                            if str == nil then return str end
                             local max_len = math.floor(frac * win_width)
                             if #str > max_len then
                                 return vim.fn.strcharpart(str, 0, max_len - 1) .. '…'
@@ -73,7 +75,9 @@ return {
                     end
                 },
                 completion = {
-                    autocomplete = false,
+                    autocomplete = {
+                        types.cmp.TriggerEvent.TextChanged,
+                    },
                 },
             }
             cmp.setup.filetype('gitcommit', {
