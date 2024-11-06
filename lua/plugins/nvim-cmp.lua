@@ -15,12 +15,6 @@ return {
             cmp.setup{
                 sources = cmp.config.sources({
                     { name = 'nvim_lsp' },
-                    {
-                        name = 'omni',
-                        option = {
-                            disable_omnifuncs = { 'v:lua.vim.lsp.omnifunc' }
-                        }
-                    },
                 }, {
                     { name = 'buffer' },
                 }),
