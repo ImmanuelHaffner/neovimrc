@@ -78,6 +78,7 @@ return {
                     autocomplete = {
                         types.cmp.TriggerEvent.TextChanged,
                     },
+                    keyword_length = 3,
                 },
             }
             cmp.setup.filetype('gitcommit', {
