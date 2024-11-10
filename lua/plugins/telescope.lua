@@ -14,6 +14,17 @@ return {
         config = function()
             local ts = require'telescope'
             ts.setup{
+                defaults = {
+                    mappings = {
+                        n = {
+                            ['<c-x>'] = require('telescope.actions').delete_buffer
+                        },
+                        i = {
+                            ["<C-h>"] = "which_key",
+                            ['<c-x>'] = require('telescope.actions').delete_buffer
+                        },
+                    },
+                },
                 extensions = {
                     ['fzf'] = {
                         fuzzy = true,                    -- false will only do exact matching
