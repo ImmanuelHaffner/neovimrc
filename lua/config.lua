@@ -172,6 +172,19 @@ function M.setup()
     -- The name of the font that will be used for |:hardcopy|. See |pfn-option|.
     vim.g.printfont = 'Courier:h8'
 
+    -- Opt in to OSC copy/paste
+    vim.g.clipboard = {
+        name = 'OSC 52',
+        copy = {
+            ['+'] = require'vim.ui.clipboard.osc52'.copy('+'),
+            ['*'] = require'vim.ui.clipboard.osc52'.copy('*'),
+        },
+        paste = {
+            ['+'] = require'vim.ui.clipboard.osc52'.paste('+'),
+            ['*'] = require'vim.ui.clipboard.osc52'.paste('*'),
+        },
+    }
+
 end
 
 return M
