@@ -279,8 +279,13 @@ return {
             gls.right[9] = {
                 CursorPos = {
                     provider = function()
-                        local _, line, col, _, colwanted = unpack(vim.fn.getcurpos())
-                        return line .. ',' .. col .. ' '
+                        local _, line, byte, _, _ = unpack(vim.fn.getcurpos())
+                        local col = vim.fn.virtcol('.')  -- get the visible column, not bytes in line
+                        local str = line .. ',' .. col
+                        if col ~= byte then
+                            str = str .. ' (B' .. byte .. ')'
+                        end
+                        return str
                     end,
                     icon = '   ',
                     highlight = { colors.gray2, colors.purple },
