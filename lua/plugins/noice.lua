@@ -13,7 +13,7 @@ return {
         },
         config = function()
             local msg_width = 60
-            local term_width = tonumber(vim.api.nvim_command_output('echo &columns'))
+            local term_width = vim.o.columns
             if term_width then
                 if term_width > 4 then
                     msg_width = term_width - 4  -- leave space for border and padding
