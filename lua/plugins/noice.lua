@@ -163,7 +163,7 @@ return {
                         },
                     },
                     mini = {
-                        timeout = 3000,
+                        timeout = 6000,  -- in ms
                         position = {
                             row = -2,
                             col = '100%',
