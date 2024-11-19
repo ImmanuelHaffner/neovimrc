@@ -43,8 +43,8 @@ return {
                     lsp_doc_border = true, -- add a border to hover docs and signature help
                 },
                 messages = {
-                    -- NOTE: If you enable messages, then the cmdline is enabled automatically.  This is a current Neovim
-                    -- limitation.
+                    -- NOTE: If you enable messages, then the cmdline is enabled automatically.  This is a current
+                    -- Neovim limitation.
                     enabled = true, -- enables the Noice messages UI
                     view = 'messages', -- default view for messages
                     view_error = 'messages', -- view for errors
@@ -62,8 +62,8 @@ return {
                         },
                         opts = { skip = true },
                     },
-                    -- Suppress errors from the ltex LSP with `vim.schedule` and lsp-status.  There is a bug with ltex-ls
-                    -- LSP that we want to silence.
+                    -- Suppress errors from the ltex LSP with `vim.schedule` and lsp-status.  There is a bug with
+                    -- ltex-ls LSP that we want to silence.
                     {
                         filter = {
                             any = {
