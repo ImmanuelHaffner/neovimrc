@@ -108,7 +108,7 @@ return {
                             event = 'msg_show',
                             any = { { error = true }, { warning = true } },
                             max_height = 3,
-                            max_width = math.floor(.8 * msg_width),
+                            max_width = msg_width > 12 and (msg_width - 12) or msg_width,  -- account for the 'Error' prefix
                         },
                         view = 'notify',
                     },
@@ -116,19 +116,10 @@ return {
                     {
                         filter = {
                             event = 'msg_show',
-                            any = { { error = true }, { warning = true } },
-                            max_height = 3,
-                            max_width = msg_width > 12 and (msg_width - 12) or msg_width,  -- account for the 'Error' prefix
-                        },
-                        view = 'mini',
-                    },
-                    {
-                        filter = {
-                            event = 'msg_show',
-                            max_height = 3,
                             warning = false,
                             error = false,
-                            max_width = msg_width,
+                            max_height = 3,
+                            max_width = math.floor(.8 * msg_width),
                         },
                         view = 'mini',
                     },
