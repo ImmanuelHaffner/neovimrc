@@ -186,7 +186,7 @@ return {
             gls.left[8] = {
                 LSPStatus = {
                     provider = function() return ' ' .. get_lsp_progress() .. ' ' end,
-                    condition = function() return #vim.lsp.buf_get_clients() > 0 end,
+                    condition = function() return #vim.lsp.get_clients() > 0 end,
                     highlight = {colors.middlegrey, colors.section_bg},
                 }
             }
