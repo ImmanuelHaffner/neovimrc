@@ -7,6 +7,17 @@ return {
             }
         end,
     },
+    {
+        'rachartier/tiny-inline-diagnostic.nvim',
+        event = 'VeryLazy', -- Or `LspAttach`
+        priority = 1000, -- needs to be loaded in first
+        config = function()
+            vim.diagnostic.config({
+                virtual_text = false,
+            })
+            require'tiny-inline-diagnostic'.setup()
+        end
+    },
     { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim',
         enabled = false, -- avoid for now as it does not play well with others
         dependencies = { 'neovim/nvim-lspconfig' },
