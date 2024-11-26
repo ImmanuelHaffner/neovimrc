@@ -52,7 +52,7 @@ return {
     { 'neovim/nvim-lspconfig',
         dependencies = {
             'williamboman/mason-lspconfig.nvim',
-            -- 'folke/which-key.nvim',
+            'folke/which-key.nvim',
             'https://git.sr.ht/~p00f/clangd_extensions.nvim',
             'nvim-lua/lsp-status.nvim',
             'barreiroleo/ltex_extra.nvim',
@@ -69,19 +69,19 @@ return {
             -- after the language server attaches to the current buffer
             local on_attach = function(client, bufnr)
                 -- Enable completion triggered by <c-x><c-o>
-                vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+                vim.api.nvim_set_option_value('omnifunc', 'v:lua.vim.lsp.omnifunc', { buf = bufnr })
 
                 if client.server_capabilities.goto_definition == true then
-                    vim.api.nvim_buf_set_option(bufnr, "tagfunc", 'v:lua.vim.lsp.tagfunc')
+                    vim.api.nvim_set_option_value('tagfunc', 'v:lua.vim.lsp.tagfunc', { buf = bufnr })
                 end
 
                 if client.server_capabilities.document_formatting == true then
-                    vim.api.nvim_buf_set_option(bufnr, 'formatexpr', 'v:lua.vim.lsp.formatexpr()')
+                    vim.api.nvim_set_option_value('formatexpr', 'v:lua.vim.lsp.formatexpr()', { buf = bufnr })
                 end
 
                 -- Keymaps {{{------------------------------------------------------------------------------------------
                 local opts = { buffer = bufnr, noremap = true, silent = true }
-                -- local wk = require'which-key'
+                local wk = require'which-key'
                 local buf = vim.lsp.buf
                 local diag = vim.diagnostic
 
@@ -89,57 +89,46 @@ return {
                 vim.keymap.set('n', '?', vim.diagnostic.open_float, opts)
                 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
                 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
-                -- wk.add{
-                --     {
-                --         buffer = bufnr,
-                --         { '?', vim.diagnostic.open_float, desc = 'Show diagnostic under cursor' },
-                --         { '[d', vim.diagnostic.goto_prev, desc = 'Goto previous diagnostic' },
-                --         { ']d', diag.goto_next, desc = 'Goto next diagnostic' },
-                --     }
-                -- }
+                wk.add{
+                    {
+                        buffer = bufnr,
+                        { '?', vim.diagnostic.open_float, desc = 'Show diagnostic under cursor' },
+                        { '[d', vim.diagnostic.goto_prev, desc = 'Goto previous diagnostic' },
+                        { ']d', diag.goto_next, desc = 'Goto next diagnostic' },
+                    }
+                }
 
                 -- LSP commands
-                -- wk.add{
-                --     buffer = bufnr,
-                --     { '<leader>l', group = 'LSP' },
-                --     { '<leader>ld', function() diag.setloclist() end, desc = 'Show all diagnostics' },
-                --     { '<leader>lr', function() buf.rename() end, desc = 'Refactor rename item under cursor' },
-                --     { '<leader>l<tab>', '<cmd>ClangdSwitchSourceHeader<cr>', desc = 'Switch between source/header file' },
-                --     { '<leader>ls<tab>', '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', desc = 'Open source/header file in horizontal split' },
-                --     { '<leader>lv<tab>', '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', desc = 'Open source/header file in vertical split' },
-                --     {
-                --         { '<leader>lg', group = 'Goto …' },
-                --         { '<leader>lgd', function() buf.declaration() end, desc = 'Goto declaration' },
-                --         { '<leader>lgD', function() buf.definition() end, desc = 'Goto definition' },
-                --         { '<leader>lgi', function() buf.implementation() end, desc = 'Goto implementation' },
-                --         { '<leader>lgt', function() buf.type_definition() end, desc = 'Goto type definition' },
-                --     },
-                --     {
-                --         { '<leader>lh', 'Help …' },
-                --         { '<leader>lhh', function() buf.hover() end, desc = 'Tooltip for item under cursor' },
-                --         { '<leader>lhs', function() buf.signature_help() end, desc = 'Show signature help' },
-                --         { '<leader>lhr', function() buf.references() end, desc = 'Show references' },
-                --     },
-                --     {
-                --         { '<leader>lc', 'Code …' },
-                --         { '<leader>lca', function() buf.code_action() end, desc = 'Perform code action for item under cursor' },
-                --         { '<leader>lcf', function() buf.formatting() end, desc = 'Perform formatting (whole file)' },
-                --     },
-                -- }
-                vim.keymap.set('n', '<leader>ld', function() diag.setloclist() end, opts)
-                vim.keymap.set('n', '<leader>lr', function() buf.rename() end, opts)
-                vim.keymap.set('n', '<leader>l<tab>', '<cmd>ClangdSwitchSourceHeader<cr>', opts)
-                vim.keymap.set('n', '<leader>ls<tab>', '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', opts)
-                vim.keymap.set('n', '<leader>lv<tab>', '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', opts)
-                vim.keymap.set('n', '<leader>lgd', function() buf.declaration() end, opts)
-                vim.keymap.set('n', '<leader>lgD', function() buf.definition() end, opts)
-                vim.keymap.set('n', '<leader>lgi', function() buf.implementation() end, opts)
-                vim.keymap.set('n', '<leader>lgt', function() buf.type_definition() end, opts)
-                vim.keymap.set('n', '<leader>lhh', function() buf.hover() end, opts)
-                vim.keymap.set('n', '<leader>lhs', function() buf.signature_help() end, opts)
-                vim.keymap.set('n', '<leader>lhr', function() buf.references() end, opts)
-                vim.keymap.set('n', '<leader>lca', function() buf.code_action() end, opts)
-                vim.keymap.set('n', '<leader>lcf', function() buf.formatting() end, opts)
+                wk.add{
+                    buffer = bufnr,
+                    { '<leader>l', group = 'LSP' },
+                    { '<leader>ld', diag.setloclist, desc = 'Show all diagnostics' },
+                    { '<leader>lr', buf.rename, desc = 'Refactor rename item under cursor' },
+                    {
+                        { '<leader>ls', group = 'Open source/header file …' },
+                        { '<leader>ls<CR>', '<cmd>ClangdSwitchSourceHeader<cr>', desc = 'Switch between source/header file' },
+                        { '<leader>lss', '<cmd>split<cr><cmd>ClangdSwitchSourceHeader<cr>', desc = 'Open source/header file in horizontal split' },
+                        { '<leader>lsv', '<cmd>vsplit<cr><cmd>ClangdSwitchSourceHeader<cr>', desc = 'Open source/header file in vertical split' },
+                    },
+                    {
+                        { '<leader>lg', group = 'Goto …' },
+                        { '<leader>lgd', buf.declaration, desc = 'Goto declaration' },
+                        { '<leader>lgD', buf.definition, desc = 'Goto definition' },
+                        { '<leader>lgi', buf.implementation, desc = 'Goto implementation' },
+                        { '<leader>lgt', buf.type_definition, desc = 'Goto type definition' },
+                    },
+                    {
+                        { '<leader>lh', 'Help …' },
+                        { '<leader>lhh', buf.hover, desc = 'Tooltip for item under cursor' },
+                        { '<leader>lhs', buf.signature_help, desc = 'Show signature help' },
+                        { '<leader>lhr', buf.references, desc = 'Show references' },
+                    },
+                    {
+                        { '<leader>lc', 'Code …' },
+                        { '<leader>lca', buf.code_action, desc = 'Perform code action for item under cursor' },
+                        { '<leader>lcf', buf.formatting, desc = 'Perform formatting (whole file)' },
+                    },
+                }
                 --}}}---------------------------------------------------------------------------------------------------
 
                 lsp_status.on_attach(client)
