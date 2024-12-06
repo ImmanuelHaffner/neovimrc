@@ -83,7 +83,7 @@ return {
                     [83] = colors.red1
                 }
 
-                mode_color = mode_colors[vim.fn.mode():byte()]
+                local mode_color = mode_colors[vim.fn.mode():byte()]
                 if mode_color ~= nil then
                     return mode_color
                 else
@@ -107,6 +107,22 @@ return {
                 return file .. ' '
             end
 
+            local function mode_alias()
+                local aliases = {
+                    [110] = 'NORMAL',
+                    [105] = 'INSERT',
+                    [99] = 'COMMAND',
+                    [116] = 'TERMINAL',
+                    [118] = 'VISUAL',
+                    [22] = 'V-BLOCK',
+                    [86] = 'V-LINE',
+                    [82] = 'REPLACE',
+                    [115] = 'SELECT',
+                    [83] = 'S-LINE'
+                }
+                return aliases[vim.fn.mode():byte()]
+            end
+
             -- Clear AsyncRun status on setup
             vim.g.asyncrun_status = ''
 
@@ -114,20 +130,8 @@ return {
             gls.left[1] = {
                 ViMode = {
                     provider = function()
-                        local aliases = {
-                            [110] = 'NORMAL',
-                            [105] = 'INSERT',
-                            [99] = 'COMMAND',
-                            [116] = 'TERMINAL',
-                            [118] = 'VISUAL',
-                            [22] = 'V-BLOCK',
-                            [86] = 'V-LINE',
-                            [82] = 'REPLACE',
-                            [115] = 'SELECT',
-                            [83] = 'S-LINE'
-                        }
                         vim.api.nvim_command('hi GalaxyViMode guibg=' .. mode_color())
-                        alias = aliases[vim.fn.mode():byte()]
+                        local alias = mode_alias()
                         if alias ~= nil then
                             return '  ' .. alias .. ' '
                         else
@@ -276,22 +280,31 @@ return {
                     event = { 'AsyncRunPre', 'AsyncRunStart', 'AsyncRunStop' },
                 }
             }
-            gls.right[9] = {
+            gls.right[10] = {
                 CursorPos = {
                     provider = function()
-                        local _, line, byte, _, _ = unpack(vim.fn.getcurpos())
+                        local _, line, byte, _ = unpack(vim.fn.getpos('.'))
                         local col = vim.fn.virtcol('.')  -- get the visible column, not bytes in line
-                        local str = line .. ',' .. col
+                        local str = ''
+
+                        local visual_modes = { [118]=true, [22]=true, [86]=true }
+                        if visual_modes[vim.fn.mode():byte()] then
+                            local starts = vim.fn.line'v'
+                            local ends = vim.fn.line'.'
+                            local lines = starts <= ends and ends - starts + 1 or starts - ends + 1
+                            str = str .. '  󰊄 ' .. tostring(lines) .. 'L,' .. tostring(vim.fn.wordcount().visual_chars) .. 'C'
+                        end
+
+                        str = str .. '   ' .. line .. ',' .. col
                         if col ~= byte then
                             str = str .. ' (B' .. byte .. ')'
                         end
                         return str
                     end,
-                    icon = '   ',
                     highlight = { colors.gray2, colors.purple },
                 }
             }
-            gls.right[10] = {
+            gls.right[11] = {
                 PerCent = {
                     provider = 'LinePercent',
                     separator = '',
