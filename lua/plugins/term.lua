@@ -4,7 +4,6 @@ return {
         dependencies = {
             'folke/which-key.nvim',
         },
-        opts = {--[[ things you want to change go here]]},
         config = function()
             local term = require'toggleterm'
             term.setup{
@@ -14,10 +13,7 @@ return {
                 auto_scroll = false,
             }
 
-            local Terminal  = require'toggleterm.terminal'.Terminal
-
-            local wk = require'which-key'
-
+            local Terminal = require'toggleterm.terminal'.Terminal
             local lazygit = Terminal:new({
                 cmd = "lazygit",
                 dir = "git_dir",
@@ -36,22 +32,12 @@ return {
             function _lazygit_toggle()
                 lazygit:toggle()
             end
+
+            local wk = require'which-key'
             wk.add{
                 { '<leader>gl', function() lazygit:toggle() end, desc = 'Lazygit' },
                 { '<leader>ft', '<cmd>TermSelect<cr>', desc = 'Select toggle term' },
             }
         end,
-    },
-    { 'tknightz/telescope-termfinder.nvim',
-        dependencies = {
-            'akinsho/toggleterm.nvim',
-            'nvim-telescope/telescope.nvim',
-        },
-        config = function()
-            require'telescope'.load_extension'termfinder'
-        end,
-        keys = {
-            { '<leader>f\\', ':Telescope termfinder find<cr>', desc = 'Find terminal' },
-        }
     },
 }

@@ -14,10 +14,11 @@ return {
                 },
             }
 
+            local todo_comments = require'telescope'.load_extension'todo-comments'
             require'which-key'.add{
-                { ']t', function() require("todo-comments").jump_next() end, desc = "Next todo comment" },
-                { '[t', function() require("todo-comments").jump_prev() end, desc = "Next todo comment" },
-                { '<leader>fn', '<cmd>TodoTelescope<cr>', desc = 'Find todo notes' },
+                { ']t', function() require'todo-comments'.jump_next() end, desc = 'Next todo comment' },
+                { '[t', function() require'todo-comments'.jump_prev() end, desc = 'Next todo comment' },
+                { '<leader>fn', function() todo_comments.todo{prompt_prefix=' '} end, desc = 'Find todo notes' },
                 { '<leader>t', group = 'Todo …' },
                 { '<leader>tt', '<cmd>TodoTrouble<cr>', desc = 'Todo notes in trouble view' },
             }
