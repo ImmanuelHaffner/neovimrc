@@ -5,7 +5,11 @@ return {
             { '<leader>lo', '<cmd>Outline<CR>', desc = 'Toggle outline' },
         },
         config = function()
-            require'outline'.setup{}
+            require'outline'.setup{
+                outline_window = {
+                    position = 'left',
+                },
+            }
         end,
     },
 }
