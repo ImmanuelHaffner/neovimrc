@@ -1,5 +1,7 @@
 return {
     {
+        -- This plugin provides jumps to *all* kinds of windows, including *floating* windows.  This is quite
+        -- undesirable.  Load this plugin for NeoTree, but don't bind it.  Use `yorickpeterse/nvim-window` instead.
         's1n7ax/nvim-window-picker',
         name = 'window-picker',
         event = 'VeryLazy',
@@ -12,9 +14,5 @@ return {
                 selection_chars='awftnuyorsei',
             }
         end,
-        keys = {
-            { '<leader>w', group = 'Window picker' },
-            { '<leader>ww', function() require'window-picker'.pick_window() end, desc = 'Jump to window' },
-        },
     }
 }

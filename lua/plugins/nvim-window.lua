@@ -8,8 +8,7 @@ return {
             },
         },
         keys = {
-            { '<leader>w', group = 'Window picker' },
-            { '<leader>wj', function() require'nvim-window'.pick() end, desc = 'Jump to window' },
+            { '<leader><leader>', function() require'nvim-window'.pick() end, desc = 'Jump to window' },
         },
     }
 }
