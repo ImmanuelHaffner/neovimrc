@@ -21,7 +21,7 @@ return {
                 { '<leader>an', group = 'NeoCodeium' },
                 { '<leader>ant', cmd.toggle, desc = 'Toggle NeoCodeium globally' },
                 { '<leader>anb', cmd.toggle_buffer, desc = 'Toggle NeoCodeium for current buffer' },
-                { '<leader>ac', neocodeium.chat, desc = 'NeoCodeium chat' },
+                { '<leader>anc', neocodeium.chat, desc = 'NeoCodeium chat' },
             }
 
             vim.keymap.set("i", "<A-a>", function()
