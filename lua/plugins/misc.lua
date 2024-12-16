@@ -11,6 +11,5 @@ return {
     { 'vim-pandoc/vim-pandoc-syntax' },
     { 'vim-scripts/DoxygenToolkit.vim' },
     { 'kyazdani42/nvim-web-devicons' },
-    { 'euclio/vim-markdown-composer', build = { 'cargo build --release', ':UpdateRemotePlugins' } },
     { 'petertriho/cmp-git', dependencies = { 'nvim-lua/plenary.nvim' } },
 }
