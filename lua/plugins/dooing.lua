@@ -8,6 +8,10 @@ return {
             require'dooing'.setup{
                 keymaps = {
                     toggle_window = false,
+                    toggle_priority = 'x',
+                },
+                window = {
+                    position = 'bottom-right',
                 },
             }
 
