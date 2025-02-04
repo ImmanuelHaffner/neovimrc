@@ -1,3 +1,12 @@
+local nproc = function()
+    local result = vim.fn.system('nproc')
+    local n = tonumber(result)
+    if n ~= nil then
+        return math.floor(n * 0.9)
+    end
+    return 8
+end
+
 return {
     { 'git@github.com:firebolt-analytics/firebolt.nvim.git',
         dependencies = {
@@ -13,7 +22,7 @@ return {
                 '/home/immanuel/code/packdb',
             },
             build = {
-                jobs = 10,
+                jobs = nproc(),
                 targets = {
                     'clickhouse',
                     'sql_test',
