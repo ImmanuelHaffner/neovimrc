@@ -44,6 +44,8 @@ return {
                     },
                     buffers = {
                         prompt_prefix = ' ',
+                        sort_lastused = true,
+                        sort_mru = true,
                     },
                     live_grep = {
                         prompt_prefix = ' ',
