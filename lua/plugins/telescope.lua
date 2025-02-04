@@ -28,6 +28,7 @@ return {
                 pickers = {
                     find_files = {
                         prompt_prefix = '󰱼 ',  -- alternatives: 󰱽 󰮗 󰈞 󰱼 🔍
+                        hidden = true,
                     },
                     git_files = {
                         prompt_prefix = ' ',
