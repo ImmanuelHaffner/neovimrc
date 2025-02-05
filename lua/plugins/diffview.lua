@@ -4,8 +4,7 @@ return {
             'folke/which-key.nvim',
         },
         config = function()
-            vim.opt.fillchars:append{ diff = '╱' }
-
+            -- vim.opt.fillchars:append{ diff = '␥' }  -- alternatives: ␥╱
             require'which-key'.add{
                 { '<leader>gd', group = 'Git Diffview …' },
                 { '<leader>gdv', '<cmd>DiffviewOpen -uno<cr>', desc = 'Open Diffview' },
