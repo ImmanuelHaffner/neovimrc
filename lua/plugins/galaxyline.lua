@@ -8,6 +8,7 @@ return {
         config = function()
             local gl = require'galaxyline'
             local Utils = require'utils'
+            local colors = require'theme'.colors()
 
             local lsp_status = require'lsp-status'
             local navic = require'nvim-navic'
@@ -43,49 +44,11 @@ return {
             local gls = gl.section
             gl.short_line_list = {'defx', 'packager', 'vista', 'NvimTree'}
 
-            local colors = {
-                bg = '#282c34',
-                fg = '#aab2bf',
-                section_bg = '#38393f',
-                blue = '#61afef',
-                green = '#98c379',
-                purple = '#c678dd',
-                orange = '#e5c07b',
-                red1 = '#e06c75',
-                red2 = '#be5046',
-                yellow = '#e5c07b',
-                gray1 = '#5c6370',
-                gray2 = '#2c323d',
-                gray3 = '#3e4452',
-                darkgrey = '#5c6370',
-                grey = '#848586',
-                middlegrey = '#8791A5'
-            }
-
             -- Local helper functions
             local buffer_not_empty = function() return not Utils.is_buffer_empty() end
 
             local checkwidth = function()
                 return Utils.has_width_gt(40) and buffer_not_empty()
-            end
-
-            local get_vim_mode_info = function()
-                local vim_modes = {
-                    [110]   = { colors.green,   'NORMAL' },     -- 'n' (normal mode)
-                    [105]   = { colors.blue,    'INSERT' },     -- 'i' (insert mode)
-                    [99]    = { colors.red1,    'COMMAND' },    -- 'c' (command-line mode)
-                    [116]   = { colors.blue,    'TERMINAL' },   -- 't' (terminal mode)
-                    [118]   = { colors.purple,  'VISUAL' },     -- 'v' (visual mode)
-                    [22]    = { colors.purple,  'V-BLOCK' },    -- ^V (CTRL+V, visual block mode)
-                    [86]    = { colors.purple,  'V-LINE' },     -- 'V' (visual line mode)
-                    [82]    = { colors.red1,    'REPLACE' },    -- 'R' (replace mode)
-                    [115]   = { colors.red1,    'SELECT' },     -- 's' (select mode)
-                    [83]    = { colors.red1,    'S-LINE' },     -- 'S' (select line mode)
-                }
-
-                local byte = vim.fn.mode():byte() or 0
-                local current_mode = vim_modes[byte]
-                return current_mode or { colors.red1, 'UNKNOWN ' .. tostring(byte) }
             end
 
             local function file_readonly()
@@ -111,7 +74,7 @@ return {
             gls.left[1] = {
                 ViMode = {
                     provider = function()
-                        local color, mode = unpack(get_vim_mode_info())
+                        local color, mode = unpack(Utils.get_vim_mode_info())
                         vim.api.nvim_command('hi GalaxyViMode guibg=' .. color)
                         return '  ' .. mode .. ' '
                     end,
