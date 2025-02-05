@@ -11,8 +11,6 @@ return {
 
                     -- Configure colors of cursorline and colorcolumn
                     vim.cmd[[
-                    hi! ColorColumn guifg=Red guibg='#380000'
-                    hi! CursorLine guibg=#021020
                     hi! CursorLineNr gui=bold
                     ]]
                 end,
@@ -24,6 +22,7 @@ return {
                             -- we use `winhl` because we want to highlight CursorLine only in a current window, not in all of them
                             -- if you want to change global highlights, use the `hl` field instead.
                             CursorLine = { bg = '#102947' },
+                            CursorColumn = { bg = '#102947' },
                             CursorLineNr = { fg = '#0b1d33', bg = '#98c379' },
                         },
                     },
@@ -64,6 +63,17 @@ return {
                             CursorLineNr = { fg = '#0b1d33', bg = '#c678dd' },
                         },
                     },
+                    c = {
+                        winhl = {
+                            CursorLine = { bg = 'NONE' },
+                            CursorLineNr = { fg = 'NONE', bg = 'NONE' },
+                        },
+                    },
+                    ['R'] = {
+                        winhl = {
+                            CursorLineNr = { fg = 'NONE', bg = '#e06c75' },
+                        },
+                    }
                 },
             }
         end,

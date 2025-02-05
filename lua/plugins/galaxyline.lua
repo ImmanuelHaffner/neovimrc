@@ -69,26 +69,23 @@ return {
                 return Utils.has_width_gt(40) and buffer_not_empty()
             end
 
-            local mode_color = function()
-                local mode_colors = {
-                    [110] = colors.green,
-                    [105] = colors.blue,
-                    [99] = colors.green,
-                    [116] = colors.blue,
-                    [118] = colors.purple,
-                    [22] = colors.purple,
-                    [86] = colors.purple,
-                    [82] = colors.red1,
-                    [115] = colors.red1,
-                    [83] = colors.red1
+            local get_vim_mode_info = function()
+                local vim_modes = {
+                    [110]   = { colors.green,   'NORMAL' },     -- 'n' (normal mode)
+                    [105]   = { colors.blue,    'INSERT' },     -- 'i' (insert mode)
+                    [99]    = { colors.red1,    'COMMAND' },    -- 'c' (command-line mode)
+                    [116]   = { colors.blue,    'TERMINAL' },   -- 't' (terminal mode)
+                    [118]   = { colors.purple,  'VISUAL' },     -- 'v' (visual mode)
+                    [22]    = { colors.purple,  'V-BLOCK' },    -- ^V (CTRL+V, visual block mode)
+                    [86]    = { colors.purple,  'V-LINE' },     -- 'V' (visual line mode)
+                    [82]    = { colors.red1,    'REPLACE' },    -- 'R' (replace mode)
+                    [115]   = { colors.red1,    'SELECT' },     -- 's' (select mode)
+                    [83]    = { colors.red1,    'S-LINE' },     -- 'S' (select line mode)
                 }
 
-                local mode_color = mode_colors[vim.fn.mode():byte()]
-                if mode_color ~= nil then
-                    return mode_color
-                else
-                    return colors.purple
-                end
+                local byte = vim.fn.mode():byte() or 0
+                local current_mode = vim_modes[byte]
+                return current_mode or { colors.red1, 'UNKNOWN ' .. tostring(byte) }
             end
 
             local function file_readonly()
@@ -107,22 +104,6 @@ return {
                 return file .. ' '
             end
 
-            local function mode_alias()
-                local aliases = {
-                    [110] = 'NORMAL',
-                    [105] = 'INSERT',
-                    [99] = 'COMMAND',
-                    [116] = 'TERMINAL',
-                    [118] = 'VISUAL',
-                    [22] = 'V-BLOCK',
-                    [86] = 'V-LINE',
-                    [82] = 'REPLACE',
-                    [115] = 'SELECT',
-                    [83] = 'S-LINE'
-                }
-                return aliases[vim.fn.mode():byte()]
-            end
-
             -- Clear AsyncRun status on setup
             vim.g.asyncrun_status = ''
 
@@ -130,13 +111,9 @@ return {
             gls.left[1] = {
                 ViMode = {
                     provider = function()
-                        vim.api.nvim_command('hi GalaxyViMode guibg=' .. mode_color())
-                        local alias = mode_alias()
-                        if alias ~= nil then
-                            return '  ' .. alias .. ' '
-                        else
-                            return '  ' .. vim.fn.mode():byte() .. ' '
-                        end
+                        local color, mode = unpack(get_vim_mode_info())
+                        vim.api.nvim_command('hi GalaxyViMode guibg=' .. color)
+                        return '  ' .. mode .. ' '
                     end,
                     highlight = {colors.bg, colors.bg, 'bold'}
                 }
