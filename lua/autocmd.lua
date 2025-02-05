@@ -3,17 +3,19 @@ local M = { }
 function M.setup()
     general_settings_group = vim.api.nvim_create_augroup('General settings', { clear = true })
 
-
+    ----- Configure quickfix window {{{---------------------------------------------------------------------------------
     vim.api.nvim_create_autocmd('FileType', {
-        callback = function()
-            if vim.o.filetype == 'qf' then
+        callback = function(args)
+            if vim.o.filetype == 'qf' or vim.bo[args.buf].buftype == 'quickfix' then
+                vim.wo.colorcolumn = '0'  -- no color column
                 vim.cmd[[wincmd J]]
-                vim.cmd[[resize 15]]
+                vim.cmd[[resize 10]]
             end
         end,
         group = general_settings_group,
         desc = 'Place Quickfix window at the very bottom',
     })
+    --}}}---------------------------------------------------------------------------------------------------------------
 
     ----- Remove comment leader on o/O {{{------------------------------------------------------------------------------
     vim.api.nvim_create_autocmd('BufEnter', {
@@ -58,17 +60,6 @@ function M.setup()
     -- https://vi.stackexchange.com/questions/13091/autocmd-event-for-autoread
     vim.api.nvim_create_autocmd({'FileChangedShellPost'}, {
         command = "echohl WarningMsg | echo 'File changed on disk. Buffer reloaded.' | echohl None",
-    })
-    --}}}---------------------------------------------------------------------------------------------------------------
-
-    ----- Configure quickfix window {{{---------------------------------------------------------------------------------
-    vim.api.nvim_create_autocmd({'BufWinEnter'}, {
-        callback = function(args)
-            if vim.bo[args.buf].buftype == 'quickfix' then
-                vim.wo.colorcolumn = '0'  -- no color column
-            end
-        end,
-        group = general_settings_group,
     })
     --}}}---------------------------------------------------------------------------------------------------------------
 
