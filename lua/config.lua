@@ -171,6 +171,9 @@ function M.setup()
 
     -- The name of the font that will be used for |:hardcopy|. See |pfn-option|.
     vim.g.printfont = 'Courier:h8'
+
+    -- Diff options
+    vim.opt.diffopt = 'filler,iwhiteall,vertical,internal,indent-heuristic,algorithm:patience,closeoff,hiddenoff,linematch:60'
 end
 
 return M
