@@ -3,7 +3,6 @@ return {
     { 'euclidianAce/BetterLua.vim' },
     { 'gpanders/vim-medieval' },
     { 'mhinz/vim-grepper' },
-    { 'mhinz/vim-signify' },
     { 'nvim-lua/plenary.nvim' },
     { 'pedrohdz/vim-yaml-folds' },
     { 'rhysd/vim-grammarous' },
