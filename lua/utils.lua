@@ -1,5 +1,7 @@
 local M = { }
 
+local colors = require'theme'.colors()
+
 function M.toggle(tbl, opt)
     tbl[opt] = not tbl[opt]
 end
@@ -121,6 +123,25 @@ function M.toggle_quickfix()
     -- Quickfix window does not exist.  If there is content, open quickfix window.
     vim.cmd[[copen]]
     return true
+end
+
+function M.get_vim_mode_info()
+    local vim_modes = {
+        [110]   = { colors.green,   'NORMAL' },     -- 'n' (normal mode)
+        [105]   = { colors.blue,    'INSERT' },     -- 'i' (insert mode)
+        [99]    = { colors.red1,    'COMMAND' },    -- 'c' (command-line mode)
+        [116]   = { colors.blue,    'TERMINAL' },   -- 't' (terminal mode)
+        [118]   = { colors.purple,  'VISUAL' },     -- 'v' (visual mode)
+        [22]    = { colors.purple,  'V-BLOCK' },    -- ^V (CTRL+V, visual block mode)
+        [86]    = { colors.purple,  'V-LINE' },     -- 'V' (visual line mode)
+        [82]    = { colors.red1,    'REPLACE' },    -- 'R' (replace mode)
+        [115]   = { colors.red1,    'SELECT' },     -- 's' (select mode)
+        [83]    = { colors.red1,    'S-LINE' },     -- 'S' (select line mode)
+    }
+
+    local byte = vim.fn.mode():byte() or 0
+    local current_mode = vim_modes[byte]
+    return current_mode or { colors.red1, 'UNKNOWN ' .. tostring(byte) }
 end
 
 return M
