@@ -10,7 +10,6 @@ return {
         },
         opts = { lsp = { auto_attach = true } },
         config = function(_, opts)
-            vim.print('Setting up navbuddy...')
             require'nvim-navbuddy'.setup(opts)
 
             local wk = require'which-key'
