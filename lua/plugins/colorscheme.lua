@@ -4,10 +4,16 @@ return {
     { 'oxfist/night-owl.nvim',
         priority = 1000,
         config = function()
-            -- Don't show fill char for deleted diff sections.  We will color fill the space instead.
-            vim.opt.fillchars:append{ diff = ' ' }
+            require'night-owl'.setup{
+                -- These are the default settings
+                bold = true,
+                italics = true,
+                underline = true,
+                undercurl = true,
+                transparent_background = false,
+            }
 
-            -- Tune the night-owl color scheme
+            -- Tune the night-owl colorscheme
             vim.api.nvim_create_autocmd('ColorScheme', {
                 pattern = 'night-owl',
                 callback = function()
@@ -20,6 +26,8 @@ return {
                     hi! ColorColumn guibg=#331c1c
                     hi! CursorColumn guibg=#2d3a4a
                     hi! CursorLine guibg=#2d3a4a
+                    -- Don't show fill char for deleted diff sections.  We will color fill the space instead.
+                    vim.opt.fillchars:append{ diff = ' ' }
 
                     " Highlight groups for nvim-cmp
                     hi! CmpItemAbbr guifg=#d6deeb guibg=NONE
