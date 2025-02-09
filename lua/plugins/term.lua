@@ -16,7 +16,7 @@ return {
             local Terminal = require'toggleterm.terminal'.Terminal
 
             local lazygit = Terminal:new{
-                cmd = 'lazygit',
+                cmd = 'env GPG_TTY=$(tty) SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket" lazygit',
                 dir = 'git_dir',
                 direction = 'tab',
                 -- function to run on opening the terminal
