@@ -38,6 +38,19 @@ return {
                     hi! CmpItemKindModule guifg=#d6deeb guibg=NONE
                     hi! CmpItemKindFile guifg=#d6deeb guibg=NONE
                     hi! CmpItemKindFolder guifg=#d6deeb guibg=NONE
+
+                    " Highlight groups for vim-notify
+                    hi! NotifyBackground guibg=#011627 guifg=#d6deeb blend=0
+                    hi! NotifyERRORBorder guibg=#011627 guifg=#ef5350 blend=0
+                    hi! NotifyWARNBorder guibg=#011627 guifg=#f78c6c blend=0
+                    hi! NotifyINFOBorder guibg=#011627 guifg=#82AAFF blend=0
+                    hi! NotifyDEBUGBorder guibg=#011627 guifg=#7FDBCA blend=0
+                    hi! NotifyTRACEBorder guibg=#011627 guifg=#C792EA blend=0
+                    hi! NotifyERRORBody guibg=#011627 guifg=#ef5350 blend=0
+                    hi! NotifyWARNBody guibg=#011627 guifg=#f78c6c blend=0
+                    hi! NotifyINFOBody guibg=#011627 guifg=#82AAFF blend=0
+                    hi! NotifyDEBUGBody guibg=#011627 guifg=#7FDBCA blend=0
+                    hi! NotifyTRACEBody guibg=#011627 guifg=#C792EA blend=0
                     ]]
                 end,
             })
