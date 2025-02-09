@@ -24,14 +24,16 @@ return {
                     -- Don't show fill char for deleted diff sections.  We will color fill the space instead.
                     vim.opt.fillchars:append{ diff = ' ' }
 
+                    -- Miscellaneous
+                    hl(0, 'ColorColumn', { bg = '#331c1c', })
+                    hl(0, 'CursorColumn', { bg = '#2d3a4a', })
+                    hl(0, 'CursorLine', { bg = '#2d3a4a', cterm = {}, underline = false })
+
                     -- Diff view
                     hl(0, 'DiffAdd', { fg='#859900', bg='#002b36', })
                     hl(0, 'DiffDelete', { fg='#848586', bg='#331c1c', })
                     hl(0, 'DiffChange', { fg='NONE', bg='#002b36', cterm=nil, })
                     hl(0, 'DiffText', { fg='NONE', bg='NONE', undercurl=true, sp='#b58900', })
-                    hl(0, 'ColorColumn', { bg='#331c1c', })
-                    hl(0, 'CursorColumn', { bg='#2d3a4a', })
-                    hl(0, 'CursorLine', { bg='#2d3a4a', })
 
                     -- nvim-cmp
                     hl(0, 'CmpItemAbbr', { fg = palette.fg, bg = 'NONE', })
