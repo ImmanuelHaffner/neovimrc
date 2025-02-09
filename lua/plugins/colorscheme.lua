@@ -20,6 +20,24 @@ return {
                     hi! ColorColumn guibg=#331c1c
                     hi! CursorColumn guibg=#2d3a4a
                     hi! CursorLine guibg=#2d3a4a
+
+                    " Highlight groups for nvim-cmp
+                    hi! CmpItemAbbr guifg=#d6deeb guibg=NONE
+                    hi! CmpItemAbbrMatch guifg=#82AAFF gui=bold
+                    hi! CmpItemAbbrMatchFuzzy guifg=#82AAFF gui=bold
+                    hi! CmpItemKindFunction guifg=#82AAFF guibg=NONE
+                    hi! CmpItemKindMethod guifg=#82AAFF guibg=NONE
+                    hi! CmpItemKindVariable guifg=#F78C6C guibg=NONE
+                    hi! CmpItemKindProperty guifg=#F78C6C guibg=NONE
+                    hi! CmpItemKindKeyword guifg=#C792EA guibg=NONE
+                    hi! CmpItemKindSnippet guifg=#C792EA guibg=NONE
+                    hi! CmpItemKindOperator guifg=#C792EA guibg=NONE
+                    hi! CmpItemKindInterface guifg=#7FDBCA guibg=NONE
+                    hi! CmpItemKindStruct guifg=#7FDBCA guibg=NONE
+                    hi! CmpItemKindEnum guifg=#7FDBCA guibg=NONE
+                    hi! CmpItemKindModule guifg=#d6deeb guibg=NONE
+                    hi! CmpItemKindFile guifg=#d6deeb guibg=NONE
+                    hi! CmpItemKindFolder guifg=#d6deeb guibg=NONE
                     ]]
                 end,
             })
