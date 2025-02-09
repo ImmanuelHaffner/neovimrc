@@ -12,54 +12,57 @@ return {
                 undercurl = true,
                 transparent_background = false,
             }
+            local palette = require'night-owl.palette'
+            local function hl(id, name, def)
+                vim.api.nvim_set_hl(id, name, def)
+            end
 
             -- Tune the night-owl colorscheme
             vim.api.nvim_create_autocmd('ColorScheme', {
                 pattern = 'night-owl',
                 callback = function()
-                    vim.cmd[[
-                    " Highlight groups for diff view
-                    hi! DiffAdd guifg=#859900 guibg=#002b36
-                    hi! DiffDelete guifg=#848586 guibg=#331c1c
-                    hi! DiffChange guifg=NONE guibg=#002b36 gui=NONE cterm=NONE
-                    hi! DiffText guifg=NONE guibg=NONE gui=undercurl guisp=#b58900
-                    hi! ColorColumn guibg=#331c1c
-                    hi! CursorColumn guibg=#2d3a4a
-                    hi! CursorLine guibg=#2d3a4a
                     -- Don't show fill char for deleted diff sections.  We will color fill the space instead.
                     vim.opt.fillchars:append{ diff = ' ' }
 
-                    " Highlight groups for nvim-cmp
-                    hi! CmpItemAbbr guifg=#d6deeb guibg=NONE
-                    hi! CmpItemAbbrMatch guifg=#82AAFF gui=bold
-                    hi! CmpItemAbbrMatchFuzzy guifg=#82AAFF gui=bold
-                    hi! CmpItemKindFunction guifg=#82AAFF guibg=NONE
-                    hi! CmpItemKindMethod guifg=#82AAFF guibg=NONE
-                    hi! CmpItemKindVariable guifg=#F78C6C guibg=NONE
-                    hi! CmpItemKindProperty guifg=#F78C6C guibg=NONE
-                    hi! CmpItemKindKeyword guifg=#C792EA guibg=NONE
-                    hi! CmpItemKindSnippet guifg=#C792EA guibg=NONE
-                    hi! CmpItemKindOperator guifg=#C792EA guibg=NONE
-                    hi! CmpItemKindInterface guifg=#7FDBCA guibg=NONE
-                    hi! CmpItemKindStruct guifg=#7FDBCA guibg=NONE
-                    hi! CmpItemKindEnum guifg=#7FDBCA guibg=NONE
-                    hi! CmpItemKindModule guifg=#d6deeb guibg=NONE
-                    hi! CmpItemKindFile guifg=#d6deeb guibg=NONE
-                    hi! CmpItemKindFolder guifg=#d6deeb guibg=NONE
+                    -- Diff view
+                    hl(0, 'DiffAdd', { fg='#859900', bg='#002b36', })
+                    hl(0, 'DiffDelete', { fg='#848586', bg='#331c1c', })
+                    hl(0, 'DiffChange', { fg='NONE', bg='#002b36', cterm=nil, })
+                    hl(0, 'DiffText', { fg='NONE', bg='NONE', undercurl=true, sp='#b58900', })
+                    hl(0, 'ColorColumn', { bg='#331c1c', })
+                    hl(0, 'CursorColumn', { bg='#2d3a4a', })
+                    hl(0, 'CursorLine', { bg='#2d3a4a', })
 
-                    " Highlight groups for vim-notify
-                    hi! NotifyBackground guibg=#011627 guifg=#d6deeb blend=0
-                    hi! NotifyERRORBorder guibg=#011627 guifg=#ef5350 blend=0
-                    hi! NotifyWARNBorder guibg=#011627 guifg=#f78c6c blend=0
-                    hi! NotifyINFOBorder guibg=#011627 guifg=#82AAFF blend=0
-                    hi! NotifyDEBUGBorder guibg=#011627 guifg=#7FDBCA blend=0
-                    hi! NotifyTRACEBorder guibg=#011627 guifg=#C792EA blend=0
-                    hi! NotifyERRORBody guibg=#011627 guifg=#ef5350 blend=0
-                    hi! NotifyWARNBody guibg=#011627 guifg=#f78c6c blend=0
-                    hi! NotifyINFOBody guibg=#011627 guifg=#82AAFF blend=0
-                    hi! NotifyDEBUGBody guibg=#011627 guifg=#7FDBCA blend=0
-                    hi! NotifyTRACEBody guibg=#011627 guifg=#C792EA blend=0
-                    ]]
+                    -- nvim-cmp
+                    hl(0, 'CmpItemAbbr', { fg = palette.fg, bg = 'NONE', })
+                    hl(0, 'CmpItemAbbrMatch', { fg = palette.blue, bold = true })
+                    hl(0, 'CmpItemAbbrMatchFuzzy', { fg = palette.blue, bold = true })
+                    hl(0, 'CmpItemKindFunction', { fg = palette.blue, bg = 'NONE', })
+                    hl(0, 'CmpItemKindMethod', { fg = palette.blue, bg = 'NONE', })
+                    hl(0, 'CmpItemKindVariable', { fg = palette.orange, bg = 'NONE', })
+                    hl(0, 'CmpItemKindProperty', { fg = palette.orange, bg = 'NONE', })
+                    hl(0, 'CmpItemKindKeyword', { fg = palette.magenta, bg = 'NONE', })
+                    hl(0, 'CmpItemKindSnippet', { fg = palette.magenta, bg = 'NONE', })
+                    hl(0, 'CmpItemKindOperator', { fg = palette.magenta, bg = 'NONE', })
+                    hl(0, 'CmpItemKindInterface', { fg = palette.cyan2, bg = 'NONE', })
+                    hl(0, 'CmpItemKindStruct', { fg = palette.cyan2, bg = 'NONE', })
+                    hl(0, 'CmpItemKindEnum', { fg = palette.cyan2, bg = 'NONE', })
+                    hl(0, 'CmpItemKindModule', { fg = palette.fg, bg = 'NONE', })
+                    hl(0, 'CmpItemKindFile', { fg = palette.fg, bg = 'NONE', })
+                    hl(0, 'CmpItemKindFolder', { fg = palette.fg, bg = 'NONE', })
+
+                    -- vim-notify
+                    hl(0, 'NotifyBackground', { fg = palette.fg, bg = palette.bg, blend = 100 })
+                    hl(0, 'NotifyERRORBorder', { fg = palette.error_red, bg = palette.bg, blend = 100 })
+                    hl(0, 'NotifyWARNBorder', { fg = palette.orange, bg = palette.bg, blend = 100 })
+                    hl(0, 'NotifyINFOBorder', { fg = palette.blue, bg = palette.bg, blend = 100 })
+                    hl(0, 'NotifyDEBUGBorder', { fg = palette.cyan2, bg = palette.bg, blend = 100 })
+                    hl(0, 'NotifyTRACEBorder', { fg = palette.magenta, bg = palette.bg, blend = 100 })
+                    hl(0, 'NotifyERRORBody', { fg = palette.error_red, bg = palette.bg, blend = 100 })
+                    hl(0, 'NotifyWARNBody', { fg = palette.orange, bg = palette.bg, blend = 100 })
+                    hl(0, 'NotifyINFOBody', { fg = palette.blue, bg = palette.bg, blend = 100 })
+                    hl(0, 'NotifyDEBUGBody', { fg = palette.cyan2, bg = palette.bg, blend = 100 })
+                    hl(0, 'NotifyTRACEBody', { fg = palette.magenta, bg = palette.bg, blend = 100 })
                 end,
             })
 
