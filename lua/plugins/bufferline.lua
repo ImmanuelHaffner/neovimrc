@@ -28,9 +28,9 @@ return {
                     sort_by = 'tabs',
                     offsets = {
                         {
-                            filetype = 'NvimTree',
+                            filetype = 'neo-tree',
                             text = function()
-                                return Utils.shorten_relative_path(vim.fn.getcwd(), 20)
+                                return Utils.shorten_relative_path(vim.fn.getcwd(), 30)
                             end,
                             highlight = 'Directory',
                             text_align = 'left',
