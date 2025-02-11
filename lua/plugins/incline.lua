@@ -34,7 +34,6 @@ return {
                         end
                         return {
                             { ' ', ft_icon, ' ', guibg = ft_color, guifg = helpers.contrast_color(ft_color) },
-                            ' '
                         }
                     end
 
@@ -79,7 +78,7 @@ return {
 
                     return {
                         get_ft_icon(),
-                        { filename, gui = 'bold,italic' },
+                        { ' ', filename, gui = 'bold,italic' },
                         get_modified(),
                         get_diagnostic_label(),
                         get_git_diff(),
