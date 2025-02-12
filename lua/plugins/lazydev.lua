@@ -5,7 +5,8 @@ return {
         opts = {
             library = {
                 -- Library paths can be absolute
-                "~/projects/my-awesome-lib",
+                "~/Documents/dotfiles/neovimrc",
+                "~/Documents/Firebolt/firebolt.nvim",
                 -- Or relative, which means they will be resolved from the plugin dir.
                 "lazy.nvim",
                 "luvit-meta/library",
