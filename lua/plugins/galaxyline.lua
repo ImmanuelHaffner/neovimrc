@@ -45,10 +45,20 @@ return {
             gl.short_line_list = {'defx', 'packager', 'vista', 'NvimTree'}
 
             -- Local helper functions
-            local buffer_not_empty = function() return not Utils.is_buffer_empty() end
+            local is_buffer_not_empty = function() return not Utils.is_buffer_empty() end
+            local has_lsp_message = function()
+                if next(vim.lsp.get_clients()) == nil then return false end
+                local messages = get_lsp_progress()
+                return next(messages) ~= nil
+            end
+            local has_navic_location = function()
+                if Utils.is_buffer_empty() then return false end
+                if not navic.is_available() then return false end
+                return true
+            end
 
             local checkwidth = function()
-                return Utils.has_width_gt(40) and buffer_not_empty()
+                return Utils.has_width_gt(40) and is_buffer_not_empty()
             end
 
             local function file_readonly()
@@ -96,15 +106,15 @@ return {
                     provider = function()
                         local messages = get_lsp_progress()
                         if next(messages) == nil then
-                            return ''
+                            return ''  -- no messages from LSP
                         end
                         return '  ' .. table.concat(messages) .. ' '
                     end,
-                    condition = function() return next(vim.lsp.get_clients()) ~= nil end,
+                    condition = has_lsp_message,
                     highlight = {colors.middlegrey, colors.section_bg},
                 }
             }
-            gls.left[9] = {
+            gls.left[3] = {
                 nvimNavic = {
                     provider = function()
                         local loc = navic.get_location()
@@ -113,12 +123,15 @@ return {
                         end
                         return '  ' .. navic.get_location() .. ' '
                     end,
-                    condition = function()
-                        return buffer_not_empty() and navic.is_available()
-                    end,
+                    condition = has_navic_location,
                     highlight = {colors.middlegrey, colors.section_bg},
-                    separator = "",
-                    separator_highlight = {colors.section_bg, colors.bg},
+                }
+            }
+            gls.left[9] = {
+                LSPSeparator = {
+                    provider = function() return '' end,
+                    condition = function() return has_lsp_message() or has_navic_location() end,
+                    highlight = {colors.section_bg, colors.bg},
                 }
             }
             gls.left[10] = {
