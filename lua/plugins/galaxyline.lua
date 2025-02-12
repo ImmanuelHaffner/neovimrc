@@ -74,7 +74,7 @@ return {
             gls.left[1] = {
                 ViMode = {
                     provider = function()
-                        local color, mode = unpack(Utils.get_vim_mode_info())
+                        local color, mode = table.unpack(Utils.get_vim_mode_info())
                         vim.api.nvim_command('hi GalaxyViMode guibg=' .. color)
                         return '  ' .. mode .. ' '
                     end,
@@ -239,7 +239,7 @@ return {
             gls.right[10] = {
                 CursorPos = {
                     provider = function()
-                        local _, line, byte, _ = unpack(vim.fn.getpos('.'))
+                        local _, line, byte, _ = table.unpack(vim.fn.getpos('.'))
                         local col = vim.fn.virtcol('.')  -- get the visible column, not bytes in line
                         local str = ''
 
