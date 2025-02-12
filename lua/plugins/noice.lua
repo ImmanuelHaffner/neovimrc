@@ -53,6 +53,17 @@ return {
                     view_search = 'virtualtext', -- view for search count messages. Set to `false` to disable
                 },
                 routes = {
+                    -- Route all confirmation dialogs to the confirm view
+                    {
+                        filter = {
+                            any = {
+                                { event = 'msg_show', kind = 'confirm' },
+                                { event = 'msg_show', kind = 'confirm_sub' },
+                                { event = 'msg_show', kind = 'number_prompt' },
+                            },
+                        },
+                        view = 'confirm',
+                    },
                     -- Don't show a message for the "File written" prompt.
                     {
                         filter = {
