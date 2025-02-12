@@ -70,6 +70,15 @@ return {
             -- Clear AsyncRun status on setup
             vim.g.asyncrun_status = ''
 
+            -- Redraw status on macro recording start / stop
+            vim.api.nvim_create_autocmd({
+                'RecordingEnter', 'RecordingLeave',  -- macro recording
+            }, {
+                callback = function(ev)
+                    gl.load_galaxyline()  -- force redraw
+                end,
+            })
+
             -- Left side
             gls.left[1] = {
                 ViMode = {
@@ -120,6 +129,33 @@ return {
             }
 
             -- Right side
+            gls.right[1] = {
+                MacroRecording = {
+                    provider = function()
+                        local recording_register = vim.fn.reg_recording()
+                        return '󰑋 recording @' .. recording_register .. ' ' -- Show recording status
+                    end,
+                    condition = function()
+                        local recording_register = vim.fn.reg_recording()
+                        return recording_register ~= nil and recording_register ~= ''
+                    end,
+                    highlight = { '#E0E0E0', '#d60e00' },
+                    separator = '',
+                    separator_highlight = { '#d60e00', colors.bg },
+                    event = { 'RecordingEnter', 'RecordingLeave'},
+                },
+            }
+            gls.right[2] = {
+                MacroRecordingEnd = {
+                    provider = function() return '  ' end,
+                    condition = function()
+                        local recording_register = vim.fn.reg_recording()
+                        return recording_register ~= nil and recording_register ~= ''
+                    end,
+                    highlight = { '#d60e00', colors.bg },
+                    event = { 'RecordingEnter', 'RecordingLeave'},
+                },
+            }
             gls.right[5] = {
                 GitIcon = {
                     provider = function()
