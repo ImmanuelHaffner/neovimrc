@@ -122,22 +122,18 @@ return {
             -- Right side
             gls.right[5] = {
                 GitIcon = {
-                    provider = function() return '  ' end,
-                    condition = buffer_not_empty and require('galaxyline.provider_vcs').check_git_workspace,
-                    highlight = {colors.middlegrey, colors.bg}
-                }
-            }
-            gls.right[6] = {
-                GitBranch = {
-                    provider = 'GitBranch',
-                    condition = buffer_not_empty,
+                    provider = function()
+                        return '  ' .. require'galaxyline.provider_vcs'.get_git_branch() .. ' '
+                    end,
+                    condition = function()
+                        return require'galaxyline.provider_vcs'.get_git_branch() ~= nil
+                    end,
                     highlight = {colors.middlegrey, colors.bg}
                 }
             }
             gls.right[7] = {
                 Space = {
-                    provider = function() return ' ' end,
-                    condition = buffer_not_empty and require('galaxyline.provider_vcs').check_git_workspace,
+                    provider = function() return '' end,
                     highlight = {colors.middlegrey, colors.bg}
                 }
             }
