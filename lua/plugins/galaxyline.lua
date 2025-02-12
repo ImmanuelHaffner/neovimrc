@@ -81,51 +81,6 @@ return {
                     highlight = {colors.bg, colors.bg, 'bold'}
                 }
             }
-            -- gls.left[2] = {
-            --     FileIcon = {
-            --         provider = {function() return '  ' end, 'FileIcon'},
-            --         condition = buffer_not_empty,
-            --         highlight = {
-            --             require('galaxyline.provider_fileinfo').get_file_icon,
-            --             colors.section_bg
-            --         }
-            --     }
-            -- }
-            -- gls.left[3] = {
-            --     FileName = {
-            --         provider = get_current_file_name,
-            --         condition = buffer_not_empty,
-            --         highlight = {colors.fg, colors.section_bg},
-            --         separator = "",
-            --         separator_highlight = {colors.section_bg, colors.bg}
-            --     }
-            -- }
-            -- gls.left[4] = {
-            --     DiagnosticError = {
-            --         provider = 'DiagnosticError',
-            --         condition = buffer_not_empty,
-            --         icon = '  ',
-            --         highlight = {colors.red1, colors.bg},
-            --     }
-            -- }
-            -- gls.left[5] = {
-            --     DiagnosticWarn = {
-            --         provider = 'DiagnosticWarn',
-            --         condition = buffer_not_empty,
-            --         icon = '  ',
-            --         highlight = {colors.orange, colors.bg},
-            --     }
-            -- }
-            -- gls.left[6] = {
-            --     DiagnosticInfo = {
-            --         provider = 'DiagnosticInfo',
-            --         condition = buffer_not_empty,
-            --         icon = '  ',
-            --         highlight = {colors.blue, colors.bg},
-            --         separator = "",
-            --         separator_highlight = {colors.bg, colors.section_bg},
-            --     }
-            -- }
             -- LSP status (current function)
             gls.left[2] = {
                 LSPStatus = {
@@ -157,15 +112,6 @@ return {
                     separator_highlight = {colors.section_bg, colors.bg},
                 }
             }
-            -- gls.left[10] = {
-            --     color = {
-            --         provider = function() return '' end,
-            --         condition = function()
-            --             return buffer_not_empty() and navic.is_available()
-            --         end,
-            --         highlight = {colors.section_bg, colors.bg},
-            --     }
-            -- }
             gls.left[10] = {
                 color = {
                     provider = function() return '' end,
@@ -174,36 +120,6 @@ return {
             }
 
             -- Right side
-            -- gls.right[1] = {
-            --     DiffAdd = {
-            --         provider = 'DiffAdd',
-            --         condition = checkwidth,
-            --         icon = '+',
-            --         highlight = {colors.green, colors.bg}
-            --     }
-            -- }
-            -- gls.right[2] = {
-            --     DiffModified = {
-            --         provider = 'DiffModified',
-            --         condition = checkwidth,
-            --         icon = '~',
-            --         highlight = {colors.orange, colors.bg}
-            --     }
-            -- }
-            -- gls.right[3] = {
-            --     DiffRemove = {
-            --         provider = 'DiffRemove',
-            --         condition = checkwidth,
-            --         icon = '-',
-            --         highlight = {colors.red1, colors.bg}
-            --     }
-            -- }
-            -- gls.right[4] = {
-            --     Space = {
-            --         provider = function() return ' ' end,
-            --         highlight = {colors.section_bg, colors.bg}
-            --     }
-            -- }
             gls.right[5] = {
                 GitIcon = {
                     provider = function() return '  ' end,
