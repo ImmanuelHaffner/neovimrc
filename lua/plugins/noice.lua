@@ -123,6 +123,15 @@ return {
                         },
                         view = 'mini',
                     },
+                    -- Preserve short notifications to go to notify
+                    {
+                        filter = {
+                            event = 'notify',
+                            max_height = 3,
+                            max_width = msg_width,  -- account for the 'Error' prefix
+                        },
+                        view = 'notify',
+                    },
                 },
                 views = {
                     cmdline_popup = {
