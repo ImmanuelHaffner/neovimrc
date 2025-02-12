@@ -30,10 +30,10 @@ return {
                     hl(0, 'CursorLine', { bg = '#2d3a4a', cterm = {}, underline = false })
 
                     -- Diff view
-                    hl(0, 'DiffAdd', { fg='#859900', bg='#002b36', })
-                    hl(0, 'DiffDelete', { fg='#848586', bg='#331c1c', })
-                    hl(0, 'DiffChange', { fg='NONE', bg='#002b36', cterm=nil, })
-                    hl(0, 'DiffText', { fg='NONE', bg='NONE', undercurl=true, sp='#b58900', })
+                    hl(0, 'DiffAdd', { fg = 'NONE', bg = '#0f2909', })  -- bg a dim green
+                    hl(0, 'DiffDelete', { fg = 'NONE', bg = '#331c1c', })  -- bg a dim red
+                    hl(0, 'DiffChange', { fg = 'NONE', bg = '#262303', sp = 'NONE', underline = false, cterm = {}, })
+                    hl(0, 'DiffText', { fg = 'NONE', bg = '#262303', sp = '#b58900', underline = false, underdouble = true, })
 
                     -- nvim-cmp
                     hl(0, 'CmpItemAbbr', { fg = palette.fg, bg = 'NONE', })
