@@ -7,12 +7,6 @@ return {
                 init = function()
                     -- making our cursor to use `MyCursor` highlight group
                     vim.opt.guicursor:append('a:MyCursor')
-                    vim.opt.cursorline = true
-
-                    -- Configure colors of cursorline and colorcolumn
-                    vim.cmd[[
-                    hi! CursorLineNr gui=bold
-                    ]]
                 end,
                 lazy = false,
                 priority = 100,
@@ -23,7 +17,7 @@ return {
                             -- if you want to change global highlights, use the `hl` field instead.
                             CursorLine = { bg = '#102947' },
                             CursorColumn = { bg = '#102947' },
-                            CursorLineNr = { fg = '#0b1d33', bg = '#98c379' },
+                            CursorLineNr = { fg = '#0b1d33', bg = '#98c379', bold = true },
                         },
                     },
                     no = {
@@ -52,7 +46,7 @@ return {
                     i = {
                         winhl = {
                             CursorLine = { bg = '#0b1d33' },
-                            CursorLineNr = { fg = '#0b1d33', bg = '#61afef' },
+                            CursorLineNr = { fg = '#0b1d33', bg = '#61afef', bold = true },
                         },
                         hl = {
                             MyCursor = { bg = '#ff6b6b' },
@@ -60,18 +54,18 @@ return {
                     },
                     [{ 'v', 'V', '\x16' }] = {
                         winhl = {
-                            CursorLineNr = { fg = '#0b1d33', bg = '#c678dd' },
+                            CursorLineNr = { fg = '#0b1d33', bg = '#c678dd', bold = true },
                         },
                     },
                     c = {
                         winhl = {
                             CursorLine = { bg = 'NONE' },
-                            CursorLineNr = { fg = 'NONE', bg = 'NONE' },
+                            CursorLineNr = { fg = 'NONE', bg = 'NONE', bold = true },
                         },
                     },
                     ['R'] = {
                         winhl = {
-                            CursorLineNr = { fg = 'NONE', bg = '#e06c75' },
+                            CursorLineNr = { fg = 'NONE', bg = '#e06c75', bold = true },
                         },
                     }
                 },
