@@ -1,14 +1,11 @@
 return {
-    { 'altercation/vim-colors-solarized' },
     { 'euclidianAce/BetterLua.vim' },
-    { 'gpanders/vim-medieval' },
+    { 'gpanders/vim-medieval' },  -- evaluate Markdown code blocks
     { 'mhinz/vim-grepper' },
-    { 'nvim-lua/plenary.nvim' },
+    { 'nvim-lua/plenary.nvim' },  -- Lua module for asynchronous programming using coroutines
     { 'pedrohdz/vim-yaml-folds' },
     { 'rhysd/vim-grammarous' },
     { 'sukima/xmledit' },
-    { 'vim-pandoc/vim-pandoc-syntax' },
     { 'vim-scripts/DoxygenToolkit.vim' },
     { 'kyazdani42/nvim-web-devicons' },
-    { 'petertriho/cmp-git', dependencies = { 'nvim-lua/plenary.nvim' } },
 }

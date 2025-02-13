@@ -6,7 +6,7 @@ return {
             'hrsh7th/cmp-path',
             'hrsh7th/cmp-cmdline',
             'hrsh7th/cmp-omni',
-            'petertriho/cmp-git',
+            { 'petertriho/cmp-git', dependencies = { 'nvim-lua/plenary.nvim' } },
             'https://git.sr.ht/~p00f/clangd_extensions.nvim',
         },
         config = function()
