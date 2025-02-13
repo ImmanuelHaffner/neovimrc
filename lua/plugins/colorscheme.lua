@@ -32,8 +32,8 @@ return {
                     -- Diff view
                     hl(0, 'DiffAdd', { fg = 'NONE', bg = '#0f2909', })  -- bg a dim green
                     hl(0, 'DiffDelete', { fg = 'NONE', bg = '#331c1c', })  -- bg a dim red
-                    hl(0, 'DiffChange', { fg = 'NONE', bg = '#262303', sp = 'NONE', underline = false, cterm = {}, })
-                    hl(0, 'DiffText', { fg = 'NONE', bg = '#262303', sp = '#b58900', underline = false, underdouble = true, })
+                    hl(0, 'DiffChange', { fg = 'NONE', bg = '#212103', sp = 'NONE', underline = false, cterm = {}, })
+                    hl(0, 'DiffText', { fg = 'NONE', bg = '#212103', sp = '#b58900', underline = false, underdouble = true, })
 
                     -- nvim-cmp
                     hl(0, 'CmpItemAbbr', { fg = palette.fg, bg = 'NONE', })
