@@ -33,7 +33,13 @@ return {
                 indent = {
                     char = '│',
                     highlight = highlight,
-                }
+                },
+                exclude = {
+                    filetypes = {
+                        'fbsqltest',
+                        'fbplannertest',
+                    },
+                },
             }
         end,
     },
