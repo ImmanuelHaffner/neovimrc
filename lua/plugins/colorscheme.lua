@@ -32,8 +32,8 @@ return {
                     -- Diff view
                     hl(0, 'DiffAdd', { fg = 'NONE', bg = '#0f2909', })  -- bg a dim green
                     hl(0, 'DiffDelete', { fg = 'NONE', bg = '#331c1c', })  -- bg a dim red
-                    hl(0, 'DiffChange', { fg = 'NONE', bg = '#181800', })  -- bg a dim yellow
-                    hl(0, 'DiffText', { fg = 'NONE', bg = '#282800', })  -- bg a brighter yellow
+                    hl(0, 'DiffChange', { fg = 'NONE', bg = '#242418', })  -- bg a dim gray-ish yellow
+                    hl(0, 'DiffText', { fg = 'NONE', bg = '#343400', })  -- bg a brighter yellow
 
                     -- nvim-cmp
                     hl(0, 'CmpItemAbbr', { fg = palette.fg, bg = 'NONE', })
