@@ -65,6 +65,9 @@ return {
 
             lsp_status.register_progress()
 
+            -- Only log errors by default to avoid log file growing too quickly.
+            vim.lsp.set_log_level'error'
+
             -- Use an on_attach function to only map the following keys
             -- after the language server attaches to the current buffer
             local on_attach = function(client, bufnr)
