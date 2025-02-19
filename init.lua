@@ -1,5 +1,10 @@
 -- vim: set foldmethod=marker:
 
+-- Workaround `unpack` deprecation
+if not table.unpack then
+    table.unpack = unpack
+end
+
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
