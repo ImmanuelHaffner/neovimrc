@@ -23,6 +23,13 @@ function M.setup()
             end
         end, desc = 'Toggle QuickFix window' },
         { 'g<Tab>', '<cmd>exe "tabn " . g:lasttab<cr>', desc = 'Switch to previous tab' },
+        { '<C-q>', function()
+            local tab_count = #vim.api.nvim_list_tabpages()
+            if tab_count > 1 then
+                vim.cmd[[tabclose]]
+            end
+        end, desc = 'Close tab' },
+        { '<space>q', '<cmd>only<cr>', desc = 'Close other windows' },
     }
 
     -- Visual mode
