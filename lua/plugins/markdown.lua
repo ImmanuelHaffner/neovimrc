@@ -20,6 +20,14 @@ return {
         dependencies = {
             'nvim-treesitter/nvim-treesitter',
             'nvim-tree/nvim-web-devicons'
-        }
+        },
+        opts = {
+            preview = {
+                enable_hybrid_mode = true,
+                modes = { 'n' },  -- only render in normal mode
+                hybrid_modes = { 'n' },  -- but in hybrid mode
+                edit_range = { 0, 0 },  -- and don't render the cursor line
+            },
+        },
     },
 }
