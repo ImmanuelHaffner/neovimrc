@@ -6,7 +6,8 @@ return {
         },
         config = function()
             local Path = require'plenary.path'
-            require'session_manager'.setup{
+            local session_manager = require'session_manager'
+            session_manager.setup{
                 sessions_dir = Path:new(vim.fn.stdpath('data'), '.sessions'), -- The directory where the session files will be saved.
                 path_replacer = '__', -- The character to which the path separator will be replaced for session files.
                 colon_replacer = '++', -- The character to which the colon symbol will be replaced for session files.
@@ -20,17 +21,26 @@ return {
                     'gitcommit',
                     'gitrebase',
                 },
+                -- autosave_ignore_buftypes = {
+                --     'terminal',
+                -- },
                 autosave_only_in_session = true, -- Only autosave after a session is active.
                 max_path_length = 0,  -- Shorten the display path if length exceeds this threshold. Use 0 if don't want to shorten the path at all.
             }
 
+            local function save_and_exit()
+                session_manager.save_current_session()
+                -- Force-close all terminals
+                for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                    if vim.bo[buf].buftype == 'terminal' then
+                        vim.api.nvim_buf_delete(buf, { force = true })
+                    end
+                end
+                vim.cmd[[wqa]]
+            end
+
             -- Quit function
-            quit = vim.api.nvim_create_user_command('Q', function()
-                vim.cmd[[
-                SessionManager save_current_session
-                wqa
-                ]]
-            end, {})
+            quit = vim.api.nvim_create_user_command('Q', save_and_exit, {})
 
             -- Keymap
             require'which-key'.add{
