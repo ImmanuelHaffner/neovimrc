@@ -38,7 +38,7 @@ return {
             test = {
                 fix_test_keep_actual = false,
             },
-            git_clang_format = 'git-clang-format --binary /opt/clang-format-static/clang-format-18 --force --',
+            clang_format = '/usr/lib/llvm18/bin/clang-format -i --',
         },
     },
 }
