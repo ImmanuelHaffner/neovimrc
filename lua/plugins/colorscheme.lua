@@ -35,6 +35,10 @@ return {
                     hl(0, 'DiffChange', { fg = 'NONE', bg = '#242418', })  -- bg a dim gray-ish yellow
                     hl(0, 'DiffText', { fg = 'NONE', bg = '#343400', })  -- bg a brighter yellow
 
+
+                    -- Gitsign current line blame
+                    hl(0, 'GitSignsCurrentLineBlame', { fg = palette.gray6, })
+
                     -- nvim-cmp
                     hl(0, 'CmpItemAbbr', { fg = palette.fg, bg = 'NONE', })
                     hl(0, 'CmpItemAbbrMatch', { fg = palette.blue, bold = true })
