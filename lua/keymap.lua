@@ -30,6 +30,8 @@ function M.setup()
             end
         end, desc = 'Close tab' },
         { '<space>q', '<cmd>only<cr>', desc = 'Close other windows' },
+        { ']c', '<cmd>cnext<cr>', desc = 'Next clist item' },
+        { '[c', '<cmd>cprevious<cr>', desc = 'Previous clist item' },
     }
 
     -- Visual mode
