@@ -30,8 +30,9 @@ function M.setup()
             end
         end, desc = 'Close tab' },
         { '<space>q', '<cmd>only<cr>', desc = 'Close other windows' },
-        { ']c', '<cmd>cnext<cr>', desc = 'Next clist item' },
-        { '[c', '<cmd>cprevious<cr>', desc = 'Previous clist item' },
+        -- Don't use ]c and [c; these are reserved for navigating diff chunks
+        { ']l', '<cmd>cnext<cr>', desc = 'Next clist item' },
+        { '[l', '<cmd>cprevious<cr>', desc = 'Previous clist item' },
     }
 
     -- Visual mode
