@@ -12,8 +12,49 @@ return {
         },
         config = function()
             local ts = require'telescope'
+            local entry_display = require'telescope.pickers.entry_display'
+            local builtins = require'telescope.builtin'
+            local previewers = require'telescope.previewers'
+
+            local function custom_git_entry_maker(entry)
+                local commit_hash, author, date, message = entry:match("^(%S+) (.-) (%d%d%d%d%-%d%d%-%d%d) (.+)$")
+
+                if not commit_hash or not author or not date or not message then
+                    return nil -- Skip malformed entries
+                end
+
+                local formatter = entry_display.create{
+                    separator = ' ',
+                    items = {
+                        { width = 10 }, -- Commit hash
+                        { width = 20 }, -- Author (custom color)
+                        { width = 10 }, -- Date (custom color)
+                        { width = 2 },  -- Separator
+                        { remaining = true } -- Commit message
+                    }
+                }
+
+                local display = function()
+                    return formatter{
+                        { commit_hash, 'TelescopePreviewLink' },         -- First column: commit hash
+                        { author,      'TelescopeResultsNumber' },       -- Second column: author name
+                        { date,        'TelescopeResultsIdentifier'  },  -- Third column: date
+                        { '⨠ ' },
+                        { message },                                     -- Fourth column: commit message
+                    }
+                end
+
+                return {
+                    value = commit_hash,
+                    ordinal = entry,
+                    display = display,
+                }
+            end
+
+
             ts.setup{
                 defaults = {
+                    dynamic_preview_title = true,
                     mappings = {
                         n = {
                             ['<c-x>'] = require('telescope.actions').delete_buffer
@@ -37,9 +78,35 @@ return {
                     },
                     git_commits = {
                         prompt_prefix = ' ',  -- alternatives:    
+                        git_command = { 'git', 'log', '--pretty=%H %an %ad %s', '--date=short' },
+                        entry_maker = custom_git_entry_maker,
+                        previewer = previewers.new_termopen_previewer({
+                            dyn_title = function(self, entry)
+                                return 'Git commit: ' .. entry.value
+                            end,
+                            get_command = function(entry, status)
+                                return {
+                                    'env', 'LESS=', 'GIT_PAGER=delta --paging=always --pager=less',
+                                    'git', '--paginate', 'show', '--color=never',  entry.value
+                                }
+                            end,
+                        }),
                     },
                     git_bcommits = {
                         prompt_prefix = '  ',
+                        git_command = { 'git', 'log', '--pretty=%H %an %ad %s', '--date=short' },
+                        entry_maker = custom_git_entry_maker,
+                        previewer = previewers.new_termopen_previewer({
+                            dyn_title = function(self, entry)
+                                return 'Git commit: ' .. entry.value
+                            end,
+                            get_command = function(entry, status)
+                                return {
+                                    'env', 'LESS=', 'GIT_PAGER=delta --paging=always --pager=less',
+                                    'git', '--paginate', 'show', '--color=never',  entry.value, '--', entry.current_file
+                                }
+                            end,
+                        }),
                     },
                     buffers = {
                         prompt_prefix = ' ',
