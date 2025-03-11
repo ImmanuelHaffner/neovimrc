@@ -108,6 +108,20 @@ return {
                             end,
                         }),
                     },
+                    git_bcommits_range = {
+                        prompt_prefix = '  ',
+                        previewer = previewers.new_termopen_previewer({
+                            dyn_title = function(self, entry)
+                                return 'Git commit: ' .. entry.value
+                            end,
+                            get_command = function(entry, status)
+                                return {
+                                    'env', 'LESS=', 'GIT_PAGER=delta --paging=always --pager=less',
+                                    'git', '--paginate', 'show', '--color=never',  entry.value, '--', entry.current_file
+                                }
+                            end,
+                        }),
+                    },
                     buffers = {
                         prompt_prefix = ' ',
                         sort_lastused = true,
@@ -134,8 +148,8 @@ return {
             ts.load_extension'ui-select'
             local termfinder = require'telescope'.load_extension'termfinder'
 
-            local builtins = require'telescope.builtin'
-            require'which-key'.add{
+            local wk = require'which-key'
+            wk.add{
                 { '<leader>f', group = 'Telescope' },
                 { '<leader>ff', function() builtins.find_files() end, desc = 'Find file' },
                 { '<leader>fb', function() builtins.buffers() end, desc = 'Select buffer' },
@@ -164,6 +178,10 @@ return {
                 },
                 { '<leader>fr', function() builtins.resume() end, desc = 'Resume' },
                 { '<leader>f\\', function() termfinder.find{prompt_prefix=' '} end, desc = 'Find terminal' },
+            }
+            wk.add{
+                mode = { 'v' },
+                { '<leader>fgh', function() builtins.git_bcommits_range() end, desc = 'Find line\'s Git commit (history)' },
             }
         end
     },
