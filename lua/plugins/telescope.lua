@@ -30,7 +30,7 @@ return {
                         hidden = true,
                     },
                     git_files = {
-                        prompt_prefix = ' ',
+                        prompt_prefix = '  ',
                     },
                     git_branches = {
                         prompt_prefix = ' ',
@@ -39,7 +39,7 @@ return {
                         prompt_prefix = ' ',  -- alternatives:    
                     },
                     git_bcommits = {
-                        prompt_prefix = ' ',
+                        prompt_prefix = '  ',
                     },
                     buffers = {
                         prompt_prefix = ' ',
