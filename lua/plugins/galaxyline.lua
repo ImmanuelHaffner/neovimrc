@@ -77,6 +77,11 @@ return {
                 return file .. ' '
             end
 
+            -- Expand %S to pending command in statusline.  We will hack this into Galaxyline as a separator, see below
+            -- the `OperatorPending` entry.
+            vim.o.showcmd = true
+            vim.o.showcmdloc = 'statusline'
+
             -- Clear AsyncRun status on setup
             vim.g.asyncrun_status = ''
 
@@ -90,19 +95,24 @@ return {
             })
 
             -- Left side
-            gls.left[1] = {
-                ViMode = {
+            gls.left = {
+                { ViMode = {
                     provider = function()
                         local color, mode = table.unpack(Utils.get_vim_mode_info())
                         vim.api.nvim_command('hi GalaxyViMode guibg=' .. color)
-                        return '  ' .. mode .. ' '
+                        return '  ' .. mode
                     end,
-                    highlight = {colors.bg, colors.bg, 'bold'}
-                }
-            }
-            -- LSP status (current function)
-            gls.left[2] = {
-                LSPStatus = {
+                    highlight = {colors.bg, colors.bg, 'bold'},
+                    event = { 'ModeChanged' },
+                }},
+                -- Hack the Operator Pending information into Galaxyline.  We must do this as a `separator` to bypass
+                -- escaping.
+                { OperatorPending = {
+                    provider = function() return '' end,
+                    separator = '%#GalaxyViMode# %S ',  -- the name must match the previous section name
+                }},
+                -- LSP status (current function)
+                { LSPStatus = {
                     provider = function()
                         local messages = get_lsp_progress()
                         if next(messages) == nil then
@@ -112,10 +122,8 @@ return {
                     end,
                     condition = has_lsp_message,
                     highlight = {colors.middlegrey, colors.section_bg},
-                }
-            }
-            gls.left[3] = {
-                nvimNavic = {
+                }},
+                { nvimNavic = {
                     provider = function()
                         local loc = navic.get_location()
                         if loc == '' then
@@ -125,25 +133,21 @@ return {
                     end,
                     condition = has_navic_location,
                     highlight = {colors.middlegrey, colors.section_bg},
-                }
-            }
-            gls.left[9] = {
-                LSPSeparator = {
+                }},
+                { LSPSeparator = {
                     provider = function() return '' end,
                     condition = function() return has_lsp_message() or has_navic_location() end,
                     highlight = {colors.section_bg, colors.bg},
-                }
-            }
-            gls.left[10] = {
-                color = {
+                }},
+                { color = {
                     provider = function() return '' end,
                     highlight = {colors.section_bg, colors.bg},
-                }
+                }},
             }
 
             -- Right side
-            gls.right[1] = {
-                MacroRecording = {
+            gls.right = {
+                { MacroRecording = {
                     provider = function()
                         local recording_register = vim.fn.reg_recording()
                         return '󰑋 recording @' .. recording_register .. ' ' -- Show recording status
@@ -156,21 +160,17 @@ return {
                     separator = '',
                     separator_highlight = { '#d60e00', colors.bg },
                     event = { 'RecordingEnter', 'RecordingLeave'},
-                },
-            }
-            gls.right[2] = {
-                MacroRecordingEnd = {
-                    provider = function() return '  ' end,
-                    condition = function()
-                        local recording_register = vim.fn.reg_recording()
-                        return recording_register ~= nil and recording_register ~= ''
-                    end,
-                    highlight = { '#d60e00', colors.bg },
-                    event = { 'RecordingEnter', 'RecordingLeave'},
-                },
-            }
-            gls.right[5] = {
-                GitIcon = {
+                }},
+                { MacroRecordingEnd = {
+                        provider = function() return '  ' end,
+                        condition = function()
+                            local recording_register = vim.fn.reg_recording()
+                            return recording_register ~= nil and recording_register ~= ''
+                        end,
+                        highlight = { '#d60e00', colors.bg },
+                        event = { 'RecordingEnter', 'RecordingLeave'},
+                }},
+                { GitIcon = {
                     provider = function()
                         return '  ' .. require'galaxyline.provider_vcs'.get_git_branch() .. ' '
                     end,
@@ -178,16 +178,12 @@ return {
                         return require'galaxyline.provider_vcs'.get_git_branch() ~= nil
                     end,
                     highlight = {colors.middlegrey, colors.bg}
-                }
-            }
-            gls.right[7] = {
-                Space = {
+                }},
+                { Space = {
                     provider = function() return '' end,
                     highlight = {colors.middlegrey, colors.bg}
-                }
-            }
-            gls.right[8] = {
-                AsyncRun = {
+                }},
+                { AsyncRun = {
                     provider = function() return vim.g.asyncrun_status .. ' ' end,
                     condition = function() return vim.g['asyncrun_status'] ~= '' end,
                     icon = '  ',
@@ -195,10 +191,8 @@ return {
                     separator_highlight = { colors.red1, colors.bg },
                     highlight = { colors.gray2, colors.red1 },
                     event = { 'AsyncRunPre', 'AsyncRunStart', 'AsyncRunStop' },
-                }
-            }
-            gls.right[10] = {
-                CursorPos = {
+                }},
+                { CursorPos = {
                     provider = function()
                         local _, line, byte, _ = table.unpack(vim.fn.getpos('.'))
                         local col = vim.fn.virtcol('.')  -- get the visible column, not bytes in line
@@ -219,15 +213,13 @@ return {
                         return str
                     end,
                     highlight = { colors.gray2, colors.purple },
-                }
-            }
-            gls.right[11] = {
-                PerCent = {
+                }},
+                { PerCent = {
                     provider = 'LinePercent',
                     separator = '',
                     separator_highlight = { colors.blue, colors.purple },
                     highlight = {colors.gray2, colors.blue}
-                }
+                }},
             }
 
             -- Short status line
