@@ -1,19 +1,28 @@
 # My Personalized NeoVIm Setup
 
-- [Impressions](#Impressions)
-- Working with Buffers *and* Tabs
-- Working with Windows
+- [Impressions](#impressions)
+- [Working with Buffers *and* Tabs](#buffers-and-tabs)
+- [Working with Windows](#windows)
+- [Color Palette `night-owl.nvim`](#color-palette)
+
+
+<a name="impressions"/>
 
 ## Impressions
 
-### Statusline and `CursorLineNr` follow the mode
+### Statusline, `CursorLineNr`, and `CursorLine` follow the mode
 
-| **Normal** | **Insert** | **Visual** | **Visual Line** | **Visual Block** | **Replace** | **Command** |
-|-|-|-|-|-|-|-|
-| ![](img/mode_status_normal.png) | ![](img/mode_status_insert.png) | ![](img/mode_status_visual.png) | ![](img/mode_status_vline.png) |![](img/mode_status_vblock.png) |![](img/mode_status_replace.png) |![](img/mode_status_command.png) |
-| ![](img/mode_cursorlinenr_normal.png) | ![](img/mode_cursorlinenr_insert.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_replace.png) | ![](img/mode_cursorlinenr_command.png) |
+| **Normal** | **Insert** | **Visual** | **Visual Line** | **Visual Block** | **Replace** | **Command** | **Operator Pending** |
+|-|-|-|-|-|-|-|-|
+| ![](img/mode_status_normal.png) | ![](img/mode_status_insert.png) | ![](img/mode_status_visual.png) | ![](img/mode_status_vline.png) |![](img/mode_status_vblock.png) |![](img/mode_status_replace.png) |![](img/mode_status_command.png) | ![](img/mode_status_operator_pending_yank.png) ![](img/mode_status_operator_pending_delete.png) |
+| ![](img/mode_cursorlinenr_normal.png) | ![](img/mode_cursorlinenr_insert.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_replace.png) | ![](img/mode_cursorlinenr_command.png) | ![](img/mode_cursorlinenr_normal.png) |
 
 The `CursorLineNr` and the mode displayed in the statusline change appearance according to the current mode.
+Additionally, `CursorLine` changes in operator pending state.
+
+Yank: ![](img/mode_line_operator_pending_yank.png)
+Delete: ![](img/mode_line_operator_pending_delete.png)
+
 
 ### Cursorline and `CursorLineNr` follow active window
 
@@ -86,6 +95,9 @@ When paths become too long, they are cleverly shortened starting at the root unt
 (Of course, you can configure the tab width to your preference.
 My tabs are very wide as I work on projects with deeply nested files.)
 
+
+<a name="buffers-and-tabs"/>
+
 ## Working with Buffers *and* Tabs
 
 Some people like to use one tab per file, as most editors do.
@@ -99,6 +111,9 @@ To jump back and forth between two buffers you simply type `<space>fb<cr>`.
 In addition to the regular tab motions, `g<tab>` jumps to the most recently accessed tab.
 This allows quickly jumping back and forth between two layouts.
 
+
+<a name="windows"/>
+
 ## Working with Windows
 
 ![](img/window_goto.png)
@@ -106,3 +121,12 @@ This allows quickly jumping back and forth between two layouts.
 Pressing `<space><space>` allows for quickly picking a window in the current tab.
 Simply press the key displayed in the window you want to go to, and you're there.
 (The characters to use for picking windows can be configured, and in my setup are the home row of the Colemak Mod-DH keyboard layout.)
+
+
+<a name="color-palette"/>
+
+## Color Palette `night-owl.nvim`
+
+This is a nice render of the `night-owl.nvim` color palette.
+
+![](img/night-owl.nvim-palette.png)
