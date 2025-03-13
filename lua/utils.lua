@@ -127,21 +127,31 @@ end
 
 function M.get_vim_mode_info()
     local vim_modes = {
-        [110]   = { colors.green,   'NORMAL' },     -- 'n' (normal mode)
-        [105]   = { colors.blue,    'INSERT' },     -- 'i' (insert mode)
-        [99]    = { colors.red1,    'COMMAND' },    -- 'c' (command-line mode)
-        [116]   = { colors.blue,    'TERMINAL' },   -- 't' (terminal mode)
-        [118]   = { colors.purple,  'VISUAL' },     -- 'v' (visual mode)
-        [22]    = { colors.purple,  'V-BLOCK' },    -- ^V (CTRL+V, visual block mode)
-        [86]    = { colors.purple,  'V-LINE' },     -- 'V' (visual line mode)
-        [82]    = { colors.red1,    'REPLACE' },    -- 'R' (replace mode)
-        [115]   = { colors.red1,    'SELECT' },     -- 's' (select mode)
-        [83]    = { colors.red1,    'S-LINE' },     -- 'S' (select line mode)
+        ['n']   = { colors.green,   'NORMAL' },
+        ['i']   = { colors.blue,    'INSERT' },
+        ['c']   = { colors.red1,    'COMMAND' },
+        ['t']   = { colors.blue,    'TERMINAL' },
+        ['v']   = { colors.purple,  'VISUAL' },
+        ['']  = { colors.purple,  'V-BLOCK' },
+        ['V']   = { colors.purple,  'V-LINE' },
+        ['R']   = { colors.red1,    'REPLACE' },
+        ['s']   = { colors.red1,    'SELECT' },
+        ['S']   = { colors.red1,    'S-LINE' },
+        ['']  = { colors.red1,    'S-BLOCK' },
+        ['r']   = { colors.red1,    'PROMPT' },
+        ['!']   = { colors.red1,    'SHELL' },
     }
 
-    local byte = vim.fn.mode():byte() or 0
-    local current_mode = vim_modes[byte]
-    return current_mode or { colors.red1, 'UNKNOWN ' .. tostring(byte) }
+    local mode = vim.fn.mode(1) or ''
+
+    -- Check for OPERATOR PENDING mode.
+    if mode:sub(1, 2) == 'no' then
+        return { colors.red1, 'OPERATOR' }
+    end
+
+    local chr = mode:sub(1, 1) or 0
+    local current_mode = vim_modes[chr]
+    return current_mode or { colors.red1, 'UNKNOWN ' .. mode }
 end
 
 return M
