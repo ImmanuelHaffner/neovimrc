@@ -42,7 +42,7 @@ return {
             end
 
             local gls = gl.section
-            gl.short_line_list = {'defx', 'packager', 'vista', 'NvimTree'}
+            gl.short_line_list = {'neo-tree'}
 
             -- Local helper functions
             local is_buffer_not_empty = function() return not Utils.is_buffer_empty() end
@@ -219,6 +219,83 @@ return {
                     separator = '',
                     separator_highlight = { colors.blue, colors.purple3 },
                     highlight = { colors.gray, colors.blue }
+                }},
+            }
+
+            -- Short status line
+            gls.short_line_left = {
+                { ViMode = {
+                    provider = function()
+                        local color, mode = table.unpack(Utils.get_vim_mode_info())
+                        vim.api.nvim_command('hi GalaxyViMode guibg=' .. color)
+                        return '  ' .. mode
+                    end,
+                    highlight = { colors.gray, colors.bg, 'bold' },
+                    event = { 'ModeChanged' },
+                }},
+                -- Hack the Operator Pending information into Galaxyline.  We must do this as a `separator` to bypass
+                -- escaping.
+                { OperatorPending = {
+                    provider = function() return '' end,
+                    separator = '%#GalaxyViMode# %S ',  -- the name must match the previous section name
+                }},
+                { color = {
+                    provider = function() return '' end,
+                    highlight = { colors.gray3, colors.gray },
+                }},
+            }
+
+            gls.short_line_right = {
+                { MacroRecording = {
+                    provider = function()
+                        local recording_register = vim.fn.reg_recording()
+                        return '󰑋 recording @' .. recording_register .. ' ' -- Show recording status
+                    end,
+                    condition = function()
+                        local recording_register = vim.fn.reg_recording()
+                        return recording_register ~= nil and recording_register ~= ''
+                    end,
+                    highlight = { colors.fg, colors.dark_red },
+                    separator = '',
+                    separator_highlight = { colors.dark_red, colors.gray },
+                    event = { 'RecordingEnter', 'RecordingLeave'},
+                }},
+                { MacroRecordingEnd = {
+                    provider = function() return '  ' end,
+                    condition = function()
+                        local recording_register = vim.fn.reg_recording()
+                        return recording_register ~= nil and recording_register ~= ''
+                    end,
+                    highlight = { colors.dark_red, colors.gray },
+                    event = { 'RecordingEnter', 'RecordingLeave'},
+                }},
+                { GitIcon = {
+                    provider = function()
+                        return '  ' .. require'galaxyline.provider_vcs'.get_git_branch() .. ' '
+                    end,
+                    condition = function()
+                        return require'galaxyline.provider_vcs'.get_git_branch() ~= nil
+                    end,
+                    highlight = { colors.light_orange, colors.gray }
+                }},
+                { Space = {
+                    provider = function() return '' end,
+                    highlight = { colors.fg, colors.gray }
+                }},
+                { AsyncRun = {
+                    provider = function() return vim.g.asyncrun_status .. ' ' end,
+                    condition = function() return vim.g['asyncrun_status'] ~= '' end,
+                    icon = '  ',
+                    separator = '',
+                    separator_highlight = { colors.red2, colors.gray },
+                    highlight = { colors.gray, colors.red2 },
+                    event = { 'AsyncRunPre', 'AsyncRunStart', 'AsyncRunStop' },
+                }},
+                { BufferIcon = {
+                    provider = 'BufferIcon',
+                    highlight = {colors.yellow, colors.section_bg},
+                    separator = '',
+                    separator_highlight = {colors.section_bg, colors.bg}
                 }},
             }
 
