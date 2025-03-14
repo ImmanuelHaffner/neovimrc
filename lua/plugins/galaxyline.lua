@@ -148,7 +148,8 @@ return {
                         return '  ' .. require'galaxyline.provider_vcs'.get_git_branch() .. ' '
                     end,
                     condition = function()
-                        return require'galaxyline.provider_vcs'.get_git_branch() ~= nil
+                        local git_branch = require'galaxyline.provider_vcs'.get_git_branch() or ''
+                        return git_branch ~= '' and git_branch:len() + 30 < vim.o.columns
                     end,
                     highlight = { colors.light_orange, colors.gray }
                 }},
