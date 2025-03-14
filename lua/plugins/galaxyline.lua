@@ -41,41 +41,9 @@ return {
               return message_list
             end
 
+            gl._mysection = gl._mysection or {}
             local gls = gl.section
             gl.short_line_list = {'neo-tree'}
-
-            -- Local helper functions
-            local is_buffer_not_empty = function() return not Utils.is_buffer_empty() end
-            local has_lsp_message = function()
-                if next(vim.lsp.get_clients()) == nil then return false end
-                local messages = get_lsp_progress()
-                return next(messages) ~= nil
-            end
-            local has_navic_location = function()
-                if Utils.is_buffer_empty() then return false end
-                if not navic.is_available() then return false end
-                return true
-            end
-
-            local checkwidth = function()
-                return Utils.has_width_gt(40) and is_buffer_not_empty()
-            end
-
-            local function file_readonly()
-                if vim.bo.filetype == 'help' then return '' end
-                if vim.bo.readonly == true then return '  ' end
-                return ''
-            end
-
-            local function get_current_file_name()
-                local file = vim.fn.expand('%:t')
-                if vim.fn.empty(file) == 1 then return '' end
-                if string.len(file_readonly()) ~= 0 then return file .. file_readonly() end
-                if vim.bo.modifiable then
-                    if vim.bo.modified then return file .. '  ' end
-                end
-                return file .. ' '
-            end
 
             -- Expand %S to pending command in statusline.  We will hack this into Galaxyline as a separator, see below
             -- the `OperatorPending` entry.
@@ -94,6 +62,32 @@ return {
                 end,
             })
 
+            gl._mysection.compose_lsp_status = function()
+                local status_str = ''
+
+                local messages = get_lsp_progress()
+                if next(messages) ~= nil then
+                    status_str = status_str .. table.concat(messages, ' ') .. ' '
+                end
+
+                local loc = navic.get_location()
+                if loc ~= '' then
+                    status_str = status_str .. loc ..  ' '
+                end
+
+                if status_str ~= '' then
+                    local git_branch = require'galaxyline.provider_vcs'.get_git_branch() or ''
+                    if status_str:len() + git_branch:len() + 30 > vim.o.columns  then
+                        return ''
+                    end
+
+                    vim.api.nvim_command('hi LSPSeparatorEnd guifg=' .. colors.gray3 .. ' guibg=' .. colors.gray)
+                    status_str = ' ' .. status_str .. '%#LSPSeparatorEnd#'
+                end
+
+                return status_str
+            end
+
             -- Left side
             gls.left = {
                 { ViMode = {
@@ -111,37 +105,16 @@ return {
                     provider = function() return '' end,
                     separator = '%#GalaxyViMode# %S ',  -- the name must match the previous section name
                 }},
-                -- LSP status (current function)
-                { LSPStatus = {
-                    provider = function()
-                        local messages = get_lsp_progress()
-                        if next(messages) == nil then
-                            return ''  -- no messages from LSP
-                        end
-                        return '  ' .. table.concat(messages) .. ' '
-                    end,
-                    condition = has_lsp_message,
-                    highlight = { colors.fg, colors.gray3 },
-                }},
-                { nvimNavic = {
-                    provider = function()
-                        local loc = navic.get_location()
-                        if loc == '' then
-                            return ''
-                        end
-                        return '  ' .. navic.get_location() .. ' '
-                    end,
-                    condition = has_navic_location,
-                    highlight = { colors.fg, colors.gray3 },
-                }},
-                { LSPSeparator = {
-                    provider = function() return '' end,
-                    condition = function() return has_lsp_message() or has_navic_location() end,
-                    highlight = { colors.gray3, colors.gray },
-                }},
-                { color = {
+                -- Hack the LSP status as a separator that calls our function.
+                { LSP = {
                     provider = function() return '' end,
-                    highlight = { colors.gray3, colors.gray },
+                    separator = [[%{%luaeval('require"galaxyline"._mysection.compose_lsp_status()')%}]],  -- the name must match the previous section name
+                    separator_highlight = { colors.fg, colors.gray3 },
+                }},
+                { Background = {
+                    provider = function() return '' end,
+                    separator = '',
+                    separator_highlight = { colors.gray3, colors.gray },
                 }},
             }
 
