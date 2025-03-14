@@ -23,12 +23,11 @@ return {
                 on_open = function(term)
                     vim.wo.spell=false  -- no spell checking
                     vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
-                    vim.cmd[[startinsert!]]
                     vim.api.nvim_buf_set_keymap(term.bufnr, "n", "q", "<cmd>close<CR>", {noremap = true, silent = true})
+                    vim.cmd[[startinsert!]]
                 end,
                 -- function to run on closing the terminal
                 on_close = function(term)
-                    vim.cmd[[startinsert!]]
                     vim.cmd[[tabprevious]]  -- return to previous tab
                 end,
             }
@@ -42,12 +41,8 @@ return {
                 -- function to run on opening the terminal
                 on_open = function(term)
                     vim.wo.spell=false  -- no spell checking
-                    vim.wo.hlsearch=false  -- no search highlighting
-                    vim.cmd[[startinsert!]]
+                    vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
                     vim.api.nvim_buf_set_keymap(term.bufnr, "n", "q", "<cmd>close<CR>", {noremap = true, silent = true})
-                end,
-                -- function to run on closing the terminal
-                on_close = function(term)
                     vim.cmd[[startinsert!]]
                 end,
             }
@@ -57,6 +52,12 @@ return {
                 float_opts = {
                     border = 'double',
                 },
+                on_open = function(term)
+                    vim.wo.spell=false  -- no spell checking
+                    vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
+                    vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<C-q>", "<cmd>close<CR>", {noremap = true, silent = true})
+                    vim.cmd[[startinsert!]]
+                end,
             }
 
             require'which-key'.add{
