@@ -7,6 +7,7 @@ return {
         config = function()
             local helpers = require 'incline.helpers'
             local devicons = require 'nvim-web-devicons'
+            local colors = require'theme'.colors()
             require('incline').setup{
                 window = {
                     padding = 0,
@@ -52,9 +53,9 @@ return {
 
                     local function get_git_diff()
                         local icons = {
-                            { name = 'added',   symbol = '+', fg = '#9CCC65', },  -- Green plus for added lines
-                            { name = 'changed', symbol = '~', fg = '#E2B93D', },  -- Yellow tilde for modified lines
-                            { name = 'removed', symbol = '-', fg = '#EF5350'  },  -- Red minus for deleted lines
+                            { name = 'added',   symbol = '+', fg = colors.sign_add, },  -- Green plus for added lines
+                            { name = 'changed', symbol = '~', fg = colors.sign_change, },  -- Yellow tilde for modified lines
+                            { name = 'removed', symbol = '-', fg = colors.sign_delete },  -- Red minus for deleted lines
                         }
 
                         local signs = vim.b[props.buf] and vim.b[props.buf].gitsigns_status_dict or nil
@@ -83,7 +84,7 @@ return {
                         get_diagnostic_label(),
                         get_git_diff(),
                         ' ',
-                        guibg = '#44406e',
+                        guibg = colors.blue14,
                     }
                 end,
             }
