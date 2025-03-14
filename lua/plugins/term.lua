@@ -21,6 +21,8 @@ return {
                 direction = 'tab',
                 -- function to run on opening the terminal
                 on_open = function(term)
+                    vim.wo.spell=false  -- no spell checking
+                    vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
                     vim.cmd[[startinsert!]]
                     vim.api.nvim_buf_set_keymap(term.bufnr, "n", "q", "<cmd>close<CR>", {noremap = true, silent = true})
                 end,
@@ -39,6 +41,8 @@ return {
                 },
                 -- function to run on opening the terminal
                 on_open = function(term)
+                    vim.wo.spell=false  -- no spell checking
+                    vim.wo.hlsearch=false  -- no search highlighting
                     vim.cmd[[startinsert!]]
                     vim.api.nvim_buf_set_keymap(term.bufnr, "n", "q", "<cmd>close<CR>", {noremap = true, silent = true})
                 end,
