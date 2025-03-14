@@ -60,6 +60,17 @@ return {
                 end,
             }
 
+            local ipython = Terminal:new{
+                cmd = 'ipython',
+                direction = 'vertical',
+                on_open = function(term)
+                    local winid = vim.api.nvim_get_current_win()
+                    vim.api.nvim_win_set_width(winid, 80)
+                    vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<C-q>", "<cmd>close<CR>", {noremap = true, silent = true})
+                    vim.cmd[[startinsert!]]
+                end,
+            }
+
             require'which-key'.add{
                 { '<leader>gl', function() lazygit:toggle() end, desc = 'Lazygit' },
                 { '<leader>ft', '<cmd>TermSelect<cr>', desc = 'Select toggle term' },
@@ -67,6 +78,7 @@ return {
                 { '<leader>r', group = 'Run command…' },
                 { '<leader>rr', function() ranger:toggle() end, desc = 'File Ranger' },
                 { '<leader>rt', function() float_term:toggle() end, desc = 'Floating Terminal' },
+                { '<leader>rp', function() ipython:toggle() end, desc = 'IPython Interpreter' },
             }
         end,
     },
