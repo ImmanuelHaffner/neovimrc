@@ -127,31 +127,31 @@ end
 
 function M.get_vim_mode_info()
     local vim_modes = {
-        ['n']   = { colors.green,   'NORMAL' },
-        ['i']   = { colors.blue,    'INSERT' },
-        ['c']   = { colors.red1,    'COMMAND' },
-        ['t']   = { colors.blue,    'TERMINAL' },
-        ['v']   = { colors.purple,  'VISUAL' },
-        ['']  = { colors.purple,  'V-BLOCK' },
-        ['V']   = { colors.purple,  'V-LINE' },
-        ['R']   = { colors.red1,    'REPLACE' },
-        ['s']   = { colors.red1,    'SELECT' },
-        ['S']   = { colors.red1,    'S-LINE' },
-        ['']  = { colors.red1,    'S-BLOCK' },
-        ['r']   = { colors.red1,    'PROMPT' },
-        ['!']   = { colors.red1,    'SHELL' },
+        ['n']   = { colors.green,       'NORMAL' },
+        ['i']   = { colors.blue,        'INSERT' },
+        ['c']   = { colors.red2,        'COMMAND' },
+        ['t']   = { colors.yellow,      'TERMINAL' },
+        ['v']   = { colors.purple3,     'VISUAL' },
+        ['']  = { colors.purple3,     'V-BLOCK' },
+        ['V']   = { colors.purple3,     'V-LINE' },
+        ['R']   = { colors.light_red,   'REPLACE' },
+        ['s']   = { colors.light_red,   'SELECT' },
+        ['S']   = { colors.light_red,   'S-LINE' },
+        ['']  = { colors.light_red,   'S-BLOCK' },
+        ['r']   = { colors.cyan4,       'PROMPT' },
+        ['!']   = { colors.dark_red,    'SHELL' },
     }
 
     local mode = vim.fn.mode(1) or ''
 
     -- Check for OPERATOR PENDING mode.
     if mode:sub(1, 2) == 'no' then
-        return { colors.red1, 'OPERATOR' }
+        return { colors.orange, 'OPERATOR' }
     end
 
     local chr = mode:sub(1, 1) or 0
     local current_mode = vim_modes[chr]
-    return current_mode or { colors.red1, 'UNKNOWN ' .. mode }
+    return current_mode or { colors.dark_red, 'UNKNOWN ' .. mode }
 end
 
 return M

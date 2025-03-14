@@ -2,6 +2,7 @@ return {
     { 'rasulomaroff/reactive.nvim',
         config = function()
             local reactive = require'reactive'
+            local colors = require'theme'.colors()
             reactive.add_preset{
                 name = 'default',
                 init = function()
@@ -15,9 +16,9 @@ return {
                         winhl = {
                             -- we use `winhl` because we want to highlight CursorLine only in a current window, not in all of them
                             -- if you want to change global highlights, use the `hl` field instead.
-                            CursorLine = { bg = '#102947' },
-                            CursorColumn = { bg = '#102947' },
-                            CursorLineNr = { fg = '#0b1d33', bg = '#98c379', bold = true },
+                            CursorLine = { bg = colors.tab_active_bg },
+                            CursorColumn = { bg = colors.tab_active_bg },
+                            CursorLineNr = { fg = colors.bg, bg = colors.green, bold = true },
                         },
                     },
                     no = {
@@ -27,45 +28,45 @@ return {
                         operators = {
                             d = {
                                 winhl = {
-                                    CursorLine = { bg = '#450a0a' },
+                                    CursorLine = { bg = '#450a0a' },  -- red shade
                                 },
                                 hl = {
-                                    MyCursor = { bg = '#fca5a5' },
+                                    MyCursor = { bg = colors.red },
                                 },
                             },
                             y = {
                                 winhl = {
-                                    CursorLine = { bg = '#422006' },
+                                    CursorLine = { bg = '#422006' },  -- orange shade
                                 },
                                 hl = {
-                                    MyCursor = { bg = '#fdba74' },
+                                    MyCursor = { bg = colors.orange },
                                 }
                             }
                         }
                     },
                     i = {
                         winhl = {
-                            CursorLine = { bg = '#0b1d33' },
-                            CursorLineNr = { fg = '#0b1d33', bg = '#61afef', bold = true },
+                            CursorLine = { bg = colors.tab_active_bg },
+                            CursorLineNr = { fg = colors.bg, bg = colors.blue, bold = true },
                         },
                         hl = {
-                            MyCursor = { bg = '#ff6b6b' },
+                            MyCursor = { bg = colors.red },
                         },
                     },
                     [{ 'v', 'V', '\x16' }] = {
                         winhl = {
-                            CursorLineNr = { fg = '#0b1d33', bg = '#c678dd', bold = true },
+                            CursorLineNr = { fg = colors.bg, bg = colors.purple3, bold = true },
                         },
                     },
                     c = {
                         winhl = {
                             CursorLine = { bg = 'NONE' },
-                            CursorLineNr = { fg = 'NONE', bg = 'NONE', bold = true },
+                            CursorLineNr = { fg = colors.bg, bg = colors.red2, bold = true },
                         },
                     },
                     ['R'] = {
                         winhl = {
-                            CursorLineNr = { fg = 'NONE', bg = '#e06c75', bold = true },
+                            CursorLineNr = { fg = colors.bg, bg = colors.light_red, bold = true },
                         },
                     }
                 },
