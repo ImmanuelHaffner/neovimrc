@@ -8,25 +8,7 @@ return {
         config = function()
             local gl = require'galaxyline'
             local Utils = require'utils'
-            -- TODO(Immanuel): Replace by our theme.colors() :)
-            local colors = {
-                bg = '#282c34',
-                fg = '#aab2bf',
-                section_bg = '#38393f',
-                blue = '#61afef',
-                green = '#98c379',
-                purple = '#c678dd',
-                orange = '#e5c07b',
-                red1 = '#e06c75',
-                red2 = '#be5046',
-                yellow = '#e5c07b',
-                gray1 = '#5c6370',
-                gray2 = '#2c323d',
-                gray3 = '#3e4452',
-                darkgrey = '#5c6370',
-                grey = '#848586',
-                middlegrey = '#8791A5',
-            }
+            local colors = require'theme'.colors()
 
             local lsp_status = require'lsp-status'
             local navic = require'nvim-navic'
@@ -120,7 +102,7 @@ return {
                         vim.api.nvim_command('hi GalaxyViMode guibg=' .. color)
                         return '  ' .. mode
                     end,
-                    highlight = {colors.bg, colors.bg, 'bold'},
+                    highlight = { colors.gray, colors.bg, 'bold' },
                     event = { 'ModeChanged' },
                 }},
                 -- Hack the Operator Pending information into Galaxyline.  We must do this as a `separator` to bypass
@@ -139,7 +121,7 @@ return {
                         return '  ' .. table.concat(messages) .. ' '
                     end,
                     condition = has_lsp_message,
-                    highlight = {colors.middlegrey, colors.section_bg},
+                    highlight = { colors.fg, colors.gray3 },
                 }},
                 { nvimNavic = {
                     provider = function()
@@ -150,16 +132,16 @@ return {
                         return '  ' .. navic.get_location() .. ' '
                     end,
                     condition = has_navic_location,
-                    highlight = {colors.middlegrey, colors.section_bg},
+                    highlight = { colors.fg, colors.gray3 },
                 }},
                 { LSPSeparator = {
                     provider = function() return '' end,
                     condition = function() return has_lsp_message() or has_navic_location() end,
-                    highlight = {colors.section_bg, colors.bg},
+                    highlight = { colors.gray3, colors.gray },
                 }},
                 { color = {
                     provider = function() return '' end,
-                    highlight = {colors.section_bg, colors.bg},
+                    highlight = { colors.gray3, colors.gray },
                 }},
             }
 
@@ -174,19 +156,19 @@ return {
                         local recording_register = vim.fn.reg_recording()
                         return recording_register ~= nil and recording_register ~= ''
                     end,
-                    highlight = { '#E0E0E0', '#d60e00' },
+                    highlight = { colors.fg, colors.dark_red },
                     separator = '',
-                    separator_highlight = { '#d60e00', colors.bg },
+                    separator_highlight = { colors.dark_red, colors.gray },
                     event = { 'RecordingEnter', 'RecordingLeave'},
                 }},
                 { MacroRecordingEnd = {
-                        provider = function() return '  ' end,
-                        condition = function()
-                            local recording_register = vim.fn.reg_recording()
-                            return recording_register ~= nil and recording_register ~= ''
-                        end,
-                        highlight = { '#d60e00', colors.bg },
-                        event = { 'RecordingEnter', 'RecordingLeave'},
+                    provider = function() return '  ' end,
+                    condition = function()
+                        local recording_register = vim.fn.reg_recording()
+                        return recording_register ~= nil and recording_register ~= ''
+                    end,
+                    highlight = { colors.dark_red, colors.gray },
+                    event = { 'RecordingEnter', 'RecordingLeave'},
                 }},
                 { GitIcon = {
                     provider = function()
@@ -195,19 +177,19 @@ return {
                     condition = function()
                         return require'galaxyline.provider_vcs'.get_git_branch() ~= nil
                     end,
-                    highlight = {colors.middlegrey, colors.bg}
+                    highlight = { colors.light_orange, colors.gray }
                 }},
                 { Space = {
                     provider = function() return '' end,
-                    highlight = {colors.middlegrey, colors.bg}
+                    highlight = { colors.fg, colors.gray }
                 }},
                 { AsyncRun = {
                     provider = function() return vim.g.asyncrun_status .. ' ' end,
                     condition = function() return vim.g['asyncrun_status'] ~= '' end,
                     icon = '  ',
                     separator = '',
-                    separator_highlight = { colors.red1, colors.bg },
-                    highlight = { colors.gray2, colors.red1 },
+                    separator_highlight = { colors.red2, colors.gray },
+                    highlight = { colors.gray, colors.red2 },
                     event = { 'AsyncRunPre', 'AsyncRunStart', 'AsyncRunStop' },
                 }},
                 { CursorPos = {
@@ -230,33 +212,14 @@ return {
                         end
                         return str
                     end,
-                    highlight = { colors.gray2, colors.purple },
+                    highlight = { colors.gray, colors.purple3 },
                 }},
                 { PerCent = {
                     provider = 'LinePercent',
                     separator = '',
-                    separator_highlight = { colors.blue, colors.purple },
-                    highlight = {colors.gray2, colors.blue}
+                    separator_highlight = { colors.blue, colors.purple3 },
+                    highlight = { colors.gray, colors.blue }
                 }},
-            }
-
-            -- Short status line
-            gls.short_line_left[1] = {
-                BufferType = {
-                    provider = 'FileTypeName',
-                    highlight = {colors.fg, colors.section_bg},
-                    separator = ' ',
-                    separator_highlight = {colors.section_bg, colors.bg}
-                }
-            }
-
-            gls.short_line_right[1] = {
-                BufferIcon = {
-                    provider = 'BufferIcon',
-                    highlight = {colors.yellow, colors.section_bg},
-                    separator = '',
-                    separator_highlight = {colors.section_bg, colors.bg}
-                }
             }
 
             -- Force manual load so that nvim boots with a status line
