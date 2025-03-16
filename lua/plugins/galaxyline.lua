@@ -62,6 +62,20 @@ return {
                 end,
             })
 
+            local function get_git_branch()
+                local result = vim.system({ 'git', 'symbolic-ref', '--short', '-q', 'HEAD' }, { text = true }):wait()
+                if result ~= nil and result.signal == 0 and result.code == 0 then
+                    return result.stdout:sub(1, -2)
+                end
+
+                result = vim.system({ 'git', 'rev-parse', '--short', 'HEAD' }, { text = true }):wait()
+                if result ~= nil and result.signal == 0 and result.code == 0 then
+                    return 'HEAD detached at ' .. result.stdout:sub(1, -2)
+                end
+
+                return ''
+            end
+
             gl._mysection.compose_lsp_status = function()
                 local status_str = ''
 
@@ -76,7 +90,7 @@ return {
                 end
 
                 if status_str ~= '' then
-                    local git_branch = require'galaxyline.provider_vcs'.get_git_branch() or ''
+                    local git_branch = get_git_branch()
                     if status_str:len() + git_branch:len() + 30 > vim.o.columns  then
                         return ''
                     end
@@ -86,6 +100,19 @@ return {
                 end
 
                 return status_str
+            end
+
+            gl._mysection.compose_git_info = function(min_width)
+                local git_branch = get_git_branch()
+                if git_branch == '' then return '' end
+
+                if min_width + 3 + git_branch:len() < vim.o.columns then
+                    return '  ' .. git_branch .. ' '
+                end
+                if min_width + 3 < vim.o.columns  then
+                    return '  '
+                end
+                return ''
             end
 
             -- Left side
@@ -143,22 +170,17 @@ return {
                     highlight = { colors.dark_red, colors.gray },
                     event = { 'RecordingEnter', 'RecordingLeave'},
                 }},
-                { GitIcon = {
-                    provider = function()
-                        return '  ' .. require'galaxyline.provider_vcs'.get_git_branch() .. ' '
-                    end,
-                    condition = function()
-                        local git_branch = require'galaxyline.provider_vcs'.get_git_branch() or ''
-                        return git_branch ~= '' and git_branch:len() + 30 < vim.o.columns
-                    end,
-                    highlight = { colors.light_orange, colors.gray }
+                { GitInfo = {
+                    provider = function() return '' end,
+                    separator = [[%{%luaeval('require"galaxyline"._mysection.compose_git_info(25)')%}]],
+                    separator_highlight = { colors.light_orange, colors.gray },
                 }},
                 { Space = {
                     provider = function() return '' end,
                     highlight = { colors.fg, colors.gray }
                 }},
                 { AsyncRun = {
-                    provider = function() return vim.g.asyncrun_status .. ' ' end,
+                    provider = function() return vim.g['asyncrun_status'] .. ' ' end,
                     condition = function() return vim.g['asyncrun_status'] ~= '' end,
                     icon = '  ',
                     separator = '',
@@ -243,14 +265,10 @@ return {
                     highlight = { colors.dark_red, colors.gray },
                     event = { 'RecordingEnter', 'RecordingLeave'},
                 }},
-                { GitIcon = {
-                    provider = function()
-                        return '  ' .. require'galaxyline.provider_vcs'.get_git_branch() .. ' '
-                    end,
-                    condition = function()
-                        return require'galaxyline.provider_vcs'.get_git_branch() ~= nil
-                    end,
-                    highlight = { colors.light_orange, colors.gray }
+                { GitInfo = {
+                    provider = function() return '' end,
+                    separator = [[%{%luaeval('require"galaxyline"._mysection.compose_git_info(12)')%}]],
+                    separator_highlight = { colors.light_orange, colors.gray },
                 }},
                 { Space = {
                     provider = function() return '' end,
