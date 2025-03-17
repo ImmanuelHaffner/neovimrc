@@ -4,7 +4,7 @@ return {
         tag = 'nightly',
         dependencies = {
             'folke/which-key.nvim',
-            'kyazdani42/nvim-web-devicons',
+            'nvim-tree/nvim-web-devicons',
         },
         config = function()
             require'nvim-tree'.setup{

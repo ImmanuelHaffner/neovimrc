@@ -7,5 +7,5 @@ return {
     { 'rhysd/vim-grammarous' },
     { 'sukima/xmledit' },
     { 'vim-scripts/DoxygenToolkit.vim' },
-    { 'kyazdani42/nvim-web-devicons' },
+    { 'nvim-tree/nvim-web-devicons' },
 }

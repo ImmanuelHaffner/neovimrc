@@ -1,7 +1,7 @@
 return {
     { 'b0o/incline.nvim',
         dependencies = {
-            'kyazdani42/nvim-web-devicons',
+            'nvim-tree/nvim-web-devicons',
             'lewis6991/gitsigns.nvim',
         },
         config = function()
