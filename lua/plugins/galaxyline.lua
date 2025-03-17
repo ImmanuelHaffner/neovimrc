@@ -121,7 +121,15 @@ return {
                     provider = function()
                         local color, mode = table.unpack(Utils.get_vim_mode_info())
                         vim.api.nvim_command('hi GalaxyViMode guibg=' .. color)
-                        return '  ' .. mode
+                        local text = '  ' .. mode
+                        if vim.o.filetype == 'toggleterm' then
+                            text = text .. '['
+                            if mode ~= 'TERMINAL' then
+                                text = text .. 'TERM '
+                            end
+                            text = text .. vim.b.toggle_number .. ']'
+                        end
+                        return text
                     end,
                     highlight = { colors.gray, colors.bg, 'bold' },
                     event = { 'ModeChanged' },
