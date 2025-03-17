@@ -40,7 +40,10 @@ return {
                     end
 
                     local function get_ft_icon()
-                        local ft_icon, ft_color = devicons.get_icon_color(filename)
+                        local ft_icon, ft_color = devicons.get_icon_color_by_filetype(vim.o.filetype)
+                        if ft_icon == nil then
+                            ft_icon, ft_color = devicons.get_icon_color(filename)
+                        end
                         if ft_icon == nil then
                             return {}
                         end
