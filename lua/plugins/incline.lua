@@ -15,9 +15,20 @@ return {
                     zindex = 50,
                 },
                 render = function(props)
+                    -- Hide incline if the cursor is in the top column and the column is too wide.
+                    local winid = vim.api.nvim_get_current_win()
+                    local bufid = vim.api.nvim_win_get_buf(winid)
+                    local wininfo = vim.fn.getwininfo(winid)[1]
+                    local text_width = wininfo.width - wininfo.textoff
+
                     local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(props.buf), ':t')
                     if filename == '' then
                         filename = '[No Name]'
+                    end
+
+                    local lines = vim.api.nvim_buf_get_lines(bufid, wininfo.topline - 1, wininfo.topline, false)
+                    if lines and next(lines) and lines[1]:len() + filename:len() + 22 > text_width then  -- line too wide
+                        return ''
                     end
 
                     local function get_modified()
