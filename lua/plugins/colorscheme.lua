@@ -24,6 +24,9 @@ return {
                     -- Don't show fill char for deleted diff sections.  We will color fill the space instead.
                     vim.opt.fillchars:append{ diff = ' ' }
 
+                    -- Make comments a bit brighter, so they are easier to read.
+                    hl(0, 'Comment', { fg = palette.gray5, italic = true })
+
                     -- Miscellaneous
                     hl(0, 'ColorColumn', { bg = '#331c1c', })
                     hl(0, 'CursorColumn', { bg = '#2d3a4a', })
