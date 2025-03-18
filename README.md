@@ -12,16 +12,19 @@
 
 ### Statusline, `CursorLineNr`, and `CursorLine` follow the mode
 
-| **Normal** | **Insert** | **Visual** | **Visual Line** | **Visual Block** | **Replace** | **Command** | **Operator Pending** |
-|-|-|-|-|-|-|-|-|
-| ![](img/mode_status_normal.png) | ![](img/mode_status_insert.png) | ![](img/mode_status_visual.png) | ![](img/mode_status_vline.png) |![](img/mode_status_vblock.png) |![](img/mode_status_replace.png) |![](img/mode_status_command.png) | ![](img/mode_status_operator_pending_yank.png) ![](img/mode_status_operator_pending_delete.png) |
-| ![](img/mode_cursorlinenr_normal.png) | ![](img/mode_cursorlinenr_insert.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_replace.png) | ![](img/mode_cursorlinenr_command.png) | ![](img/mode_cursorlinenr_normal.png) |
+| **Normal** | **Insert** | **Visual** | **Visual Line** | **Visual Block** | **Replace** | **Command** | **Operator Pending** | **Terminal** |
+|-|-|-|-|-|-|-|-|-|
+| ![](img/mode_status_normal.png) | ![](img/mode_status_insert.png) | ![](img/mode_status_visual.png) | ![](img/mode_status_vline.png) |![](img/mode_status_vblock.png) |![](img/mode_status_replace.png) |![](img/mode_status_command.png) | ![](img/mode_status_operator_pending_yank.png) ![](img/mode_status_operator_pending_delete.png) | ![](img/mode_status_normal_in_term.png)  ![](img/mode_status_term.png) |
+| ![](img/mode_cursorlinenr_normal.png) | ![](img/mode_cursorlinenr_insert.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_visual.png) | ![](img/mode_cursorlinenr_replace.png) | ![](img/mode_cursorlinenr_command.png) | ![](img/mode_cursorlinenr_normal.png) | ![](img/mode_cursorlinenr_command.png) |
 
 The `CursorLineNr` and the mode displayed in the statusline change appearance according to the current mode.
 Additionally, `CursorLine` changes in operator pending state.
 
 Yank: ![](img/mode_line_operator_pending_yank.png)
 Delete: ![](img/mode_line_operator_pending_delete.png)
+
+When inside a terminal that is a *toggleterm*, the mode in the statusline includes the terminal ID.
+This ID is useful to quickly toggle a terminal or send content to that terminal.
 
 
 ### Cursorline and `CursorLineNr` follow active window
