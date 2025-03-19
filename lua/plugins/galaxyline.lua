@@ -25,7 +25,7 @@ return {
 
                   -- this percentage format string escapes a percent sign once to show a percentage and one more
                   -- time to prevent errors in vim statusline's because of it's treatment of % chars
-                  if msg.percentage then message = message .. string.format(" (%.0f%%)", msg.percentage) end
+                  if msg.percentage then message = message .. string.format(" (%.0f%%%%)", msg.percentage) end
 
                   if msg.spinner then
                     message = spinner_frames[(msg.spinner % #spinner_frames) + 1] .. ' ' .. message
