@@ -102,6 +102,27 @@ return {
                 return status_str
             end
 
+            gl._mysection.set_showcmd = function()
+                local enable_showcmd = {
+                    ['NORMAL'] = true,
+                    ['INSERT'] = true,
+                    ['COMMAND'] = true,
+                    ['TERMINAL'] = true,
+                    ['VISUAL'] = false,
+                    ['V-BLOCK'] = false,
+                    ['V-LINE'] = false,
+                    ['REPLACE'] = true,
+                    ['SELECT'] = true,
+                    ['S-LINE'] = true,
+                    ['S-BLOCK'] = true,
+                    ['PROMPT'] = true,
+                    ['SHELL'] = true,
+                    ['OPERATOR'] = true,
+                }
+                local mode = Utils.get_vim_mode_info()[2]
+                return enable_showcmd[mode] and ' %S' or ''
+            end
+
             gl._mysection.compose_git_info = function(min_width)
                 local git_branch = get_git_branch()
                 if git_branch == '' then return '' end
@@ -138,7 +159,7 @@ return {
                 -- escaping.
                 { OperatorPending = {
                     provider = function() return '' end,
-                    separator = '%#GalaxyViMode# %S ',  -- the name must match the previous section name
+                    separator = [[%#GalaxyViMode#%{%luaeval('require"galaxyline"._mysection.set_showcmd()')%} ]],  -- the name must match the previous section name
                 }},
                 -- Hack the LSP status as a separator that calls our function.
                 { LSP = {
