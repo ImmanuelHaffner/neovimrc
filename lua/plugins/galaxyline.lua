@@ -161,6 +161,20 @@ return {
                     provider = function() return '' end,
                     separator = [[%#GalaxyViMode#%{%luaeval('require"galaxyline"._mysection.set_showcmd()')%} ]],  -- the name must match the previous section name
                 }},
+                { MacroRecording = {
+                    provider = function()
+                        local recording_register = vim.fn.reg_recording()
+                        return '  󰑋 recording @' .. recording_register .. ' ' -- Show recording status
+                    end,
+                    condition = function()
+                        local recording_register = vim.fn.reg_recording()
+                        return recording_register ~= nil and recording_register ~= ''
+                    end,
+                    highlight = { colors.fg, colors.dark_red },
+                    separator = '',
+                    separator_highlight = { colors.dark_red, colors.gray },
+                    event = { 'RecordingEnter', 'RecordingLeave'},
+                }},
                 -- Hack the LSP status as a separator that calls our function.
                 { LSP = {
                     provider = function() return '' end,
@@ -176,29 +190,6 @@ return {
 
             -- Right side
             gls.right = {
-                { MacroRecording = {
-                    provider = function()
-                        local recording_register = vim.fn.reg_recording()
-                        return '󰑋 recording @' .. recording_register .. ' ' -- Show recording status
-                    end,
-                    condition = function()
-                        local recording_register = vim.fn.reg_recording()
-                        return recording_register ~= nil and recording_register ~= ''
-                    end,
-                    highlight = { colors.fg, colors.dark_red },
-                    separator = '',
-                    separator_highlight = { colors.dark_red, colors.gray },
-                    event = { 'RecordingEnter', 'RecordingLeave'},
-                }},
-                { MacroRecordingEnd = {
-                    provider = function() return '  ' end,
-                    condition = function()
-                        local recording_register = vim.fn.reg_recording()
-                        return recording_register ~= nil and recording_register ~= ''
-                    end,
-                    highlight = { colors.dark_red, colors.gray },
-                    event = { 'RecordingEnter', 'RecordingLeave'},
-                }},
                 { GitInfo = {
                     provider = function() return '' end,
                     separator = [[%{%luaeval('require"galaxyline"._mysection.compose_git_info(25)')%}]],
