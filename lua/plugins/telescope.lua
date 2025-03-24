@@ -36,11 +36,11 @@ return {
 
                 local display = function()
                     return formatter{
-                        { commit_hash, 'TelescopePreviewLink' },         -- First column: commit hash
-                        { author,      'TelescopeResultsNumber' },       -- Second column: author name
-                        { date,        'TelescopeResultsIdentifier'  },  -- Third column: date
+                        { commit_hash:sub(1, 10), 'TelescopePreviewLink' },     -- First column: commit hash
+                        { author, 'TelescopeResultsNumber' },                   -- Second column: author name
+                        { date, 'TelescopeResultsIdentifier'  },                -- Third column: date
                         { '⨠ ' },
-                        { message },                                     -- Fourth column: commit message
+                        { message },                                            -- Fourth column: commit message
                     }
                 end
 
@@ -80,7 +80,7 @@ return {
                         prompt_prefix = ' ',  -- alternatives:    
                         git_command = { 'git', 'log', '--pretty=%H %an %ad %s', '--date=short' },
                         entry_maker = custom_git_entry_maker,
-                        previewer = previewers.new_termopen_previewer({
+                        previewer = previewers.new_termopen_previewer{
                             dyn_title = function(self, entry)
                                 return 'Git commit: ' .. entry.value
                             end,
@@ -90,13 +90,13 @@ return {
                                     'git', '--paginate', 'show', '--color=never',  entry.value
                                 }
                             end,
-                        }),
+                        },
                     },
                     git_bcommits = {
                         prompt_prefix = '  ',
                         git_command = { 'git', 'log', '--pretty=%H %an %ad %s', '--date=short' },
                         entry_maker = custom_git_entry_maker,
-                        previewer = previewers.new_termopen_previewer({
+                        previewer = previewers.new_termopen_previewer{
                             dyn_title = function(self, entry)
                                 return 'Git commit: ' .. entry.value
                             end,
@@ -106,11 +106,11 @@ return {
                                     'git', '--paginate', 'show', '--color=never',  entry.value, '--', entry.current_file
                                 }
                             end,
-                        }),
+                        },
                     },
                     git_bcommits_range = {
                         prompt_prefix = '  ',
-                        previewer = previewers.new_termopen_previewer({
+                        previewer = previewers.new_termopen_previewer{
                             dyn_title = function(self, entry)
                                 return 'Git commit: ' .. entry.value
                             end,
@@ -120,7 +120,7 @@ return {
                                     'git', '--paginate', 'show', '--color=never',  entry.value, '--', entry.current_file
                                 }
                             end,
-                        }),
+                        },
                     },
                     buffers = {
                         prompt_prefix = ' ',
