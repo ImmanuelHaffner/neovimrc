@@ -3,13 +3,17 @@ local M = { }
 function M.setup()
     local general_settings_group = vim.api.nvim_create_augroup('General settings', { clear = true })
 
-    ----- Configure quickfix window {{{---------------------------------------------------------------------------------
+    ----- FileType based autocommands {{{-------------------------------------------------------------------------------
     vim.api.nvim_create_autocmd('FileType', {
         callback = function(args)
             if vim.o.filetype == 'qf' or vim.bo[args.buf].buftype == 'quickfix' then
+                -- Configure quickfix window
                 vim.wo.colorcolumn = '0'  -- no color column
                 vim.cmd[[wincmd J]]
                 vim.cmd[[resize 10]]
+            elseif vim.o.filetype == 'help' then
+                -- Configure Neovim help
+                vim.keymap.set('n', 'q', '<cmd>close<cr>', { buffer = args.buf })
             end
         end,
         group = general_settings_group,
