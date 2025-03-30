@@ -1,7 +1,7 @@
 local M = { }
 
 function M.setup()
-    general_settings_group = vim.api.nvim_create_augroup('General settings', { clear = true })
+    local general_settings_group = vim.api.nvim_create_augroup('General settings', { clear = true })
 
     ----- Configure quickfix window {{{---------------------------------------------------------------------------------
     vim.api.nvim_create_autocmd('FileType', {
