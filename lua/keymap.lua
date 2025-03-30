@@ -29,6 +29,7 @@ function M.setup()
         -- Don't use ]c and [c; these are reserved for navigating diff chunks
         { ']l', '<cmd>cnext<cr>', desc = 'Next clist item' },
         { '[l', '<cmd>cprevious<cr>', desc = 'Previous clist item' },
+        { '<space>hi', '<cmd>Inspect<cr>', desc = 'Show highlight groups under cursor' },
     }
 
     -- Visual mode
