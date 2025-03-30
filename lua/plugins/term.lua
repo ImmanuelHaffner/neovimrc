@@ -11,6 +11,8 @@ return {
                 shade_terminals = false,
                 autochdir = true,
                 auto_scroll = false,
+                insert_mappings = false,
+                terminal_mappings = false,
             }
 
             local Terminal = require'toggleterm.terminal'.Terminal
@@ -23,7 +25,7 @@ return {
                 on_open = function(term)
                     vim.wo.spell=false  -- no spell checking
                     vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
-                    vim.api.nvim_buf_set_keymap(term.bufnr, "n", "q", "<cmd>close<CR>", {noremap = true, silent = true})
+                    vim.api.nvim_buf_set_keymap(term.bufnr, 'n', 'q', '<cmd>close<CR>', {noremap = true, silent = true})
                     vim.cmd[[startinsert!]]
                 end,
                 -- function to run on closing the terminal
@@ -42,7 +44,7 @@ return {
                 on_open = function(term)
                     vim.wo.spell=false  -- no spell checking
                     vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
-                    vim.api.nvim_buf_set_keymap(term.bufnr, "n", "q", "<cmd>close<CR>", {noremap = true, silent = true})
+                    vim.api.nvim_buf_set_keymap(term.bufnr, 'n', 'q', '<cmd>close<CR>', {noremap = true, silent = true})
                     vim.cmd[[startinsert!]]
                 end,
             }
@@ -55,7 +57,7 @@ return {
                 on_open = function(term)
                     vim.wo.spell=false  -- no spell checking
                     vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
-                    vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<C-q>", "<cmd>close<CR>", {noremap = true, silent = true})
+                    vim.api.nvim_buf_set_keymap(term.bufnr, 't', '<C-q>', '<cmd>close<CR>', {noremap = true, silent = true})
                     vim.cmd[[startinsert!]]
                 end,
             }
