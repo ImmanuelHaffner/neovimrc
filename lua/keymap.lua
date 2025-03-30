@@ -30,6 +30,9 @@ function M.setup()
         { ']l', '<cmd>cnext<cr>', desc = 'Next clist item' },
         { '[l', '<cmd>cprevious<cr>', desc = 'Previous clist item' },
         { '<space>hi', '<cmd>Inspect<cr>', desc = 'Show highlight groups under cursor' },
+        { '<C-h>', function()
+            vim.cmd('help ' .. vim.fn.expand'<cword>')
+        end, desc = 'Show :help for word under cursor' },
     }
 
     -- Visual mode
