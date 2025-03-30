@@ -3,6 +3,9 @@ local M = { }
 
 function M.setup()
 
+    vim.cmd[[set verbosefile=~/.cache/nvim/log]]
+    vim.cmd[[set verbose=13]]
+
     -- Define <Leader> for mappings
     vim.g.mapleader = ' '
 
