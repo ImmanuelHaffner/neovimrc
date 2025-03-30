@@ -1,9 +1,6 @@
 local M = { }
 
 function M.setup()
-    -- Remember last tab
-    vim.api.nvim_create_autocmd('TabLeave', { command = 'let g:lasttab = tabpagenr()' })
-
     local Utils = require'utils'
     local ok, wk = pcall(require, 'which-key')
     if not ok then
@@ -22,7 +19,6 @@ function M.setup()
                 vim.fn.feedkeys('G', 'n')  -- scroll to end
             end
         end, desc = 'Toggle QuickFix window' },
-        { 'g<Tab>', '<cmd>exe "tabn " . g:lasttab<cr>', desc = 'Switch to previous tab' },
         { '<C-q>', function()
             local tab_count = #vim.api.nvim_list_tabpages()
             if tab_count > 1 then
