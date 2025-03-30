@@ -112,9 +112,12 @@ end
 
 -- Returns true iff quickfix window was opened and is now visible and focused
 function M.toggle_quickfix()
+    local curr_tab = vim.api.nvim_get_current_tabpage()
+    local wins = vim.api.nvim_tabpage_list_wins(curr_tab)
     -- If quickfix window exists, close it.
-    for _, win in pairs(vim.fn.getwininfo()) do
-        if win['quickfix'] == 1 then
+    for _, winid in ipairs(wins) do
+        local win_info = vim.fn.getwininfo(winid)[1]
+        if win_info['quickfix'] == 1 then
             vim.cmd[[cclose]]
             return false
         end
