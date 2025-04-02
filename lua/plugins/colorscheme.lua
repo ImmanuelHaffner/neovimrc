@@ -27,6 +27,9 @@ return {
                     -- Make comments a bit brighter, so they are easier to read.
                     hl(0, 'Comment', { fg = palette.gray5, italic = true })
 
+                    -- Make string literals differ from special comments and keywords.
+                    hl(0, 'String', { fg = palette.orange })
+
                     -- Miscellaneous
                     hl(0, 'ColorColumn', { bg = '#331c1c', })
                     hl(0, 'CursorColumn', { bg = '#2d3a4a', })
