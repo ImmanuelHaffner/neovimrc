@@ -29,10 +29,10 @@ return {
                     'planner_tests',
                     'sql_parser_tests',
                 },
-                icecc = {
-                    path = '/home/immanuel/Documents/Firebolt/code/packdb/icecc_prefix.sh',
-                    jobs = 200,
-                },
+                -- icecc = {
+                --     path = '/home/immanuel/Documents/Firebolt/code/packdb/icecc_prefix.sh',
+                --     jobs = 200,
+                -- },
                 notify = true,
             },
             test = {
