@@ -62,6 +62,15 @@ return {
                 end,
             })
 
+            -- Redraw status on explicit User event
+            -- Can be triggered with `doautocmd User statusline`
+            vim.api.nvim_create_autocmd('User', {
+                pattern = 'statusline',
+                callback = function(ev)
+                    gl.load_galaxyline()  -- force redraw
+                end,
+            })
+
             local function get_git_branch()
                 local result = vim.system({ 'git', 'symbolic-ref', '--short', '-q', 'HEAD' }, { text = true }):wait()
                 if result ~= nil and result.signal == 0 and result.code == 0 then
