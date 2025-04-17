@@ -1,3 +1,4 @@
+--- Get the preferred number of jobs to use for building and testing as 90% of the number of CPU cores.
 local nproc = function()
     local result = vim.fn.system('nproc')
     local n = tonumber(result)
@@ -37,6 +38,7 @@ return {
             },
             test = {
                 fix_test_keep_actual = false,
+                fix_test_confirm = false,
             },
             clang_format = '/usr/lib/llvm18/bin/clang-format -i --',
         },
