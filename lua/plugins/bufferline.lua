@@ -1,6 +1,12 @@
+local function get_desired_name_length()
+    local num_tabs  = #vim.api.nvim_list_tabpages()
+    local avg_length = math.floor(vim.o.columns / num_tabs)
+    return avg_length
+end
+
 return {
     { 'akinsho/bufferline.nvim',
-        tag = 'v4.7.0',
+        tag = 'v4.9.1',
         config = function()
             local Utils = require'utils'
 
@@ -8,11 +14,13 @@ return {
                 options = {
                     mode = 'tabs',
                     right_mouse_command = nil,
-                    tab_size = 60,
-                    max_name_length = 58,
+                    -- tab_size = 60,
+                    max_name_length = 999,
+                    truncate_names = false,
                     max_prefix_length = 0,
                     name_formatter = function(buf)
-                        return Utils.shorten_relative_path(buf.path, 58)
+                        local min_length = math.max(get_desired_name_length(), 60)
+                        return Utils.shorten_relative_path(buf.path, min_length)
                     end,
                     -- diagnostics = 'nvim_lsp',
                     -- diagnostics_indicator = function(count, level, diagnostics_dict, context)
@@ -30,7 +38,8 @@ return {
                         {
                             filetype = 'neo-tree',
                             text = function()
-                                return Utils.shorten_relative_path(vim.fn.getcwd(), 30)
+                                local min_length = math.max(get_desired_name_length(), 30)
+                                return Utils.shorten_relative_path(vim.fn.getcwd(), min_length)
                             end,
                             highlight = 'Directory',
                             text_align = 'left',
