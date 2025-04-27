@@ -12,7 +12,7 @@ return {
                 window = {
                     padding = 0,
                     margin = { horizontal = 0 },
-                    zindex = 50,
+                    zindex = 40,
                 },
                 render = function(props)
                     -- Hide incline if the cursor is in the top column and the column is too wide.

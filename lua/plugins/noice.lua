@@ -155,6 +155,7 @@ return {
                             width = '60%',
                             height = 'auto',
                         },
+                        zindex = 100,
                     },
                     popupmenu = {
                         relative = 'editor',
@@ -182,6 +183,7 @@ return {
                             padding = { 0, 2 },
                             style = 'single',
                         },
+                        zindex = 90,
                     },
                     mini = {
                         timeout = 6000,  -- in ms
@@ -193,7 +195,7 @@ return {
                             style = 'rounded',
                             padding = { 0, 3, 0, -1 },
                         },
-                        zindex = 2,
+                        zindex = 80,
                     },
                 },
             }
