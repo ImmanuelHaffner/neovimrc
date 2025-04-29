@@ -83,4 +83,26 @@ return {
             vim.cmd.colorscheme'night-owl'
         end,
     },
+    { 'bluz71/vim-nightfly-colors',
+        name = 'nightfly',
+        lazy = false,
+        priority = 1000,
+        config = function()
+            -- Tune the night-owl colorscheme
+            vim.api.nvim_create_autocmd('ColorScheme', {
+                pattern = 'night-owl',
+                callback = function()
+                    -- Don't show fill char for deleted diff sections.  We will color fill the space instead.
+                    vim.opt.fillchars:append{ diff = ' ' }
+
+                    -- Miscellaneous
+                    hl(0, 'ColorColumn', { bg = '#331c1c', })
+                    hl(0, 'CursorColumn', { bg = '#2d3a4a', })
+                    hl(0, 'CursorLine', { bg = '#2d3a4a', cterm = {}, underline = false })
+                end,
+            })
+
+            -- vim.cmd.colorscheme'nightfly'
+        end,
+    },
 }
