@@ -1,3 +1,7 @@
+local function hl(id, name, def)
+    vim.api.nvim_set_hl(id, name, def)
+end
+
 return {
     { 'overcache/NeoSolarized', priority = 1000, config = function() --[[ vim.cmd.colorscheme('NeoSolarized') ]] end },
     { 'binhtran432k/dracula.nvim', priority = 1000, config = function() --[[ vim.cmd.colorscheme('dracula') ]] end, },
@@ -13,9 +17,6 @@ return {
                 transparent_background = false,
             }
             local palette = require'night-owl.palette'
-            local function hl(id, name, def)
-                vim.api.nvim_set_hl(id, name, def)
-            end
 
             -- Tune the night-owl colorscheme
             vim.api.nvim_create_autocmd('ColorScheme', {
