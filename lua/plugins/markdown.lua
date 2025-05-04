@@ -11,7 +11,9 @@ return {
         enabled = false,
         ---@module 'render-markdown'
         ---@type render.md.UserConfig
-        opts = {},
+        opts = {
+            file_types = { 'codecompanion' },
+        },
     },
     {
         'OXY2DEV/markview.nvim',
@@ -27,6 +29,9 @@ return {
                 modes = { 'n' },  -- only render in normal mode
                 hybrid_modes = { 'n' },  -- but in hybrid mode
                 edit_range = { 0, 0 },  -- and don't render the cursor line
+                filetypes = { 'markdown', 'codecompanion' },
+                ignore_buftypes = {},  -- to avoid 'nofile'
+                -- filetypes = { 'markdown' },
             },
         },
     },
