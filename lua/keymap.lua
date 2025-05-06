@@ -2,8 +2,8 @@ local M = { }
 
 function M.setup()
     local Utils = require'utils'
-    local ok, wk = pcall(require, 'which-key')
-    if not ok then
+    local has_wk, wk = pcall(require, 'which-key')
+    if not has_wk then
         vim.print('Failed to load plugin \'which-key\'')
         return
     end
@@ -11,9 +11,16 @@ function M.setup()
     -- Normal mode
     wk.add{
         { '<Esc>', function()
+            -- Clear regular search
             vim.cmd[[nohlsearch]]
+
+            -- Clear kaleidosearch
             local has_ks, ks = pcall(require, 'kaleidosearch')
             if has_ks then ks.clear_all_highlights() end
+
+            -- Clear notifications
+            local has_notify, notify = pcall(require, 'notify')
+            if has_notify then notify.dismiss() end
         end, desc = 'Zen. Hide search results.' },
         { '<BS>', ':%s/\\s\\+$//<cr>:w<cr>', desc = 'Remove trailing whitespaces' },
         { '<F3>', function() Utils.toggle(vim.o, 'spell') end, desc = 'Toggle spell' },
