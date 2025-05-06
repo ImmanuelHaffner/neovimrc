@@ -9,7 +9,7 @@ end
 local function load_file_line(file, linenum)
   local cnt = 1
   for line in io.lines(file) do
-    if cnt == linenum then
+    if line and cnt == linenum then
       return trim(line)
     end
     cnt = cnt + 1
