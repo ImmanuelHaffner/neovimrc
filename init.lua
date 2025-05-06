@@ -45,9 +45,14 @@ require'functions'.setup()
 -- Install our autocmds
 require'autocmd'.setup()
 
-if vim.g.neovide then
-    require'neovide'.setup()
-end
+-- UI settings
+vim.api.nvim_create_autocmd('UIEnter', {
+    callback = function()
+        if vim.g.neovide then
+            require'neovide'.setup()
+        end
+    end
+})
 
 -- Support for project-specific config {{{------------------------------------------------------------------------------
 function load_project_config()
