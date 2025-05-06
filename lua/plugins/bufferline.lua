@@ -33,6 +33,10 @@ return {
                     -- end,
                     close_icon = '',
                     buffer_close_icon = '',
+                    separator_style = 'slant',
+                    -- indicator = {
+                    --     style = 'underline',
+                    -- },
                     sort_by = 'tabs',
                     offsets = {
                         {
@@ -47,6 +51,14 @@ return {
                     }
                 }
             }
+
+            local function hl(name, val)
+                val.force = true
+                vim.api.nvim_set_hl(0, 'BufferLine' .. name, val)
+            end
+
+            hl('TabSeparator', { bg = '#000000' })
+            hl('Fill', { bg = '#000000' })
         end
     },
 }
