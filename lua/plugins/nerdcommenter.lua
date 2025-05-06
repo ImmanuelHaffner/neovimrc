@@ -1,5 +1,6 @@
 return {
     { 'scrooloose/nerdcommenter',
+        enabled = false,
         config = function()
             vim.g.NERDCreateDefaultMappings = 0
             vim.g.NERDAllowAnyVisualDelims = 1
