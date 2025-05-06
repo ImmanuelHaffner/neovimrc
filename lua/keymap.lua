@@ -14,10 +14,6 @@ function M.setup()
             -- Clear regular search
             vim.cmd[[nohlsearch]]
 
-            -- Clear kaleidosearch
-            local has_ks, ks = pcall(require, 'kaleidosearch')
-            if has_ks then ks.clear_all_highlights() end
-
             -- Clear notifications
             local has_notify, notify = pcall(require, 'notify')
             if has_notify then notify.dismiss() end

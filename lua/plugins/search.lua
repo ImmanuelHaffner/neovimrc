@@ -15,6 +15,7 @@ return {
                 { '<leader>//', function() ks.prompt_and_search() end, desc = 'Multiple words' },
                 { '<leader>/n', function() ks.add_new_word() end, desc = 'Add word' },
                 { '<leader>/t', function() ks.toggle_word_or_selection() end, desc = 'Toggle word' },
+                { '<leader>/c', function() ks.clear_all_highlights() end, desc = 'Clear search' },
             }
         end,
     },
