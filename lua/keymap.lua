@@ -10,7 +10,11 @@ function M.setup()
 
     -- Normal mode
     wk.add{
-        { '<Esc>', '<cmd>nohlsearch<cr>', desc = 'Hide search results' },
+        { '<Esc>', function()
+            vim.cmd[[nohlsearch]]
+            local has_ks, ks = pcall(require, 'kaleidosearch')
+            if has_ks then ks.clear_all_highlights() end
+        end, desc = 'Zen. Hide search results.' },
         { '<BS>', ':%s/\\s\\+$//<cr>:w<cr>', desc = 'Remove trailing whitespaces' },
         { '<F3>', function() Utils.toggle(vim.o, 'spell') end, desc = 'Toggle spell' },
         { '<F4>', function() Utils.toggle(vim.o, 'cursorcolumn') end, desc = 'Toggle crosshair' },
