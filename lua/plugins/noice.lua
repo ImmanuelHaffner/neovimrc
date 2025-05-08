@@ -155,7 +155,7 @@ return {
                             width = '60%',
                             height = 'auto',
                         },
-                        zindex = 100,
+                        zindex = 1000,
                     },
                     popupmenu = {
                         relative = 'editor',

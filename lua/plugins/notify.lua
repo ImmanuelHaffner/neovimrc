@@ -11,7 +11,7 @@ return {
                 on_open = function(win)
                     local buf = vim.api.nvim_win_get_buf(win)
                     vim.api.nvim_set_option_value('filetype', 'markdown', { buf=buf } )
-                    vim.api.nvim_win_set_config(win, { zindex = 1000 })
+                    vim.api.nvim_win_set_config(win, { zindex = 100 })
                 end,
             }
             require'which-key'.add{
