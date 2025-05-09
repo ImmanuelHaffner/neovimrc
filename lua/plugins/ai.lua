@@ -131,7 +131,7 @@ return {
                 { '<leader>ac', group = 'CodeCompanion…' },
                 { '<leader>aca', '<cmd>CodeCompanionActions<cr>', desc = 'Actions' },
                 { '<leader>act', '<cmd>CodeCompanionChat Toggle<cr>', desc = 'Toggle Chat' },
-                { '<leader>acc', '<cmd>CodeCompanionCmd', desc = 'Toggle Chat' },
+                { '<leader>acc', '<cmd>CodeCompanionCmd', desc = 'Prompt command' },
                 { '<leader>ace', '<cmd>CodeCompanion /explain<cr>', desc = 'Explain' },
             }
 
