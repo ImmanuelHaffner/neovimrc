@@ -9,6 +9,17 @@ return {
         },
         keys = {
             { '<leader><leader>', function() require'nvim-window'.pick() end, desc = 'Jump to window' },
+            { 'gf', function()
+                local filename = vim.fn.expand'<cfile>'
+                if filename == '' then return end
+
+                -- Use nvim-window to pick a window
+                local window = require'nvim-window'
+                window.pick()
+
+                -- Open the file in the selected window
+                vim.cmd('edit ' .. vim.fn.fnameescape(filename))
+            end, desc = 'Open file under cursor' },
         },
     },
     {
