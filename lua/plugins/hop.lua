@@ -6,7 +6,8 @@ return {
         version = "*",
         config = function()
             require'hop'.setup{
-                keys = 'etovxqpdygfblzhckisuran',
+                -- For Colemak Mod-DH
+                keys = 'tnfuwyaoseri',
             }
             require'which-key'.add{
                 { '<C-Space>', '<cmd>HopWord<cr>', desc = 'Hop' },
