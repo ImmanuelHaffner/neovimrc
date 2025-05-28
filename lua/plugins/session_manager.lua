@@ -1,3 +1,5 @@
+local utils = require 'utils'
+
 return {
     { 'Shatur/neovim-session-manager',
         dependencies = {
@@ -52,6 +54,21 @@ return {
                 end, desc = "Save current session" },
                 { '<leader>sd', function() require('session_manager').delete_session() end, desc = "Delete a session" },
             }
+
+            -- Install timer to save session automatically every minute, starting after 10 seconds
+            local timer = vim.uv.new_timer()
+            timer:start(30000, 120000, vim.schedule_wrap(function()
+                if vim.fn.mode() == 'n' and session_manager.current_dir_session_exists() and not utils.has_buffer_no_file() then
+                    session_manager.save_current_session()
+                    vim.notify('Auto-saved current session.', vim.log.levels.INFO, { title = 'Session Manager' })
+                end
+            end))
+
+            vim.api.nvim_create_autocmd({'VimLeavePre'}, {
+                callback = function()
+                    timer:stop()
+                end
+            })
         end
     },
 }
