@@ -62,13 +62,34 @@ return {
                 callback = function()
                     local now = vim.loop.uptime()
                     local diff = now - last_session_save_time
-                    if diff > 120 then
-                        if vim.fn.mode() == 'n' and session_manager.current_dir_session_exists() and not utils.has_buffer_no_file() then
-                            last_session_save_time = now
-                            session_manager.save_current_session()
-                            vim.notify('Auto-saved current session.', vim.log.levels.INFO, { title = 'Session Manager' })
-                        end
+
+                    -- Wait for timeout.
+                    if diff < 10 then return end
+
+                    -- Only save while in 'normal' mode.
+                    if vim.fn.mode() ~= 'n' then return end
+
+                    -- Only save if already in a session.
+                    if not session_manager.current_dir_session_exists() then return end
+
+                    -- Don't save when there is a visible buffer that is ephemeral and that would be removed by saving
+                    -- the session.
+                    local is_ephemeral_buffer = function(bufid)
+                        local bufname = vim.api.nvim_buf_get_name(bufid)
+                        local buftype = vim.api.nvim_get_option_value('buftype', { buf = bufid })
+                        local buflisted = vim.api.nvim_get_option_value('buflisted', { buf = bufid })
+                        local filetype = vim.api.nvim_get_option_value('filetype', { buf = bufid })
+
+                        -- Don't save ephemeral buffers
+                        if buflisted == true and buftype == '' and bufname == '' then return true end
+                        -- Don't save certain filetypes
+                        if vim.tbl_contains({ 'codecompanion' }, filetype) then return true end
                     end
+                    if utils.any_visible_buffer(is_ephemeral_buffer) then return end
+
+                    last_session_save_time = now
+                    session_manager.save_current_session()
+                    vim.notify('Auto-saved current session.', vim.log.levels.INFO, { title = 'Session Manager' })
                 end
             })
         end
