@@ -84,6 +84,8 @@ return {
                         if buflisted == true and buftype == '' and bufname == '' then return true end
                         -- Don't save certain filetypes
                         if vim.tbl_contains({ 'codecompanion' }, filetype) then return true end
+                        -- Don't save certain buftyfes
+                        if vim.tbl_contains({ 'terminal' }, buftype) then return true end
                     end
                     if utils.any_visible_buffer(is_ephemeral_buffer) then return end
 
