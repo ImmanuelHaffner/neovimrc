@@ -157,39 +157,16 @@ function M.get_vim_mode_info()
     return current_mode or { colors.dark_red, 'UNKNOWN ' .. mode }
 end
 
---- Checks whether there is a buffer open that is listed and has `nofile` type.
---- @return boolean  `true` if any buffer with type `nofile` is opened, `false` otherwise
-function M.has_buffer_no_file()
+--- Checks whether there is a buffer that is currently visible in a window and that satisfies `pred`.
+--- @param pred function a predicate that returns `true` if the buffer satisfies some condition and `false` otherwise
+--- @return boolean  `true` if any buffer satisfies `pred`
+function M.any_visible_buffer(pred)
     local tabpages = vim.api.nvim_list_tabpages()
-    for _, tabpage in ipairs(tabpages) do
-        local windows = vim.api.nvim_tabpage_list_wins(tabpage)
-        for _, win in ipairs(windows) do
-            local buf = vim.api.nvim_win_get_buf(win)
-
-            local bufname = vim.api.nvim_buf_get_name(buf)
-            local buftype = vim.api.nvim_get_option_value('buftype', { buf = buf })
-            local buflisted = vim.api.nvim_get_option_value('buflisted', { buf = buf })
-
-            -- local filetype = vim.api.nvim_get_option_value('filetype', { buf = buf })
-            -- local winid = vim.fn.bufwinid(buf)
-            -- local tabname = vim.api.nvim_tabpage_get_number(tabpage)
-
-            -- local debug_info = string.format(
-            --     "Found 'nofile' buffer %d:\n" ..
-            --     "  • Name: \"%s\"\n" ..
-            --     "  • filetype=%s, buftype=%s, buflisted=%s",
-            --     buf,
-            --     bufname,
-            --     filetype,
-            --     tostring(buftype),
-            --     tostring(buflisted)
-            -- )
-            -- vim.notify(debug_info, vim.log.levels.INFO)
-
-            if buflisted == true and buftype == '' and bufname == '' then
-                -- vim.notify('Found nofile buffer')
-                return true
-            end
+    for _, tabid in ipairs(tabpages) do
+        local windows = vim.api.nvim_tabpage_list_wins(tabid)
+        for _, winid in ipairs(windows) do
+            local bufid = vim.api.nvim_win_get_buf(winid)
+            if pred(bufid) then return true end
         end
     end
     return false
