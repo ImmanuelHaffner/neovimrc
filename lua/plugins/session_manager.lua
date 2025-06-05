@@ -1,5 +1,17 @@
 local utils = require 'utils'
 
+--- List of filetypes that would be removed by saving the session.
+local FRAGILE_FILETYPES = {
+    'codecompanion',
+    'DiffviewFiles',
+}
+
+--- List of buftypes that would be removed by saving the session.
+local FRAGILE_BUFTYPES = {
+    'quickfix',
+    'terminal',
+}
+
 return {
     { 'Shatur/neovim-session-manager',
         dependencies = {
@@ -83,9 +95,9 @@ return {
                         -- Don't save ephemeral buffers
                         if buflisted == true and buftype == '' and bufname == '' then return true end
                         -- Don't save certain filetypes
-                        if vim.tbl_contains({ 'codecompanion' }, filetype) then return true end
-                        -- Don't save certain buftyfes
-                        if vim.tbl_contains({ 'quickfix', 'terminal' }, buftype) then return true end
+                        if vim.tbl_contains(FRAGILE_FILETYPES, filetype) then return true end
+                        -- Don't save certain buftypes
+                        if vim.tbl_contains(FRAGILE_BUFTYPES, buftype) then return true end
                     end
                     if utils.any_visible_buffer(is_ephemeral_buffer) then return end
 
