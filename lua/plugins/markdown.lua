@@ -29,10 +29,16 @@ return {
                 modes = { 'n' },  -- only render in normal mode
                 hybrid_modes = { 'n' },  -- but in hybrid mode
                 edit_range = { 0, 0 },  -- and don't render the cursor line
-                filetypes = { 'markdown', 'codecompanion' },
+                filetypes = { 'markdown', 'codecompanion', 'mdx', },
                 ignore_buftypes = {},  -- to avoid 'nofile'
                 -- filetypes = { 'markdown' },
             },
         },
+    },
+    {
+        -- Good enough syntax highlight for MDX in Neovim using Treesitter.
+        'davidmh/mdx.nvim',
+        config = true,
+        dependencies = {'nvim-treesitter/nvim-treesitter'}
     },
 }
