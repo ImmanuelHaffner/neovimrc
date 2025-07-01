@@ -6,6 +6,10 @@ function M.toggle(tbl, opt)
     tbl[opt] = not tbl[opt]
 end
 
+function M.starts_with(str, start)
+    return start == "" or str:sub(1, #start) == start
+end
+
 function M.ends_with(str, ending)
     return ending == "" or str:sub(-#ending) == ending
 end
