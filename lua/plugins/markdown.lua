@@ -1,5 +1,8 @@
+local Utils = require'utils'
+
 return {
     { 'euclio/vim-markdown-composer',
+        enabled = Utils.is_local_nvim,
         build = { 'cargo build --release', ':UpdateRemotePlugins' }
     },
     {
