@@ -176,4 +176,17 @@ function M.any_visible_buffer(pred)
     return false
 end
 
+--- Checks whether this is a local nvim instance.
+--- @return boolean `true` if this is a local nvim instance, `false` otherwise
+function M.is_local_nvim()
+    return os.getenv'DISPLAY' ~= nil and M.starts_with(vim.v.servername, '/')
+end
+
+--- Checks whether the UI is connected to a headless server.
+--- Can be used to conditionally enable plugins.
+--- @return boolean `true` if the UI is connected to a headless server, `false` otherwise
+function M.is_headless_server()
+    return not M.is_local_nvim()
+end
+
 return M
