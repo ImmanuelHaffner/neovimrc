@@ -151,6 +151,7 @@ return {
                 { '<C-e>', '<cmd>CodeCompanion /explain<cr>', desc = 'Explain' },
             }
 
+            -- Render output nicely as Markdown
             vim.api.nvim_create_autocmd('FileType', {
                 pattern = 'codecompanion',
                 callback = function(args)
