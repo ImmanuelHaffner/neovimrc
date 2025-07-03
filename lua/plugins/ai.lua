@@ -85,7 +85,8 @@ return {
             'folke/which-key.nvim',
         },
         config = function()
-            require'codecompanion'.setup{
+            local cc = require'codecompanion'
+            cc.setup{
                 adapters = {
                     copilot = function()
                         return require'codecompanion.adapters'.extend('copilot', {
@@ -162,7 +163,6 @@ return {
                 mode = { 'v' },
                 { '<C-e>', '<cmd>CodeCompanion /explain<cr>', desc = 'Explain' },
             }
-
             -- Render output nicely as Markdown
             vim.api.nvim_create_autocmd('FileType', {
                 pattern = 'codecompanion',
@@ -170,6 +170,40 @@ return {
                     vim.treesitter.start(args.buf, 'markdown')
                 end,
             })
+
+            -- Check for `.cursor/rules` directory on directory change and update system prompt
+            vim.api.nvim_create_autocmd('DirChanged', {
+                pattern = '*',
+                callback = function()
+                    local rules_dir = '.cursor/rules'
+
+                    -- Check if the directory exists
+                    if vim.fn.isdirectory(rules_dir) == 0 then return end
+
+                    local mdc_files = vim.fn.glob(rules_dir .. '/*.mdc', false, true)
+
+                    if #mdc_files == 0 then return end
+
+                    -- Read all .mdc files and combine their content
+                    local prompt_content = ''
+                    for _, file_path in ipairs(mdc_files) do
+                        local file_content = table.concat(vim.fn.readfile(file_path), ' ')
+                        prompt_content = prompt_content .. file_content .. ' '
+                    end
+
+                    -- Update CodeCompanion system prompt
+                    cc.setup({
+                        opts = {
+                            system_prompt = function()
+                                return prompt_content
+                            end,
+                        },
+                    })
+
+                    vim.notify('CodeCompanion system prompt updated from .cursor/rules', vim.log.levels.INFO)
+                end,
+            })
         end,
     },
 }
+
