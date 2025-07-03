@@ -108,7 +108,19 @@ return {
                             ---@param context table
                             ---@return string
                             prompt_decorator = function(message, adapter, context)
-                                return string.format([[<prompt>%s</prompt>]], message)
+                                local prompt = string.format([[<prompt>%s</prompt>]], message)
+
+                                -- Track whether the chat was initialzed by providing some variables and tools.
+                                if not context.initialized then
+                                    context.initialized = true
+                                    prompt = prompt ..
+                                    [[ #{neovim://buffer}]] ..
+                                    [[ #{neovim://workspace/info}]] ..
+                                    [[ @{read_file}]] ..
+                                    [[ @{mcp}]]
+                                end
+
+                                return prompt
                             end,
                         },
                     },
