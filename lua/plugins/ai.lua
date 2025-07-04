@@ -167,39 +167,86 @@ return {
                 end,
             })
 
-            -- Check for `.cursor/rules` directory on directory change and update system prompt
+            -- Get the plugin root directory
+            local plugin_root = vim.fn.fnamemodify(debug.getinfo(1, 'S').source:sub(2), ':p:h:h:h')
+            -- Read the default system prompt.
+            local prompt_path = plugin_root .. '/assets/code-companion-system-prompt.md'
+            local default_system_prompt = table.concat(vim.fn.readfile(prompt_path), '\n')
+
+            -- Check for `.github/copilot-instructions.md` file or `.cursor/rules` directory on directory change and
+            -- update system prompt.
             vim.api.nvim_create_autocmd('DirChanged', {
                 pattern = '*',
                 callback = function()
-                    local rules_dir = '.cursor/rules'
-
-                    -- Check if the directory exists
-                    if vim.fn.isdirectory(rules_dir) == 0 then return end
-
-                    local mdc_files = vim.fn.glob(rules_dir .. '/*.mdc', false, true)
-
-                    if #mdc_files == 0 then return end
-
-                    -- Read all .mdc files and combine their content
-                    local prompt_content = ''
-                    for _, file_path in ipairs(mdc_files) do
-                        local file_content = table.concat(vim.fn.readfile(file_path), ' ')
-                        prompt_content = prompt_content .. file_content .. ' '
+                    local copilot_instructions = '.github/copilot-instructions.md'
+                    if vim.fn.filereadable(copilot_instructions) == 1 then
+                        local prompt_content = table.concat(vim.fn.readfile(copilot_instructions), '\n')
+                        local new_system_prompt = default_system_prompt .. '\n\n' .. prompt_content
+                        require'codecompanion.config'.opts.system_prompt = function()
+                            return new_system_prompt
+                        end
+                        vim.notify(
+                            'CodeCompanion system prompt updated from \'.github/copilot-instructions.md\'',
+                            vim.log.levels.INFO)
+                        return
                     end
 
-                    -- Update CodeCompanion system prompt
-                    cc.setup({
-                        opts = {
-                            system_prompt = function()
-                                return prompt_content
-                            end,
-                        },
-                    })
+                    -- Check if the directory exists
+                    local cursor_rules_dir = '.cursor/rules'
+                    if vim.fn.isdirectory(cursor_rules_dir) == 1 then
+                        local loaded_files = {}
+                        local mdc_files = vim.fn.glob(cursor_rules_dir .. '/*.mdc', false, true)
 
-                    vim.notify('CodeCompanion system prompt updated from .cursor/rules', vim.log.levels.INFO)
+                        if #mdc_files == 0 then return end
+
+                        -- Read all .mdc files and combine their content
+                        for _, file_path in ipairs(mdc_files) do
+                            local lines = vim.fn.readfile(file_path)
+                            local line_itr = next(lines, nil)
+                            if line_itr ~= '---' then
+                                goto continue  -- file has no header, skip
+                            end
+                            line_itr = next(lines, line_itr)
+
+                            local apply = false
+                            while line_itr and line_itr ~= '---' do
+                                if line_itr == 'alwaysApply: true' then
+                                    apply = true
+                                end
+                                line_itr = next(lines, line_itr)
+                            end
+                            if not apply then
+                                goto continue
+                            end
+
+                            table.insert(loaded_files, file_path)
+                            ::continue::
+                        end
+
+                        -- Read all .mdc files and combine their content
+                        local new_system_prompt = default_system_prompt
+                        for _, file_path in ipairs(loaded_files) do
+                            local prompt_content = table.concat(vim.fn.readfile(file_path), '\n')
+                            new_system_prompt = new_system_prompt .. '\n\n' .. prompt_content
+                        end
+
+                        -- Update CodeCompanion system prompt
+                        require'codecompanion.config'.opts.system_prompt = function()
+                            return new_system_prompt
+                        end
+
+                        vim.notify(
+                            'CodeCompanion system prompt updated from \'' .. table.concat(loaded_files, '\', ') .. '\''
+                            , vim.log.levels.INFO)
+                        return
+                    end
                 end,
             })
         end,
     },
 }
+
+
+
+
 
