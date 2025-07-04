@@ -15,3 +15,4 @@ install:
 	mkdir -p ~/.local/bin
 	cp nvimdiff ~/.local/bin
 	chmod a+x ~/.local/bin/nvimdiff
+	cp -Rf assets/ ~/.config/nvim
