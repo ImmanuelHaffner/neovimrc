@@ -4,6 +4,8 @@ local utils = require 'utils'
 local FRAGILE_FILETYPES = {
     'codecompanion',
     'DiffviewFiles',
+    'mcphub',
+    'neo-tree',
 }
 
 --- List of buftypes that would be removed by saving the session.
