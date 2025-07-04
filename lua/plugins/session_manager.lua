@@ -6,6 +6,7 @@ local FRAGILE_FILETYPES = {
     'DiffviewFiles',
     'mcphub',
     'neo-tree',
+    'noice',
 }
 
 --- List of buftypes that would be removed by saving the session.
