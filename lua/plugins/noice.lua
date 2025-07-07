@@ -113,6 +113,15 @@ return {
                         },
                         opts = { skip = true },
                     },
+                    -- Skip warning messages from CodeCompanion
+                    {
+                        filter = {
+                            event = 'notify',
+                            find = 'CodeCompanion',
+                            warning = true,
+                        },
+                        opts = { skip = true },
+                    },
                     -- Route short warning and error messages to Notify
                     {
                         filter = {
@@ -202,3 +211,4 @@ return {
         end,
     },
 }
+
