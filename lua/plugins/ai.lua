@@ -81,6 +81,21 @@ return {
             'folke/which-key.nvim',
         },
         config = function()
+            -- Check if Docker service is running
+            local function check_docker_service()
+                local result = vim.fn.system('systemctl status docker.service')
+                if not string.match(result, 'Active: active %(running%)') then
+                    vim.notify(
+                        'Warning: Docker service is not running! CodeCompanion features may not work properly.',
+                        vim.log.levels.WARN,
+                        { title = 'CodeCompanion Check' }
+                    )
+                end
+            end
+
+            -- Run the check when Neovim starts
+            check_docker_service()
+
             local cc = require'codecompanion'
             cc.setup{
                 adapters = {
@@ -254,6 +269,7 @@ return {
         end,
     },
 }
+
 
 
 
