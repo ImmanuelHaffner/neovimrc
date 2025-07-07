@@ -98,6 +98,18 @@ return {
                     chat = {
                         adapter = 'copilot',
                         variables = {},
+                        tools = {
+                            opts = {
+                                auto_submit_errors = true, -- Send any errors to the LLM automatically?
+                                auto_submit_success = true, -- Send any successful output to the LLM automatically?
+                                default_tools = {
+                                    'read_file',
+                                    'grep_search',
+                                    'file_search',
+                                    'mcp',
+                                },
+                            },
+                        },
                         opts = {
                             ---Decorate the user message before it's sent to the LLM
                             ---@param message string
@@ -107,14 +119,11 @@ return {
                             prompt_decorator = function(message, adapter, context)
                                 local prompt = string.format([[<prompt>%s</prompt>]], message)
 
-                                -- Track whether the chat was initialzed by providing some variables and tools.
+                                -- Automatically add some useful variables and tools.
                                 if not context.initialized then
                                     context.initialized = true
-                                    prompt = prompt ..
-                                    [[ #{neovim://buffer}]] ..
-                                    [[ #{neovim://workspace/info}]] ..
-                                    [[ @{read_file}]] ..
-                                    [[ @{mcp}]]
+                                    prompt = prompt
+                                    .. [[ #{neovim://buffer}]]
                                 end
 
                                 return prompt
