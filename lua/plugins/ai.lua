@@ -1,3 +1,48 @@
+local utils = require'utils'
+
+--- Parse a Cursor rule file.
+--- @param file_path string
+--- @return table header  The header of the rule.
+--- @return table lines  The lines making the actual content of the rule.
+local function parse_rule_file(file_path)
+    local lines = vim.fn.readfile(file_path)
+    local line_itr = next(lines, nil)
+    local header = {}
+
+    -- Skip any empty lines before file header or content.
+    while line_itr and utils.trim(lines[line_itr]) == '' do
+        line_itr = next(lines, line_itr)
+    end
+
+    -- Check whether rules file has header.
+    if lines[line_itr] == '---' then
+        line_itr = next(lines, line_itr)
+
+        while line_itr and lines[line_itr] ~= '---' do
+            local line = lines[line_itr]
+            if utils.starts_with(line, 'description:') then
+                header.description = utils.trim(line:sub(13, -1))
+            elseif utils.starts_with(line, 'globs:') then
+                header.globs = line:sub(7, -1)
+            elseif utils.starts_with(line, 'alwaysApply:') then
+                header.always_apply = utils.trim(line:sub(13, -1)) == 'true'
+            else
+                -- unrecognized line in header
+            end
+            line_itr = next(lines, line_itr)
+        end
+        line_itr = next(lines, line_itr)
+    end
+
+    -- Skip any empty lines before file content.
+    while line_itr and utils.trim(lines[line_itr]) == '' do
+        line_itr = next(lines, line_itr)
+    end
+
+    return header, {table.unpack(lines, line_itr)}
+end
+
+
 return {
     { 'monkoose/neocodeium',
         dependencies = {
@@ -177,6 +222,20 @@ return {
                         syntax_highlighting = true, -- Enable syntax highlighting
                     },
                 },
+                display = {
+                  chat = {
+                    show_token_count = true,
+                    show_settings = true,
+
+                    --- Customize how tokens are displayed
+                    --- @param tokens number
+                    --- @param adapter CodeCompanion.Adapter
+                    --- @return string
+                    token_count = function(tokens, adapter)
+                      return ' (' .. tokens .. ' tokens)'
+                    end,
+                  },
+                },
                 extensions = {
                     mcphub = {
                         callback = 'mcphub.extensions.codecompanion',
@@ -221,6 +280,7 @@ return {
             vim.api.nvim_create_autocmd('DirChanged', {
                 pattern = '*',
                 callback = function()
+                    -- Check if Copilot instructions are available
                     local copilot_instructions = '.github/copilot-instructions.md'
                     if vim.fn.filereadable(copilot_instructions) == 1 then
                         local prompt_content = table.concat(vim.fn.readfile(copilot_instructions), '\n')
@@ -231,47 +291,35 @@ return {
                         vim.notify(
                             'CodeCompanion system prompt updated from \'.github/copilot-instructions.md\'',
                             vim.log.levels.INFO)
-                        return
                     end
 
                     -- Check if the directory exists
                     local cursor_rules_dir = '.cursor/rules'
                     if vim.fn.isdirectory(cursor_rules_dir) == 1 then
-                        local loaded_files = {}
-                        local mdc_files = vim.fn.glob(cursor_rules_dir .. '/*.mdc', false, true)
+                        local rules = {}
+                        local rules_always_applied = {}
+                        local rule_files = vim.fn.glob(cursor_rules_dir .. '/*.mdc', false, true)
 
-                        if #mdc_files == 0 then return end
+                        if #rule_files == 0 then return end
 
-                        -- Read all .mdc files and combine their content
-                        for _, file_path in ipairs(mdc_files) do
-                            local lines = vim.fn.readfile(file_path)
-                            local line_itr = next(lines, nil)
-                            if line_itr ~= '---' then
-                                goto continue  -- file has no header, skip
-                            end
-                            line_itr = next(lines, line_itr)
+                        local additional_prompt = {'\n'}
 
-                            local apply = false
-                            while line_itr and line_itr ~= '---' do
-                                if line_itr == 'alwaysApply: true' then
-                                    apply = true
+                        -- Read all rules files and combine their content
+                        for _, file_path in ipairs(rule_files) do
+                            local header, content = parse_rule_file(file_path)
+
+                            if header.always_apply then
+                                table.insert(rules_always_applied, file_path)
+                                vim.notify(string.format("Adding '%s' to system prompt.  It provides:\n%s", file_path, content[1]))
+                                if #content > 0 then
+                                    additional_prompt = {table.unpack(additional_prompt), '\n', table.unpack(content)}
                                 end
-                                line_itr = next(lines, line_itr)
-                            end
-                            if not apply then
-                                goto continue
                             end
 
-                            table.insert(loaded_files, file_path)
-                            ::continue::
+                            -- TODO: Add rules to prompt library.
                         end
 
-                        -- Read all .mdc files and combine their content
-                        local new_system_prompt = default_system_prompt
-                        for _, file_path in ipairs(loaded_files) do
-                            local prompt_content = table.concat(vim.fn.readfile(file_path), '\n')
-                            new_system_prompt = new_system_prompt .. '\n\n' .. prompt_content
-                        end
+                        local new_system_prompt = default_system_prompt .. table.concat(additional_prompt, '\n')
 
                         -- Update CodeCompanion system prompt
                         require'codecompanion.config'.opts.system_prompt = function()
@@ -279,8 +327,9 @@ return {
                         end
 
                         vim.notify(
-                            'CodeCompanion system prompt updated from \'' .. table.concat(loaded_files, '\', ') .. '\''
-                            , vim.log.levels.INFO)
+                            'CodeCompanion system prompt updated from \'' ..
+                            table.concat(rules_always_applied, '\', ') .. '\'',
+                            vim.log.levels.INFO)
                         return
                     end
                 end,
