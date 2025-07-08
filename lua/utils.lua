@@ -18,6 +18,13 @@ function M.select(cond, tru, fals)
     if cond then return tru else return fals end
 end
 
+--- Removes leading and trailing white spaces from a string.
+--- @param str string
+--- @return string trimmed
+function M.trim(str)
+    return str:match '^%s*(.-)%s*$'
+end
+
 function M.is_buffer_empty()
     -- Check whether the current buffer is empty
     return vim.fn.empty(vim.fn.expand('%:t')) == 1
