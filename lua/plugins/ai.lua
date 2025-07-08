@@ -117,11 +117,37 @@ return {
                             opts = {
                                 auto_submit_errors = true, -- Send any errors to the LLM automatically?
                                 auto_submit_success = true, -- Send any successful output to the LLM automatically?
-                                default_tools = {
-                                    'read_file',
-                                    'grep_search',
-                                    'file_search',
-                                    'mcp',
+                                default_tools = { 'mcp', },
+                            },
+                            groups = {
+                                ['dev'] = {
+                                    description = "Default developer setup",
+                                    tools = {
+                                        'read_file',
+                                        'grep_search',
+                                        'file_search',
+                                        'mcp',
+                                    },
+                                    opts = {
+                                        collapse_tools = false, -- When true, show as a single group reference instead of individual tools
+                                    },
+                                    ---Decorate the user message before it's sent to the LLM
+                                    ---@param message string
+                                    ---@param adapter CodeCompanion.Adapter
+                                    ---@param context table
+                                    ---@return string
+                                    prompt_decorator = function(message, adapter, context)
+                                        local prompt = string.format([[<prompt>%s</prompt>]], message)
+
+                                        -- Automatically add some useful variables and tools.
+                                        if not context.initialized then
+                                            context.initialized = true
+                                            prompt = prompt
+                                            .. [[ #{neovim://buffer}]]
+                                        end
+
+                                        return prompt
+                                    end,
                                 },
                             },
                         },
@@ -133,13 +159,6 @@ return {
                             ---@return string
                             prompt_decorator = function(message, adapter, context)
                                 local prompt = string.format([[<prompt>%s</prompt>]], message)
-
-                                -- Automatically add some useful variables and tools.
-                                if not context.initialized then
-                                    context.initialized = true
-                                    prompt = prompt
-                                    .. [[ #{neovim://buffer}]]
-                                end
 
                                 return prompt
                             end,
