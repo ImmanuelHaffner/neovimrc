@@ -178,10 +178,10 @@ return {
                                     },
                                     ---Decorate the user message before it's sent to the LLM
                                     ---@param message string
-                                    ---@param adapter CodeCompanion.Adapter
+                                    ---@param _ CodeCompanion.Adapter
                                     ---@param context table
                                     ---@return string
-                                    prompt_decorator = function(message, adapter, context)
+                                    prompt_decorator = function(message, _, context)
                                         local prompt = string.format([[<prompt>%s</prompt>]], message)
 
                                         -- Automatically add some useful variables and tools.
@@ -199,10 +199,10 @@ return {
                         opts = {
                             ---Decorate the user message before it's sent to the LLM
                             ---@param message string
-                            ---@param adapter CodeCompanion.Adapter
-                            ---@param context table
+                            ---@param _ CodeCompanion.Adapter
+                            ---@param _ table
                             ---@return string
-                            prompt_decorator = function(message, adapter, context)
+                            prompt_decorator = function(message, _, _)
                                 local prompt = string.format([[<prompt>%s</prompt>]], message)
 
                                 return prompt
@@ -229,9 +229,9 @@ return {
 
                     --- Customize how tokens are displayed
                     --- @param tokens number
-                    --- @param adapter CodeCompanion.Adapter
+                    --- @param _ CodeCompanion.Adapter
                     --- @return string
-                    token_count = function(tokens, adapter)
+                    token_count = function(tokens, _)
                       return ' (' .. tokens .. ' tokens)'
                     end,
                   },

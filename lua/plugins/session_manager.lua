@@ -58,7 +58,7 @@ return {
             end
 
             -- Quit function
-            quit = vim.api.nvim_create_user_command('Q', save_and_exit, {})
+            vim.api.nvim_create_user_command('Q', save_and_exit, {})
 
             -- Keymap
             require'which-key'.add{

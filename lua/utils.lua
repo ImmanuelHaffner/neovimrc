@@ -84,7 +84,7 @@ function M.shorten_path(path, max_len)
     end
 
     -- Reconstruct path
-    local s, e = path:find('/', 1)
+    local s, _ = path:find('/', 1)
     local starts_with_sep = s == 1
     local short_path = M.select(starts_with_sep, '/', '')
     short_path = short_path .. fields[1] -- first field
