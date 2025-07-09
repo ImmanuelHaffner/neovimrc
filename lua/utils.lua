@@ -101,7 +101,7 @@ function M.shorten_absolute_path(path, max_len)
     if s == 1 then -- path is in HOME
         return '~' .. M.shorten_path(path:sub(e + 1, -1), max_len - 1)
     else
-        return M.shorten_path(peth, max_len)
+        return M.shorten_path(path, max_len)
     end
 end
 
