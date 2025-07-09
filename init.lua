@@ -2,6 +2,7 @@
 
 -- Workaround `unpack` deprecation
 if not table.unpack then
+    ---@diagnostic disable-next-line: deprecated
     table.unpack = unpack
 end
 
@@ -55,7 +56,7 @@ vim.api.nvim_create_autocmd('UIEnter', {
 })
 
 -- Support for project-specific config {{{------------------------------------------------------------------------------
-function load_project_config()
+local function load_project_config()
     if vim.fn.filereadable('.project.lua') == 1 then
         vim.cmd[[luafile .project.lua]]
     elseif vim.fn.filereadable('.project.vim') == 1 then
