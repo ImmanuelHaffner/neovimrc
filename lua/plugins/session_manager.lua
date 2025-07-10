@@ -80,7 +80,7 @@ return {
                     local diff = now - last_session_save_time
 
                     -- Wait for timeout.
-                    if diff < 10 then return end
+                    if diff < 120 then return end
 
                     -- Only save while in 'normal' mode.
                     if vim.fn.mode() ~= 'n' then return end
