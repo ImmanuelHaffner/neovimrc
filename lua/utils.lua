@@ -65,6 +65,10 @@ function M.split_str(str, sep)
     return fields
 end
 
+function M.basename(path)
+    return string.match(path, '/([^/]+)$')
+end
+
 function M.shorten_path(path, max_len)
     if path == nil or path == '' then return path end
 
