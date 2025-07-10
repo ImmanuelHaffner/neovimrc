@@ -66,7 +66,7 @@ return {
                 { '<leader>sl', function() require('session_manager').load_session() end, desc = "Load a session" },
                 { '<leader>ss', function()
                     require('session_manager').save_current_session()
-                    vim.notify('Session saved.', vim.log.levels.INFO, { title = 'Session Manager' })
+                    vim.api.nvim_echo({{ 'Session saved.' }}, true, {})
                 end, desc = "Save current session" },
                 { '<leader>sd', function() require('session_manager').delete_session() end, desc = "Delete a session" },
             }
