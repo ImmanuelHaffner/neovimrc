@@ -281,101 +281,108 @@ return {
             local prompt_path = plugin_root .. '/assets/code-companion-system-prompt.md'
             local default_system_prompt = table.concat(vim.fn.readfile(prompt_path), '\n')
 
+            local function load_rules()
+                local cc_config = require'codecompanion.config'
+
+                -- Check if the directory exists
+                local cursor_rules_dir = '.cursor/rules'
+                if vim.fn.isdirectory(cursor_rules_dir) == 1 then
+                    local rules = {}
+                    local rules_always_applied = {}
+                    local rule_files = vim.fn.glob(cursor_rules_dir .. '/*.mdc', false, true)
+
+                    if #rule_files == 0 then return end
+
+                    local additional_prompt = {'\n'}
+
+                    -- Read all rules files and combine their content
+                    for _, file_path in ipairs(rule_files) do
+                        local header, content = parse_rule_file(file_path)
+                        local basename = utils.basename(file_path)
+                        local basename_wo_suffix = string.match(basename, '^(.*)%.%w+$')
+
+                        if header.always_apply and #content > 0 then
+                            table.insert(rules_always_applied, file_path)
+                            -- vim.notify(string.format(
+                            --     "Adding Cursor rule '%s' to system prompt.\n\n%s",
+                            --     basename_wo_suffix, content[1]
+                            -- ))
+                            additional_prompt = {table.unpack(additional_prompt), '\n', table.unpack(content)}
+                        end
+
+                        table.insert(rules, basename_wo_suffix)
+
+                        -- Add rule to prompt library.
+                        local description = header.description or string.sub(content[1], 0, 40)
+                        cc_config.prompt_library[basename_wo_suffix] = {
+                            strategy = 'chat',
+                            -- Set the description, if available, or use the head line.
+                            description = header.description or string.sub(content[1], 0, 40),
+                            opts = {
+                                user_prompt = true,
+                            },
+                            references = {
+                                {
+                                    type = 'file',
+                                    path = { file_path },
+                                },
+                            },
+                            -- Set the prompt text.
+                            prompts = {
+                                {
+                                    role = 'user',
+                                    content = ''
+                                }
+                            },
+                        }
+                    end
+
+                    local new_system_prompt = default_system_prompt .. table.concat(additional_prompt, '\n')
+
+                    -- Update CodeCompanion system prompt
+                    cc_config.opts.system_prompt = function()
+                        return new_system_prompt
+                    end
+
+                    vim.notify((
+                        "CodeCompanion system prompt updated from %d Cursor rule%s.\n" ..
+                        "Loaded %d rule%s into prompt library."
+                    ):format(
+                        #rules_always_applied,
+                        #rules_always_applied == 1 and '' or 's',
+                        #rules,
+                        #rules == 1 and '' or 's'
+                    ), vim.log.levels.INFO)
+
+                    return
+                end
+
+                -- Check if Copilot instructions are available
+                local copilot_instructions = '.github/copilot-instructions.md'
+                if vim.fn.filereadable(copilot_instructions) == 1 then
+                    local prompt_content = table.concat(vim.fn.readfile(copilot_instructions), '\n')
+                    local new_system_prompt = default_system_prompt .. '\n\n' .. prompt_content
+                    cc_config.opts.system_prompt = function()
+                        return new_system_prompt
+                    end
+                    vim.notify(
+                        'CodeCompanion system prompt updated from \'.github/copilot-instructions.md\'',
+                        vim.log.levels.INFO)
+                    return
+                end
+            end
+
             -- Check for `.github/copilot-instructions.md` file or `.cursor/rules` directory on directory change and
             -- update system prompt.
-            vim.api.nvim_create_autocmd('DirChanged', {
+            vim.api.nvim_create_autocmd({ 'DirChanged', 'SessionLoadPost' }, {
                 pattern = '*',
-                callback = function()
-                    local cc_config = require'codecompanion.config'
+                callback = load_rules,
+            })
 
-                    -- Check if the directory exists
-                    local cursor_rules_dir = '.cursor/rules'
-                    if vim.fn.isdirectory(cursor_rules_dir) == 1 then
-                        local rules = {}
-                        local rules_always_applied = {}
-                        local rule_files = vim.fn.glob(cursor_rules_dir .. '/*.mdc', false, true)
-
-                        if #rule_files == 0 then return end
-
-                        local additional_prompt = {'\n'}
-
-                        -- Read all rules files and combine their content
-                        for _, file_path in ipairs(rule_files) do
-                            local header, content = parse_rule_file(file_path)
-                            local basename = utils.basename(file_path)
-                            local basename_wo_suffix = string.match(basename, '^(.*)%.%w+$')
-
-                            if header.always_apply and #content > 0 then
-                                table.insert(rules_always_applied, file_path)
-                                -- vim.notify(string.format(
-                                --     "Adding Cursor rule '%s' to system prompt.\n\n%s",
-                                --     basename_wo_suffix, content[1]
-                                -- ))
-                                additional_prompt = {table.unpack(additional_prompt), '\n', table.unpack(content)}
-                            end
-
-                            table.insert(rules, basename_wo_suffix)
-
-                            -- Add rule to prompt library.
-                            local description = header.description or string.sub(content[1], 0, 40)
-                            cc_config.prompt_library[basename_wo_suffix] = {
-                                strategy = 'chat',
-                                -- Set the description, if available, or use the head line.
-                                description = header.description or string.sub(content[1], 0, 40),
-                                opts = {
-                                    user_prompt = true,
-                                },
-                                references = {
-                                    {
-                                        type = 'file',
-                                        path = { file_path },
-                                    },
-                                },
-                                -- Set the prompt text.
-                                prompts = {
-                                    {
-                                        role = 'user',
-                                        content = ''
-                                    }
-                                },
-                            }
-                        end
-
-                        local new_system_prompt = default_system_prompt .. table.concat(additional_prompt, '\n')
-
-                        -- Update CodeCompanion system prompt
-                        cc_config.opts.system_prompt = function()
-                            return new_system_prompt
-                        end
-
-                        vim.notify((
-                            "CodeCompanion system prompt updated from %d Cursor rule%s.\n" ..
-                            "Loaded %d rule%s into prompt library."
-                        ):format(
-                            #rules_always_applied,
-                            #rules_always_applied == 1 and '' or 's',
-                            #rules,
-                            #rules == 1 and '' or 's'
-                        ), vim.log.levels.INFO)
-
-                        return
-                    end
-
-                    -- Check if Copilot instructions are available
-                    local copilot_instructions = '.github/copilot-instructions.md'
-                    if vim.fn.filereadable(copilot_instructions) == 1 then
-                        local prompt_content = table.concat(vim.fn.readfile(copilot_instructions), '\n')
-                        local new_system_prompt = default_system_prompt .. '\n\n' .. prompt_content
-                        cc_config.opts.system_prompt = function()
-                            return new_system_prompt
-                        end
-                        vim.notify(
-                            'CodeCompanion system prompt updated from \'.github/copilot-instructions.md\'',
-                            vim.log.levels.INFO)
-                        return
-                    end
-
-                end,
+            -- Reload rules after writing.
+            vim.api.nvim_create_autocmd({ 'BufWritePost' }, {
+                pattern = { '.cursor/rules/*.mdc', },
+                callback = load_rules,
             })
         end,
     },
