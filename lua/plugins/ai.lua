@@ -225,7 +225,7 @@ return {
                 display = {
                     action_palette = {
                         opts = {
-                            show_default_actions = false,
+                            show_default_actions = true,
                         }
                     },
 
@@ -283,7 +283,6 @@ return {
 
             local function load_rules()
                 local cc_config = require'codecompanion.config'
-
                 -- Check if the directory exists
                 local cursor_rules_dir = '.cursor/rules'
                 if vim.fn.isdirectory(cursor_rules_dir) == 1 then
@@ -303,21 +302,24 @@ return {
 
                         if header.always_apply and #content > 0 then
                             table.insert(rules_always_applied, file_path)
-                            -- vim.notify(string.format(
-                            --     "Adding Cursor rule '%s' to system prompt.\n\n%s",
-                            --     basename_wo_suffix, content[1]
-                            -- ))
                             additional_prompt = {table.unpack(additional_prompt), '\n', table.unpack(content)}
                         end
 
                         table.insert(rules, basename_wo_suffix)
 
                         -- Add rule to prompt library.
-                        local description = header.description or string.sub(content[1], 0, 40)
-                        cc_config.prompt_library[basename_wo_suffix] = {
+                        local description = header.description
+                        if not description or #description == 0 then
+                            description = string.sub(content[1], 0, 40)
+                        end
+                        local rule_name = basename_wo_suffix
+                        if header.description and #header.description > 0 then
+                            rule_name = string.sub(header.description, 1, 40)
+                        end
+                        cc_config.prompt_library[rule_name] = {
                             strategy = 'chat',
                             -- Set the description, if available, or use the head line.
-                            description = header.description or string.sub(content[1], 0, 40),
+                            description = description,
                             opts = {
                                 user_prompt = true,
                             },
@@ -365,21 +367,36 @@ return {
                     cc_config.opts.system_prompt = function()
                         return new_system_prompt
                     end
-                    vim.notify(
+                    vim.api.nvim_echo({{
                         'CodeCompanion system prompt updated from \'.github/copilot-instructions.md\'',
-                        vim.log.levels.INFO)
+                    }}, true, {})
                     return
                 end
             end
+
+            -- Remember for which CWD we recently loaded rules.
+            local last_cwd_loaded = vim.uv.cwd()
+            local prompt_library_clone = vim.deepcopy(require'codecompanion.config'.prompt_library)
 
             -- Check for `.github/copilot-instructions.md` file or `.cursor/rules` directory on directory change and
             -- update system prompt.
             vim.api.nvim_create_autocmd({ 'DirChanged', 'SessionLoadPost' }, {
                 pattern = '*',
-                callback = load_rules,
+                callback = function()
+                    local cwd = vim.uv.cwd()
+                    if cwd == last_cwd_loaded then
+                        return  -- already auto-loaded rules for this CWD
+                    end
+                    last_cwd_loaded = cwd
+
+                    -- Reset prompt library
+                    require'codecompanion.config'.prompt_library = vim.deepcopy(prompt_library_clone)
+
+                    load_rules()
+                end
             })
 
-            -- Reload rules after writing.
+            -- Reload rules after writing.  Do not respect any timeout.
             vim.api.nvim_create_autocmd({ 'BufWritePost' }, {
                 pattern = { '.cursor/rules/*.mdc', },
                 callback = load_rules,
