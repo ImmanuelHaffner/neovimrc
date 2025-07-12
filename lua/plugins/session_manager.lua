@@ -107,7 +107,7 @@ return {
 
                     last_session_save_time = now
                     session_manager.save_current_session()
-                    vim.notify('Auto-saved current session.', vim.log.levels.INFO, { title = 'Session Manager' })
+                    vim.api.nvim_echo({{ 'Session saved.' }}, true, {})
                 end
             })
         end
