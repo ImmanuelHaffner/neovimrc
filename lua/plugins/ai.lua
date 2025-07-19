@@ -178,23 +178,6 @@ return {
                                     opts = {
                                         collapse_tools = false, -- When true, show as a single group reference instead of individual tools
                                     },
-                                    ---Decorate the user message before it's sent to the LLM
-                                    ---@param message string
-                                    ---@param _ CodeCompanion.Adapter
-                                    ---@param context table
-                                    ---@return string
-                                    prompt_decorator = function(message, _, context)
-                                        local prompt = string.format([[<prompt>%s</prompt>]], message)
-
-                                        -- Automatically add some useful variables and tools.
-                                        if not context.initialized then
-                                            context.initialized = true
-                                            prompt = prompt
-                                            .. [[ #{neovim://buffer}]]
-                                        end
-
-                                        return prompt
-                                    end,
                                 },
                             },
                         },
@@ -206,7 +189,6 @@ return {
                             ---@return string
                             prompt_decorator = function(message, _, _)
                                 local prompt = string.format([[<prompt>%s</prompt>]], message)
-
                                 return prompt
                             end,
                         },
@@ -233,7 +215,7 @@ return {
 
                     chat = {
                         show_token_count = true,
-                        show_settings = true,
+                        show_settings = true,  -- when `true` prevents changing adapter/model
 
                         --- Customize how tokens are displayed
                         --- @param tokens number
@@ -269,15 +251,19 @@ return {
                 mode = { 'v' },
                 { '<C-e>', '<cmd>CodeCompanion /explain<cr>', desc = 'Explain' },
             }
-            -- Render output nicely as Markdown
-            vim.api.nvim_create_autocmd('FileType', {
-                pattern = 'codecompanion',
-                callback = function(args)
-                    vim.treesitter.start(args.buf, 'markdown')
-                    vim.b[args.buf].colorcolumn = ''
+
+            local cc_group = vim.api.nvim_create_augroup('CodeCompanionHooks', {})
+
+            -- Automatically attach current buffer to new chat
+            vim.api.nvim_create_autocmd('User', {
+                pattern = 'CodeCompanionChatCreated',
+                group = cc_group,
+                callback = function(request)
+                    -- Render output nicely as Markdown
+                    vim.treesitter.start(request.buf, 'markdown')
+                    vim.b[request.buf].colorcolumn = ''
                 end,
             })
-
             -- Get the plugin root directory
             local plugin_root = vim.fn.fnamemodify(debug.getinfo(1, 'S').source:sub(2), ':p:h:h:h')
             -- Read the default system prompt.
