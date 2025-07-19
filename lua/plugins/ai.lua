@@ -162,16 +162,18 @@ return {
                             opts = {
                                 auto_submit_errors = true, -- Send any errors to the LLM automatically?
                                 auto_submit_success = true, -- Send any successful output to the LLM automatically?
-                                default_tools = { 'mcp', },
+                                default_tools = {
+                                    'neovim',  -- all tools from the Neovim MCP server
+                                },
                             },
                             groups = {
                                 ['dev'] = {
                                     description = "Default developer setup",
                                     tools = {
                                         'read_file',
-                                        'grep_search',
                                         'file_search',
-                                        'mcp',
+                                        'grep_search',
+                                        'neovim',  -- all tools from the Neovim MCP server
                                     },
                                     opts = {
                                         collapse_tools = false, -- When true, show as a single group reference instead of individual tools
