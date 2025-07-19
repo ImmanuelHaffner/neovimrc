@@ -274,6 +274,7 @@ return {
                 pattern = 'codecompanion',
                 callback = function(args)
                     vim.treesitter.start(args.buf, 'markdown')
+                    vim.b[args.buf].colorcolumn = ''
                 end,
             })
 
