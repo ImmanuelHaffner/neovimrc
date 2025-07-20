@@ -102,7 +102,7 @@ return {
         },
         build = 'make tiktoken', -- Only on MacOS or Linux
         opts = {
-            model = 'claude-3.7-sonnet',
+            model = 'claude-sonnet-4',
         },
     },
     { 'ravitemer/mcphub.nvim',
@@ -148,7 +148,7 @@ return {
                         return require'codecompanion.adapters'.extend('copilot', {
                             schema = {
                                 model = {
-                                    default = 'claude-opus-4',
+                                    default = 'claude-sonnet-4',
                                 },
                             },
                         })
@@ -261,7 +261,7 @@ return {
                 callback = function(request)
                     -- Render output nicely as Markdown
                     vim.treesitter.start(request.buf, 'markdown')
-                    vim.b[request.buf].colorcolumn = ''
+                    vim.b.colorcolumn = ''
                 end,
             })
             -- Get the plugin root directory
