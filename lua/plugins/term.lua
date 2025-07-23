@@ -13,6 +13,9 @@ return {
                 auto_scroll = false,
                 insert_mappings = false,
                 terminal_mappings = false,
+                float_opts = {
+                    zindex = 200,
+                },
             }
 
             local Terminal = require'toggleterm.terminal'.Terminal
