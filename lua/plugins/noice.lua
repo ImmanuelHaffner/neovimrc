@@ -164,7 +164,7 @@ return {
                             width = '60%',
                             height = 'auto',
                         },
-                        zindex = 1000,
+                        zindex = 9999,  -- must be the absolute top
                     },
                     popupmenu = {
                         relative = 'editor',
@@ -192,7 +192,7 @@ return {
                             padding = { 0, 2 },
                             style = 'single',
                         },
-                        zindex = 90,
+                        zindex = 9999,  -- must be the absolute top
                     },
                     mini = {
                         timeout = 6000,  -- in ms
