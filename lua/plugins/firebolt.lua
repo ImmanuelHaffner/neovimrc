@@ -25,11 +25,10 @@ return {
             build = {
                 jobs = nproc(),
                 targets = {
-                    'clickhouse',
+                    'clickhouse-bundle',
                     'sql_test',
                     'planner_tests',
                     'sql_parser_tests',
-                    'packdb_tests',
                 },
                 -- icecc = {
                 --     path = '/home/immanuel/Documents/Firebolt/code/packdb/icecc_prefix.sh',
