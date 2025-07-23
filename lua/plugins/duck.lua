@@ -14,7 +14,6 @@ return {
                 pet_idx = pet_idx + 1
                 duck.hatch(pet, speed)
             end
-            hatch()
             wk.add{
                 { '<leader>d', group = 'Duck' },
                 { '<leader>dd', function() duck.hatch('🦆', speed) end, desc = 'Hatch duck' },
