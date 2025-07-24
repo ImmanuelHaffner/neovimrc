@@ -8,6 +8,7 @@ local FRAGILE_FILETYPES = {
     'neo-tree',
     'noice',
     'trouble',
+    'checkhealth',
 }
 
 --- List of buftypes that would be removed by saving the session.
