@@ -116,6 +116,21 @@ return {
             require("mcphub").setup()
         end
     },
+    { 'Davidyz/VectorCode',
+        version = '0.7.10', -- optional, depending on whether you're on nightly or release
+        dependencies = {
+            'nvim-lua/plenary.nvim'
+        },
+        cmd = 'VectorCode', -- if you're lazy-loading VectorCode
+        config = function()
+            local vc = require'vectorcode'
+            vc.setup{
+                cli_cmds = {
+                    vectorcode = 'vectorcode',
+                },
+            }
+        end
+    },
     { 'olimorris/codecompanion.nvim',
         dependencies = {
             'nvim-lua/plenary.nvim',
@@ -124,6 +139,7 @@ return {
             'zbirenbaum/copilot.lua',
             'CopilotC-Nvim/CopilotChat.nvim',
             'folke/which-key.nvim',
+            'Davidyz/VectorCode',
         },
         config = function()
             -- Check if Docker service is running
