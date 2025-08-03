@@ -19,8 +19,8 @@ function M.setup()
             if has_notify then notify.dismiss() end
         end, desc = 'Zen. Hide search results.' },
         { '<BS>', ':%s/\\s\\+$//<cr>:w<cr>', desc = 'Remove trailing whitespaces' },
-        { '<F3>', function() Utils.toggle(vim.o, 'spell') end, desc = 'Toggle spell' },
-        { '<F4>', function() Utils.toggle(vim.o, 'cursorcolumn') end, desc = 'Toggle crosshair' },
+        { '<F3>', function() Utils.toggle(vim.wo, 'spell') end, desc = 'Toggle spell' },
+        { '<F4>', function() Utils.toggle(vim.wo, 'cursorcolumn') end, desc = 'Toggle crosshair' },
         { '<F7>', function()
             if Utils.toggle_quickfix() then
                 vim.fn.feedkeys('G', 'n')  -- scroll to end
