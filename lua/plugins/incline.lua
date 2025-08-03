@@ -24,9 +24,22 @@ return {
                         filename = '[No Name]'
                     end
 
+                    local function get_incline_width()
+                        local INCLINE_FIXED_WIDTH = 22
+                        return filename:len() + INCLINE_FIXED_WIDTH
+                    end
+
                     local lines = vim.api.nvim_buf_get_lines(props.buf, wininfo.topline - 1, wininfo.topline, false)
-                    if lines and next(lines) and lines[1]:len() + filename:len() + 22 > text_width then  -- line too wide
-                        return ''
+                    if lines and next(lines) then  -- has content
+                        if lines[1]:len() + get_incline_width() > text_width then  -- line too wide
+                            local _, linenum, colnum, _, _ = table.unpack(vim.fn.getcurpos(props.win))
+                            local num_lines_displayed = wininfo.botline - wininfo.topline + 1
+                            if linenum - wininfo.topline < num_lines_displayed / 3 then  -- cursor in upper third of win
+                                if colnum > wininfo.width / 2 then  -- cursor not in the front half
+                                    return ''
+                                end
+                            end
+                        end
                     end
 
                     local function get_modified()
