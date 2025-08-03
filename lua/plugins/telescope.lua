@@ -29,7 +29,7 @@ return {
                         { width = 10 }, -- Commit hash
                         { width = 20 }, -- Author (custom color)
                         { width = 10 }, -- Date (custom color)
-                        { width = 2 },  -- Separator
+                        { width = 1 },  -- Separator
                         { remaining = true } -- Commit message
                     }
                 }
@@ -39,7 +39,7 @@ return {
                         { commit_hash:sub(1, 10), 'TelescopePreviewLink' },     -- First column: commit hash
                         { author, 'TelescopeResultsNumber' },                   -- Second column: author name
                         { date, 'TelescopeResultsIdentifier'  },                -- Third column: date
-                        { '⨠ ' },
+                        { '│' },
                         { message },                                            -- Fourth column: commit message
                     }
                 end
