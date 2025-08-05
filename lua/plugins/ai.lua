@@ -111,7 +111,7 @@ return {
         },
         -- uncomment the following line to load hub lazily
         --cmd = 'MCPHub',  -- lazy load
-        build = "cd ~/.local && npm install mcp-hub@latest",  -- Installs `mcp-hub` node binary globally
+        build = "cd ~/.local && npm install mcp-hub@latest",
         config = function()
             require("mcphub").setup()
         end
