@@ -154,8 +154,27 @@ return {
                 handlers = lsp_status.extensions.clangd.setup(),
                 init_options = {
                     clangdFileStatus = true,
+                    fallbackFlags = {
+                        '-std=c++20',
+                        '-W',
+                        '-Wall',
+                        '-pedantic',
+                    },
                 },
                 filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda', 'proto', 'yacc', 'lex', },
+                cmd = {
+                    'clangd',
+                    '--pretty',
+                    '--background-index',
+                    '--background-index-priority=low',
+                    '--clang-tidy',
+                    '--completion-style=bundled',
+                    '--fallback-style=GNU',
+                    '--header-insertion=iwyu',
+                    '--enable-config',
+                    '--malloc-trim',
+                    '--pch-storage=memory',
+                },
             }
 
             lsp['ltex'].setup{
