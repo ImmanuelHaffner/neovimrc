@@ -18,9 +18,7 @@ return {
         branch = 'experimental',
         opts = {
             dirs = {
-                '/home/immanuel/Documents/Firebolt/code/packdb',
-                '/home/immanuel/Documents/Firebolt/code/packdb-2',
-                '/home/immanuel/code/packdb',
+                '/home/immanuel/Documents/Firebolt/replays/',
             },
             build = {
                 jobs = nproc(),
