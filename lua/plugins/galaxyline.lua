@@ -57,7 +57,7 @@ return {
             vim.api.nvim_create_autocmd({
                 'RecordingEnter', 'RecordingLeave',  -- macro recording
             }, {
-                callback = function(ev)
+                callback = function()
                     gl.load_galaxyline()  -- force redraw
                 end,
             })
@@ -66,7 +66,17 @@ return {
             -- Can be triggered with `doautocmd User statusline`
             vim.api.nvim_create_autocmd('User', {
                 pattern = 'statusline',
-                callback = function(ev)
+                callback = function()
+                    gl.load_galaxyline()  -- force redraw
+                end,
+            })
+
+            -- Redraw on search start
+            gl._mysection.search_active = false
+            vim.api.nvim_create_autocmd({ 'CmdlineEnter' }, {
+                pattern = '[/?]',
+                callback = function()
+                    gl._mysection.search_active = true
                     gl.load_galaxyline()  -- force redraw
                 end,
             })
@@ -216,6 +226,35 @@ return {
                     separator_highlight = { colors.red2, colors.gray },
                     highlight = { colors.gray, colors.red2 },
                     event = { 'AsyncRunPre', 'AsyncRunStart', 'AsyncRunStop' },
+                }},
+                { Search = {
+                    provider = function()
+                        local search_info = vim.fn.searchcount()
+                        if search_info.total == 0 then
+                            return ''
+                        end
+
+                        local current = search_info.current
+                        local total = search_info.total
+                        local text = string.format('  󰍉 %d/%d ', current, total)
+
+                        -- Add indicator if search is incomplete
+                        if search_info.incomplete == 1 then
+                            text = text .. '⏳'
+                        elseif search_info.incomplete == 2 then
+                            text = text .. '>'
+                        end
+
+                        return text
+                    end,
+                    condition = function()
+                        local search_info = vim.fn.searchcount()
+                        -- Show if we have an active search with matches
+                        return gl._mysection.search_active and search_info.total > 0
+                    end,
+                    highlight = { colors.gray, colors.orange },
+                    separator = '',
+                    separator_highlight = { colors.green, colors.gray },
                 }},
                 { CursorPos = {
                     provider = function()

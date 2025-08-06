@@ -17,6 +17,12 @@ function M.setup()
             -- Clear notifications
             local has_notify, notify = pcall(require, 'notify')
             if has_notify then notify.dismiss() end
+
+            local has_gl, gl = pcall(require, 'galaxyline')
+            if has_gl then
+                gl._mysection.search_active = false
+                gl.load_galaxyline()  -- force redraw
+            end
         end, desc = 'Zen. Hide search results.' },
         { '<BS>', ':%s/\\s\\+$//<cr>:w<cr>', desc = 'Remove trailing whitespaces' },
         { '<F3>', function() Utils.toggle(vim.wo, 'spell') end, desc = 'Toggle spell' },
