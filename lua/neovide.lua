@@ -16,24 +16,27 @@ local function compute_font_size(dpi)
 end
 
 local dpi = get_dpi()
+local default_font_size = compute_font_size(dpi)
 
-vim.g.gui_font_face = 'Source Code Pro'
-vim.g.gui_font_size = compute_font_size(dpi)
+vim.g.gui_font_faces = {
+    'Source_Code_Pro',
+    'Noto_Color_Emoji',
+}
+vim.g.gui_font_size = default_font_size
 
 local M = {}
 
 function M.refresh_gui_font()
-    vim.o.guifont = string.format("%s:h%d", M.gui_font_face, M.gui_font_size)
+    vim.o.guifont = table.concat(vim.g.gui_font_faces , ',') .. (':h%d'):format(vim.g.gui_font_size)
 end
 
 function M.resize_gui_font(delta)
-    M.gui_font_size = M.gui_font_size + delta
+    vim.g.gui_font_size = vim.g.gui_font_size + delta
     M.refresh_gui_font()
 end
 
 function M.reset_gui_font()
-    M.gui_font_face = vim.g.gui_font_face
-    M.gui_font_size = vim.g.gui_font_size
+    vim.g.gui_font_size = default_font_size
     M.refresh_gui_font()
 end
 
