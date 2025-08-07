@@ -38,7 +38,7 @@ return {
                 fix_test_keep_actual = false,
                 fix_test_confirm = false,
             },
-            clang_format = '/usr/lib/llvm18/bin/clang-format -i --',
+            clang_format = '/usr/lib/llvm18/bin/git-clang-format --binary /usr/lib/llvm18/bin/clang-format --staged --',
         },
     },
 }
