@@ -52,11 +52,25 @@ return {
 
                     local function get_ft_icon()
                         local ft_icon, ft_color = devicons.get_icon_color_by_filetype(vim.bo[props.buf].filetype)
+                        local icon_name = devicons.get_icon_name_by_filetype(vim.bo[props.buf].filetype)
                         if ft_icon == nil then
                             ft_icon, ft_color = devicons.get_icon_color(filename)
                         end
                         if ft_icon == nil then
                             return {}
+                        end
+                        if icon_name ~= nil and icon_name ~= '' then
+                            local hl_group = ('DevIcon%s'):format(icon_name)
+                            if vim.fn.hlexists(hl_group) == 1 then
+                                local syn_id = vim.fn.synIDtrans(vim.fn.hlID(hl_group))
+                                local bg = vim.fn.synIDattr(syn_id, 'bg')
+                                if bg ~= '' then
+                                    local fg = vim.fn.synIDattr(syn_id, 'fg')
+                                    return {
+                                        { ' ', ft_icon, ' ', guifg = fg, guibg = bg },
+                                    }
+                                end
+                            end
                         end
                         return {
                             { ' ', ft_icon, ' ', guibg = ft_color, guifg = helpers.contrast_color(ft_color) },
