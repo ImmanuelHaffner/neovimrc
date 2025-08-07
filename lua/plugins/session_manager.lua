@@ -89,6 +89,11 @@ return {
                     -- Only save if already in a session.
                     if not session_manager.current_dir_session_exists() then return end
 
+                    local curr_bufid = vim.api.nvim_get_current_buf()
+                    if vim.api.nvim_get_option_value('buftype', { buf = curr_bufid }) ~= '' then
+                        return  -- currently inside an ephemeral buffer (not `normal`)
+                    end
+
                     -- Don't save when there is a visible buffer that is ephemeral and that would be removed by saving
                     -- the session.
                     local is_ephemeral_buffer = function(bufid)
