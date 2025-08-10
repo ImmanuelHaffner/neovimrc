@@ -105,6 +105,7 @@ return {
 
                 local loc = navic.get_location()
                 if loc ~= '' then
+                    loc = string.gsub(loc, '> ', '〉')
                     status_str = status_str .. loc ..  ' '
                 end
 
