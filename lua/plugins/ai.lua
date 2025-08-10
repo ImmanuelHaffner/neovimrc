@@ -260,7 +260,11 @@ return {
                                 -- a list of extra tools that you want to include in `@vectorcode_toolbox`.
                                 -- if you use @vectorcode_vectorise, it'll be very handy to include
                                 -- `file_search` here.
-                                extras = {},
+                                extras = {
+                                    'read_file',
+                                    'file_search',
+                                    'grep_search',
+                                },
                                 collapse = false, -- whether the individual tools should be shown in the chat
                             },
                             tool_opts = {
