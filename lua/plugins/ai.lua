@@ -89,6 +89,7 @@ return {
         end,
     },
     { 'zbirenbaum/copilot.lua',
+        enabled = false,
         cmd = 'Copilot',
         event = 'InsertEnter',
         config = function()
@@ -96,6 +97,7 @@ return {
         end,
     },
     { 'CopilotC-Nvim/CopilotChat.nvim',
+        enabled = false,
         dependencies = {
             { 'zbirenbaum/copilot.lua' },
             { 'nvim-lua/plenary.nvim' }, -- for curl, log and async functions
@@ -136,8 +138,8 @@ return {
             'nvim-lua/plenary.nvim',
             'nvim-treesitter/nvim-treesitter',
             'ravitemer/mcphub.nvim',
-            'zbirenbaum/copilot.lua',
-            'CopilotC-Nvim/CopilotChat.nvim',
+            -- 'zbirenbaum/copilot.lua',
+            -- 'CopilotC-Nvim/CopilotChat.nvim',
             'folke/which-key.nvim',
             'Davidyz/VectorCode',
         },
