@@ -70,20 +70,6 @@ return {
                         },
                         view = 'confirm',
                     },
-                    -- Suppress errors from the ltex LSP with `vim.schedule` and lsp-status.  There is a bug with
-                    -- ltex-ls LSP that we want to silence.
-                    {
-                        filter = {
-                            any = {
-                                {
-                                    event = 'msg_show',
-                                    kind = 'emsg',
-                                    find = 'vim.schedule',
-                                },
-                            },
-                        },
-                        opts = { skip = true },
-                    },
                       -- Don't show a message for the "File written" prompt.
                       {
                           filter = {
@@ -100,21 +86,27 @@ return {
                         },
                         opts = { skip = true },
                     },
-                    -- Don't show a message when search hits end of file.
                     {
                         filter = {
                             event = 'msg_show',
-                            kind = 'emsg',
-                            any = { { find = 'E384:' }, { find = 'E385:' } }
+                            kind = 'search_cmd',
                         },
                         opts = { skip = true },
                     },
-                    -- Don't show a message when running a command with AsyncRun
+                    -- Suppress a bunch of errors.
+                    --  - Don't show a message when search hits end of file.
+                    --  - ltex-ls LSP that we want to silence.
+                    --  - Don't show a message when running a command with AsyncRun.
                     {
                         filter = {
                             event = 'msg_show',
                             kind = 'emsg',
-                            find = 'Running command:',
+                            any = {
+                                { find = 'E384:' },
+                                { find = 'E385:' },
+                                { find = 'vim.schedule' },
+                                { find = 'Running command:' },
+                            },
                         },
                         opts = { skip = true },
                     },
