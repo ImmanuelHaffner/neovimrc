@@ -212,6 +212,9 @@ return {
                         },
                         zindex = 80,
                     },
+                    messages = {
+                        enter = false,  -- show messages but preserve cursor position and focus
+                    },
                 },
             }
         end,
