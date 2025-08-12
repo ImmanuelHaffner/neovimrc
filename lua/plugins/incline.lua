@@ -20,12 +20,35 @@ return {
                         borders = true,  -- overlap window borders
                     },
                 },
+                ignore = {
+                    unlisted_buffers = false,  -- this includes `help`
+                    wintypes = {},
+                    filetypes = {},
+                    buftypes = function(bufnr, buftype)
+                        local buftypes_to_ignore = {
+                            [''] = false,
+                            ['quickfix'] = false,
+                            ['help'] = false,
+                        }
+                        local buftype = vim.api.nvim_get_option_value('buftype', { buf = bufnr })
+                        local ignore = buftypes_to_ignore[buftype]
+                        return ignore == nil or ignore
+                    end
+                },
                 render = function(props)
                     -- Hide incline if the cursor is in the top column and the column is too wide.
                     local wininfo = vim.fn.getwininfo(props.win)[1]
                     local text_width = wininfo.width - wininfo.textoff
 
+                    -- vim.print(('Render %s'):format(vim.inspect(props)))
+                    local buftype = vim.api.nvim_get_option_value('buftype', { buf = props.buf })
+
                     local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(props.buf), ':t')
+                    if buftype == 'quickfix' then
+                        filename = 'quickfix'
+                    elseif buftype == 'help' then
+                        filename = 'HELP: ' .. filename
+                    end
                     if filename == '' then
                         filename = '[No Name]'
                     end
