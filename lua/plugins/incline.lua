@@ -30,7 +30,10 @@ return {
                             ['quickfix'] = false,
                             ['help'] = false,
                         }
-                        local buftype = vim.api.nvim_get_option_value('buftype', { buf = bufnr })
+                        if buftype == 'nofile' then
+                            local filetype = vim.api.nvim_get_option_value('filetype', { buf = bufnr })
+                            if filetype == 'noice' then return false end
+                        end
                         local ignore = buftypes_to_ignore[buftype]
                         return ignore == nil or ignore
                     end
@@ -42,12 +45,17 @@ return {
 
                     -- vim.print(('Render %s'):format(vim.inspect(props)))
                     local buftype = vim.api.nvim_get_option_value('buftype', { buf = props.buf })
+                    local filetype = vim.api.nvim_get_option_value('filetype', { buf = props.buf })
 
                     local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(props.buf), ':t')
                     if buftype == 'quickfix' then
                         filename = 'quickfix'
                     elseif buftype == 'help' then
                         filename = 'HELP: ' .. filename
+                    elseif buftype == 'nofile' then
+                        if filetype == 'noice' then
+                            filename = 'Noice'
+                        end
                     end
                     if filename == '' then
                         filename = '[No Name]'
