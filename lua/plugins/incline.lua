@@ -11,8 +11,14 @@ return {
             require('incline').setup{
                 window = {
                     padding = 0,
-                    margin = { horizontal = 0 },
+                    margin = {
+                        horizontal = 0,
+                        vertical = 0,
+                    },
                     zindex = 40,
+                    overlap = {
+                        borders = true,  -- overlap window borders
+                    },
                 },
                 render = function(props)
                     -- Hide incline if the cursor is in the top column and the column is too wide.
