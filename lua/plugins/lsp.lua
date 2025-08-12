@@ -10,7 +10,7 @@ return {
     },
     {
         'rachartier/tiny-inline-diagnostic.nvim',
-        event = 'VeryLazy', -- Or `LspAttach`
+        event = 'LspAttach', -- `VeryLazy` or `LspAttach`
         priority = 1000, -- needs to be loaded in first
         config = function()
             vim.diagnostic.config({
