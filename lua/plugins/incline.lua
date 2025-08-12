@@ -85,9 +85,10 @@ return {
                     elseif buftype == 'help' then
                         local icon = get_ft_icon('vim')[1]
                         return {
+                            { '', guifg = icon.guibg, guibg = colors.bg },
                             icon,
-                            { ' HELP ', guifg = icon.guibg, guibg = colors.dark, gui = 'bold' },
-                            { ' ', guifg = colors.dark, guibg = colors.blue14 },
+                            { 'HELP ', guibg = icon.guibg, guifg = colors.dark, gui = 'bold' },
+                            { ' ', guifg = icon.guibg, guibg = colors.blue14 },
                             { filename, gui = 'bold,italic' },
                             ' ',
                             guibg = colors.blue14,
