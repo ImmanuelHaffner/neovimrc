@@ -43,22 +43,67 @@ return {
                     local wininfo = vim.fn.getwininfo(props.win)[1]
                     local text_width = wininfo.width - wininfo.textoff
 
+                    local function get_ft_icon(filename, filetype)
+                        local ft_icon, ft_color = devicons.get_icon_color_by_filetype(filetype)
+                        local icon_name = devicons.get_icon_name_by_filetype(filetype)
+                        if ft_icon == nil then
+                            ft_icon, ft_color = devicons.get_icon_color(filename)
+                        end
+                        if ft_icon == nil then
+                            return {}
+                        end
+                        if icon_name ~= nil and icon_name ~= '' then
+                            local hl_group = ('DevIcon%s'):format(icon_name)
+                            if vim.fn.hlexists(hl_group) == 1 then
+                                local syn_id = vim.fn.synIDtrans(vim.fn.hlID(hl_group))
+                                local bg = vim.fn.synIDattr(syn_id, 'bg')
+                                if bg ~= '' then
+                                    local fg = vim.fn.synIDattr(syn_id, 'fg')
+                                    return {
+                                        { ' ', ft_icon, ' ', guifg = fg, guibg = bg },
+                                    }
+                                end
+                            end
+                        end
+                        return {
+                            { ' ', ft_icon, ' ', guibg = ft_color, guifg = helpers.contrast_color(ft_color) },
+                        }
+                    end
+
                     -- vim.print(('Render %s'):format(vim.inspect(props)))
                     local buftype = vim.api.nvim_get_option_value('buftype', { buf = props.buf })
                     local filetype = vim.api.nvim_get_option_value('filetype', { buf = props.buf })
-
                     local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(props.buf), ':t')
+
+                    -- Special handling of specific file and buffer types.
                     if buftype == 'quickfix' then
-                        filename = 'quickfix'
+                        return {
+                            { '', guifg = colors.cyan2, guibg = colors.bg },
+                            { ' Quickfix list ', guibg = colors.cyan2, guifg = colors.dark, gui = 'bold' },
+                            guibg = colors.blue14,
+                        }
                     elseif buftype == 'help' then
-                        filename = 'HELP: ' .. filename
-                    elseif buftype == 'nofile' then
-                        if filetype == 'noice' then
-                            filename = 'Noice'
-                        end
+                        local icon = get_ft_icon('vim')[1]
+                        return {
+                            icon,
+                            { ' HELP ', guifg = icon.guibg, guibg = colors.dark, gui = 'bold' },
+                            { ' ', guifg = colors.dark, guibg = colors.blue14 },
+                            { filename, gui = 'bold,italic' },
+                            ' ',
+                            guibg = colors.blue14,
+                        }
+                    elseif buftype == 'nofile' and filetype == 'noice' then
+                        return {
+                            { '', guifg = colors.light_red, guibg = colors.bg },
+                            { ' Noice ', guifg = colors.dark, guibg = colors.light_red, gui = 'bold' },
+                            guibg = colors.blue14,
+                        }
                     end
                     if filename == '' then
-                        filename = '[No Name]'
+                        return {
+                            { ' [No Name] ', guifg = colors.dark_white },
+                            guibg = colors.blue14,
+                        }
                     end
 
                     local function get_incline_width()
@@ -85,33 +130,6 @@ return {
                             return ' ✎'
                         end
                         return ''
-                    end
-
-                    local function get_ft_icon()
-                        local ft_icon, ft_color = devicons.get_icon_color_by_filetype(vim.bo[props.buf].filetype)
-                        local icon_name = devicons.get_icon_name_by_filetype(vim.bo[props.buf].filetype)
-                        if ft_icon == nil then
-                            ft_icon, ft_color = devicons.get_icon_color(filename)
-                        end
-                        if ft_icon == nil then
-                            return {}
-                        end
-                        if icon_name ~= nil and icon_name ~= '' then
-                            local hl_group = ('DevIcon%s'):format(icon_name)
-                            if vim.fn.hlexists(hl_group) == 1 then
-                                local syn_id = vim.fn.synIDtrans(vim.fn.hlID(hl_group))
-                                local bg = vim.fn.synIDattr(syn_id, 'bg')
-                                if bg ~= '' then
-                                    local fg = vim.fn.synIDattr(syn_id, 'fg')
-                                    return {
-                                        { ' ', ft_icon, ' ', guifg = fg, guibg = bg },
-                                    }
-                                end
-                            end
-                        end
-                        return {
-                            { ' ', ft_icon, ' ', guibg = ft_color, guifg = helpers.contrast_color(ft_color) },
-                        }
                     end
 
                     local function get_diagnostic_label()
@@ -154,7 +172,7 @@ return {
                     end
 
                     return {
-                        get_ft_icon(),
+                        get_ft_icon(filename, vim.bo[props.buf].filetype),
                         { ' ', filename, gui = 'bold,italic' },
                         get_modified(),
                         get_diagnostic_label(),
