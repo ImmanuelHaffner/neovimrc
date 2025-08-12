@@ -110,6 +110,16 @@ return {
                         },
                         opts = { skip = true },
                     },
+                    {
+                        filter = {
+                            event = 'msg_show',
+                            kind = 'lua_error',
+                            any = {
+                                { find = 'Invalid buffer id' },
+                            },
+                        },
+                        opts = { skip = true },
+                    },
                     -- Skip warning messages from CodeCompanion
                     {
                         filter = {
