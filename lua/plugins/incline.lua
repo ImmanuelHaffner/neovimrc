@@ -72,6 +72,54 @@ function renderer.make_ft_icon(filename, filetype)
     return { ' ', icon.glyph, ' ', guibg = icon.bg, guifg = icon.fg }
 end
 
+function renderer.get_modified(props)
+    local modified = vim.bo[props.buf].modified
+    if modified then
+        return ' ✎'
+    end
+    return ''
+end
+
+function renderer.get_diagnostic_label(props)
+    local icons = { error = '', warn = '', info = '', hint = '' }
+    local labels = {}
+
+    for severity, icon in pairs(icons) do
+        local n = #vim.diagnostic.get(props.buf, { severity = vim.diagnostic.severity[string.upper(severity)] })
+        if n > 0 then
+            table.insert(labels, { ' ' .. icon .. n, group = 'DiagnosticSign' .. severity })
+        end
+    end
+    return labels
+end
+
+function renderer.get_git_diff(props)
+    local colors = renderer.colors
+    local icons = {
+        { name = 'added',   symbol = '+', fg = colors.sign_add, },  -- Green plus for added lines
+        { name = 'changed', symbol = '~', fg = colors.sign_change, },  -- Yellow tilde for modified lines
+        { name = 'removed', symbol = '-', fg = colors.sign_delete },  -- Red minus for deleted lines
+    }
+
+    local signs = vim.b[props.buf] and vim.b[props.buf].gitsigns_status_dict or nil
+    local labels = {}
+
+    if not signs then
+        return labels
+    end
+
+    for _, config in ipairs(icons) do
+        if tonumber(signs[config.name]) and signs[config.name] > 0 then
+            table.insert(labels, {
+                ' ' .. config.symbol .. signs[config.name],
+                guifg = config.fg,
+            })
+        end
+    end
+
+    return labels
+end
+
 function renderer.render(props)
     -- Make modules easily accessible
     local colors = renderer.colors
@@ -165,59 +213,12 @@ function renderer.render(props)
         }
     end
 
-    local function get_modified()
-        local modified = vim.bo[props.buf].modified
-        if modified then
-            return ' ✎'
-        end
-        return ''
-    end
-
-    local function get_diagnostic_label()
-        local icons = { error = '', warn = '', info = '', hint = '' }
-        local labels = {}
-
-        for severity, icon in pairs(icons) do
-            local n = #vim.diagnostic.get(props.buf, { severity = vim.diagnostic.severity[string.upper(severity)] })
-            if n > 0 then
-                table.insert(labels, { ' ' .. icon .. n, group = 'DiagnosticSign' .. severity })
-            end
-        end
-        return labels
-    end
-
-    local function get_git_diff()
-        local icons = {
-            { name = 'added',   symbol = '+', fg = colors.sign_add, },  -- Green plus for added lines
-            { name = 'changed', symbol = '~', fg = colors.sign_change, },  -- Yellow tilde for modified lines
-            { name = 'removed', symbol = '-', fg = colors.sign_delete },  -- Red minus for deleted lines
-        }
-
-        local signs = vim.b[props.buf] and vim.b[props.buf].gitsigns_status_dict or nil
-        local labels = {}
-
-        if not signs then
-            return labels
-        end
-
-        for _, config in ipairs(icons) do
-            if tonumber(signs[config.name]) and signs[config.name] > 0 then
-                table.insert(labels, {
-                    ' ' .. config.symbol .. signs[config.name],
-                    guifg = config.fg,
-                })
-            end
-        end
-
-        return labels
-    end
-
     return {
         renderer.make_ft_icon(filename, filetype),
         { ' ', filename, gui = 'bold,italic' },
-        get_modified(),
-        get_diagnostic_label(),
-        get_git_diff(),
+        renderer.get_modified(props),
+        renderer.get_diagnostic_label(props),
+        renderer.get_git_diff(props),
         ' ',
         guibg = colors.blue14,
     }
