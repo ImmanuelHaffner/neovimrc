@@ -27,8 +27,9 @@ return {
                     buftypes = function(bufnr, buftype)
                         local buftypes_to_ignore = {
                             [''] = false,
-                            ['quickfix'] = false,
                             ['help'] = false,
+                            ['quickfix'] = false,
+                            ['terminal'] = false,
                         }
                         if buftype == 'nofile' then
                             local filetype = vim.api.nvim_get_option_value('filetype', { buf = bufnr })
@@ -91,6 +92,14 @@ return {
                             { ' ', guifg = icon.guibg, guibg = colors.blue14 },
                             { filename, gui = 'bold,italic' },
                             ' ',
+                            guibg = colors.blue14,
+                        }
+                    elseif buftype == 'terminal' then
+                        local icon = get_ft_icon('bash')[1]
+                        return {
+                            { '', guifg = icon.guibg, guibg = colors.bg },
+                            icon,
+                            { 'TERMINAL ', guibg = icon.guibg, guifg = colors.dark, gui = 'bold' },
                             guibg = colors.blue14,
                         }
                     elseif buftype == 'nofile' and filetype == 'noice' then
