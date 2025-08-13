@@ -1,3 +1,5 @@
+local Utils = require'utils'
+
 local renderer = { }
 
 function renderer.init()
@@ -62,14 +64,9 @@ function renderer.make_ft_icon(filename, filetype)
 
     local icon_name = devicons.get_icon_name_by_filetype(filetype)
     if icon_name ~= nil and icon_name ~= '' then
-        local hl_group = ('DevIcon%s'):format(icon_name)
-        if vim.fn.hlexists(hl_group) == 1 then
-            local syn_id = vim.fn.synIDtrans(vim.fn.hlID(hl_group))
-            local bg = vim.fn.synIDattr(syn_id, 'bg')
-            if bg ~= '' then
-                local fg = vim.fn.synIDattr(syn_id, 'fg')
-                return { ' ', icon.glyph, ' ', guifg = fg, guibg = bg }
-            end
+        local hl_group = Utils.get_highlight_group('DevIcon' .. icon_name)
+        if hl_group and hl_group.bg ~= '' then
+            return { ' ', icon.glyph, ' ', guifg = hl_group.fg, guibg = hl_group.bg }
         end
     end
     return { ' ', icon.glyph, ' ', guibg = icon.bg, guifg = icon.fg }
