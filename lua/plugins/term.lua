@@ -26,15 +26,31 @@ return {
                 direction = 'tab',
                 -- function to run on opening the terminal
                 on_open = function(term)
-                    vim.wo.spell=false  -- no spell checking
+                    -- Install keymaps
+                    local cmd = ([[<cmd>lua vim.api.nvim_win_close(%d, false)<CR>]]):format(term.window)
+                    vim.api.nvim_buf_set_keymap(term.bufnr, 'i', '<C-q>', cmd, {noremap = true, silent = true})
+                    vim.api.nvim_buf_set_keymap(term.bufnr, 'n', '<C-q>', cmd, {noremap = true, silent = true})
+                    vim.api.nvim_buf_set_keymap(term.bufnr, 't', '<C-q>', cmd, {noremap = true, silent = true})
+
+                    vim.wo[term.window].scrolloff = 0
+                    vim.wo[term.window].sidescrolloff = 0
+                    vim.wo[term.window].spell = false  -- no spell checking
                     vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
-                    vim.api.nvim_buf_set_keymap(term.bufnr, 'n', 'q', '<cmd>close<CR>', {noremap = true, silent = true})
                     vim.cmd[[startinsert!]]
+                    vim.fn.setcursorcharpos(1, 1)
                 end,
-                -- function to run on closing the terminal
-                on_close = function(term)
-                    vim.cmd[[tabprevious]]  -- return to previous tab
-                end,
+                  -- function to run on closing the terminal
+                  on_close = function(term)
+                      -- Cleanup keymaps
+                      vim.api.nvim_buf_del_keymap(term.bufnr, 'i', '<C-q>')
+                      vim.api.nvim_buf_del_keymap(term.bufnr, 'n', '<C-q>')
+                      vim.api.nvim_buf_del_keymap(term.bufnr, 't', '<C-q>')
+
+                      -- Schedule tab switch to happen after window cleanup
+                      vim.schedule(function()
+                          vim.cmd[[tabprevious]]
+                      end)
+                  end,
             }
 
             local ranger = Terminal:new{
