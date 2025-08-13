@@ -102,10 +102,11 @@ return {
                             event = 'msg_show',
                             kind = 'emsg',
                             any = {
-                                { find = 'E384:' },
-                                { find = 'E385:' },
+                                { find = 'E384:' },  -- wrap scan, reached top of file
+                                { find = 'E385:' },  -- wrap scan, reached end of file
                                 { find = 'vim.schedule' },
-                                { find = 'Running command:' },
+                                { find = 'Running command:' },  -- AsyncRun
+                                { find = 'ns=nvim.treesitter.highlighter' },  -- treesitter highlighting error
                             },
                         },
                         opts = { skip = true },
