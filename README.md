@@ -111,8 +111,6 @@ You can use the Telescope pickers to open files in new tabs, splits, or in the c
 With `<space>fb` you can quickly access the buffer picker, allowing you to view different files in your current layout.
 The buffer picker is modified to pin the current buffer to the first entry and the most recently accessed buffer as second entry in the list, with the cursor starting on the second entry.
 To jump back and forth between two buffers you simply type `<space>fb<cr>`.
-In addition to the regular tab motions, `g<tab>` jumps to the most recently accessed tab.
-This allows quickly jumping back and forth between two layouts.
 
 
 <a name="windows"/>
