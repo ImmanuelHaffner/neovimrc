@@ -35,6 +35,14 @@
         "mcp-server-git"
       ],
       "command": "uvx"
+    },
+    {
+        "mcpServers": {
+            "vectorcode-mcp-server": {
+                "command": "vectorcode-mcp-server",
+                "args": []
+            }
+        }
     }
   },
   "nativeMCPServers": [
