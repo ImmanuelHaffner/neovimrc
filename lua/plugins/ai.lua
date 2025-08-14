@@ -119,7 +119,7 @@ return {
         end
     },
     { 'Davidyz/VectorCode',
-        version = '0.7.10', -- optional, depending on whether you're on nightly or release
+        version = '0.7.12', -- optional, depending on whether you're on nightly or release
         dependencies = {
             'nvim-lua/plenary.nvim'
         },
@@ -130,6 +130,7 @@ return {
                 cli_cmds = {
                     vectorcode = 'vectorcode',
                 },
+                n_query = 5,
             }
         end
     },
