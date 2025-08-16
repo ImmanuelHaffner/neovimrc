@@ -8,7 +8,7 @@ end
 
 return {
     { 'akinsho/toggleterm.nvim',
-        version = "*",
+        version = '*',
         dependencies = {
             'folke/which-key.nvim',
         },
@@ -39,10 +39,34 @@ return {
                 -- function to run on opening the terminal
                 on_open = function(term)
                     -- Install keymaps
-                    local cmd = ([[<cmd>lua vim.api.nvim_win_close(%d, false)<CR>]]):format(term.window)
-                    vim.api.nvim_buf_set_keymap(term.bufnr, 'i', '<C-q>', cmd, {noremap = true, silent = true})
-                    vim.api.nvim_buf_set_keymap(term.bufnr, 'n', '<C-q>', cmd, {noremap = true, silent = true})
-                    vim.api.nvim_buf_set_keymap(term.bufnr, 't', '<C-q>', cmd, {noremap = true, silent = true})
+                    local curre
+                    local function close()
+                        vim.api.nvim_win_close(term.window, false)
+
+                        if term.previous_tab then
+                            vim.schedule(function()
+                                local current_tab = vim.api.nvim_get_current_tabpage()
+
+                                if current_tab ~= term.previous_tab then
+                                    -- Check if previous tab still exists and is different from current
+                                    local tab_exists = false
+                                    for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
+                                        if tab == term.previous_tab then
+                                            tab_exists = true
+                                            break
+                                        end
+                                    end
+
+                                    if tab_exists then
+                                        vim.api.nvim_set_current_tabpage(term.previous_tab)
+                                    end
+                                end
+                            end)
+                        end
+                    end
+                    vim.api.nvim_buf_set_keymap(term.bufnr, 'i', '<C-q>', '', {noremap = true, silent = true, callback = close})
+                    vim.api.nvim_buf_set_keymap(term.bufnr, 'n', '<C-q>', '', {noremap = true, silent = true, callback = close})
+                    vim.api.nvim_buf_set_keymap(term.bufnr, 't', '<C-q>', '', {noremap = true, silent = true, callback = close})
 
                     vim.wo[term.window].scrolloff = 0
                     vim.wo[term.window].sidescrolloff = 0
@@ -51,35 +75,13 @@ return {
                     vim.cmd[[startinsert!]]
                     vim.fn.setcursorcharpos(1, 1)
                 end,
-                  -- function to run on closing the terminal
-                  on_close = function(term)
-                      -- Cleanup keymaps
-                      vim.api.nvim_buf_del_keymap(term.bufnr, 'i', '<C-q>')
-                      vim.api.nvim_buf_del_keymap(term.bufnr, 'n', '<C-q>')
-                      vim.api.nvim_buf_del_keymap(term.bufnr, 't', '<C-q>')
-
-                      -- Schedule tab switch to happen after window cleanup
-                      if term.previous_tab then
-                          vim.schedule(function()
-                              local current_tab = vim.api.nvim_get_current_tabpage()
-
-                              if current_tab ~= term.previous_tab then
-                                  -- Check if previous tab still exists and is different from current
-                                  local tab_exists = false
-                                  for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
-                                      if tab == term.previous_tab then
-                                          tab_exists = true
-                                          break
-                                      end
-                                  end
-
-                                  if tab_exists then
-                                      vim.api.nvim_set_current_tabpage(term.previous_tab)
-                                  end
-                              end
-                          end)
-                      end
-                  end,
+                -- function to run on closing the terminal
+                on_close = function(term)
+                    -- Cleanup keymaps
+                    vim.api.nvim_buf_del_keymap(term.bufnr, 'i', '<C-q>')
+                    vim.api.nvim_buf_del_keymap(term.bufnr, 'n', '<C-q>')
+                    vim.api.nvim_buf_del_keymap(term.bufnr, 't', '<C-q>')
+                end,
             }
 
             local ranger = Terminal:new{
