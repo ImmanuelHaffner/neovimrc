@@ -1,3 +1,63 @@
+local colors = require'theme'.colors()
+local Utils = require'utils'
+
+local navic_style_table = {
+    -- Separator
+    { '> ', ' ', fg = colors.gray, bg = colors.gray3 },
+    -- Function
+    { '󰊕 ', '󰊕 ', fg = colors.blue, bg = colors.gray3 },
+    -- Macro
+    { '󰟢 ', '󰟢 ', fg = colors.magenta4, bg = colors.gray3 },
+    -- Namespace / Class
+    { '󰌗 ', '󰌗 ', fg = colors.orange2, bg = colors.gray3 },
+    -- Constructor
+    { ' ', ' ', fg = colors.orange, bg = colors.gray3 },
+    -- Method
+    { '󰆧 ', '󰆧 ', fg = colors.blue, bg = colors.gray3 },
+    -- Array
+    { '󰅪 ', '󰅪 ', fg = colors.light_purple, bg = colors.gray3, gui = 'bold' },
+    -- Table
+    { '󰅩 ', '󰅩 ', fg = colors.light_purple, bg = colors.gray3, gui = 'bold' },
+    -- Statement
+    { ' ', ' ', fg = colors.magenta, bg = colors.gray3 },
+    --
+    { '󰀬 ', '󰀬 ', fg = colors.orange, bg = colors.gray3 },
+}
+
+--- Enrich the navic location string with colors via highlight groups.
+--- @param loc string
+local function stylize_lsp_status(loc)
+    local hl_groupname_proto = 'GalaxylineLSP%d'
+
+    -- %%#Comment#
+    for index, entry in ipairs(navic_style_table) do
+        local pattern = entry[1]
+        local replacement = entry[2]
+
+        -- Generate group name
+        local hl_groupname = hl_groupname_proto:format(index)
+        -- Check if group exists
+        if vim.fn.hlexists(hl_groupname) ~= 1 then
+            -- Create group
+            local cmd = 'hi ' .. hl_groupname
+            if entry.fg then
+                cmd = cmd .. ' guifg=' .. entry.fg
+            end
+            if entry.bg then
+                cmd = cmd .. ' guibg=' .. entry.bg
+            end
+            if entry.gui then
+                cmd = cmd .. ' gui=' .. entry.gui
+            end
+            vim.api.nvim_command(cmd)
+        end
+
+        local styled_replacement = '%%#' .. hl_groupname .. '#' .. replacement .. '%%#LSPSeparator#'
+        loc = string.gsub(loc, pattern, styled_replacement)
+    end
+    return loc
+end
+
 return {
     { 'glepnir/galaxyline.nvim',
         dependencies = {
@@ -105,7 +165,6 @@ return {
 
                 local loc = navic.get_location()
                 if loc ~= '' then
-                    loc = string.gsub(loc, '> ', '〉')
                     status_str = status_str .. loc ..  ' '
                 end
 
@@ -116,9 +175,10 @@ return {
                     end
 
                     vim.api.nvim_command('hi LSPSeparatorEnd guifg=' .. colors.gray3 .. ' guibg=' .. colors.gray)
-                    status_str = ' ' .. status_str .. '%#LSPSeparatorEnd#'
+                    status_str = ' ' .. status_str .. '%#LSPSeparatorEnd#'
                 end
 
+                status_str = stylize_lsp_status(status_str)
                 return status_str
             end
 
@@ -191,7 +251,7 @@ return {
                         return recording_register ~= nil and recording_register ~= ''
                     end,
                     highlight = { colors.fg, colors.dark_red },
-                    separator = '',
+                    -- separator = '',
                     separator_highlight = { colors.dark_red, colors.gray },
                     event = { 'RecordingEnter', 'RecordingLeave'},
                 }},
@@ -314,7 +374,7 @@ return {
                 { MacroRecording = {
                     provider = function()
                         local recording_register = vim.fn.reg_recording()
-                        return '󰑋 recording @' .. recording_register .. ' ' -- Show recording status
+                        return ' 󰑋 recording @' .. recording_register .. ' ' -- Show recording status
                     end,
                     condition = function()
                         local recording_register = vim.fn.reg_recording()
