@@ -1,18 +1,19 @@
+.PHONY: all install
+
 all:
 	@echo -e "Invoke\n  $$ make install\nto install configuration files."
 
 install:
-	rm -rf ~/.config/nvim
-	mkdir -p ~/.config/nvim
-	cp init.lua ~/.config/nvim/init.lua
-	cp -Rf lua/ ~/.config/nvim
-	cp -Rf after/ ~/.config/nvim
-	cp -Rf ftdetect/ ~/.config/nvim
-	cp -Rf ftplugin// ~/.config/nvim
-	cp -Rf indent/ ~/.config/nvim
-	cp -Rf syntax/ ~/.config/nvim
+	# Remove existing configuration
+	rm -rf ${HOME}/.config/nvim
+	# Install configuration files
+	install -D init.lua ${HOME}/.config/nvim/init.lua
+	find lua/ -type f -exec install -D {} ${HOME}/.config/nvim/{} \;
+	find after/ -type f -exec install -D {} ${HOME}/.config/nvim/{} \;
+	find ftdetect/ -type f -exec install -D {} ${HOME}/.config/nvim/{} \;
+	find ftplugin/ -type f -exec install -D {} ${HOME}/.config/nvim/{} \;
+	find indent/ -type f -exec install -D {} ${HOME}/.config/nvim/{} \;
+	find syntax/ -type f -exec install -D {} ${HOME}/.config/nvim/{} \;
+	find assets/ -type f -exec install -D {} ${HOME}/.config/nvim/{} \;
 	# Install nvimdiff thin wrapper
-	mkdir -p ~/.local/bin
-	cp nvimdiff ~/.local/bin
-	chmod a+x ~/.local/bin/nvimdiff
-	cp -Rf assets/ ~/.config/nvim
+	install -D -m 755 nvimdiff ${HOME}/.local/bin/nvimdiff
