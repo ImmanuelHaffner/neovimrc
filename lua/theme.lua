@@ -65,7 +65,6 @@ M._colors = {
     light_cyan = "#caece6",
     cyan = "#6ae9f0",
     cyan2 = "#7fdbca",
-    cyan3 = "#7fdbcaff",
     cyan4 = "#80cbc4",
     cyan5 = "#baebe2",
     dark_cyan = "#637777",

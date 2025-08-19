@@ -7,14 +7,15 @@ local function make_env_string(env)
 end
 
 return {
-    { 'akinsho/toggleterm.nvim',
+    {
+        'akinsho/toggleterm.nvim',
         version = '*',
         dependencies = {
             'folke/which-key.nvim',
         },
         config = function()
-            local term = require'toggleterm'
-            term.setup{
+            local toggleterm = require'toggleterm'
+            toggleterm.setup{
                 open_mapping = [[<c-\>]],
                 shade_terminals = false,
                 autochdir = true,
@@ -39,7 +40,6 @@ return {
                 -- function to run on opening the terminal
                 on_open = function(term)
                     -- Install keymaps
-                    local curre
                     local function close()
                         vim.api.nvim_win_close(term.window, false)
 

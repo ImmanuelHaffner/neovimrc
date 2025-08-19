@@ -16,8 +16,8 @@ return {
                         winhl = {
                             -- we use `winhl` because we want to highlight CursorLine only in a current window, not in all of them
                             -- if you want to change global highlights, use the `hl` field instead.
-                            CursorLine = { bg = colors.tab_active_bg },
-                            CursorColumn = { bg = colors.tab_active_bg },
+                            CursorLine = { bg = colors.blue13 },
+                            CursorColumn = { bg = colors.blue13 },
                             CursorLineNr = { fg = colors.bg, bg = colors.green, bold = true },
                         },
                     },

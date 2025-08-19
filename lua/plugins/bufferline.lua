@@ -1,3 +1,5 @@
+local colors = require'theme'.colors()
+
 local function get_desired_name_length()
     local num_tabs  = #vim.api.nvim_list_tabpages()
     local avg_length = math.floor(vim.o.columns / num_tabs)
@@ -57,8 +59,12 @@ return {
                 vim.api.nvim_set_hl(0, 'BufferLine' .. name, val)
             end
 
-            hl('TabSeparator', { bg = '#000000' })
-            hl('Fill', { bg = '#000000' })
+            -- hl('Background', { bg = colors.bg })
+            hl('TabSeparator', { bg = colors.dark })
+            hl('Fill', { bg = colors.dark })
+            -- hl('BufferSelected', { fg = colors.fg, bg = colors.blue2 })
+            -- hl('SeparatorSelected', { bg = colors.blue2, fg = colors.dark })
+            -- hl('DevIconDefaultSelected', { bg = colors.blue2 })
         end
     },
 }

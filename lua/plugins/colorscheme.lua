@@ -18,6 +18,10 @@ return {
                 transparent_background = false,
             }
             local palette = require'night-owl.palette'
+            palette.dim_green = '#0f2909'
+            palette.dim_red = '#331c1c'
+            palette.dim_yellow = '#242418'
+            palette.prominent_yellow = '#3F3F00'
 
             -- Tune the night-owl colorscheme
             vim.api.nvim_create_autocmd('ColorScheme', {
@@ -34,14 +38,14 @@ return {
 
                     -- Miscellaneous
                     hl(0, 'ColorColumn', { bg = '#331c1c', })
-                    hl(0, 'CursorColumn', { bg = '#2d3a4a', })
-                    hl(0, 'CursorLine', { bg = '#2d3a4a', cterm = {}, underline = false })
+                    hl(0, 'CursorColumn', { bg = palette.gray, })
+                    hl(0, 'CursorLine', { bg = palette.gray, cterm = {}, underline = false })
 
                     -- Diff view
-                    hl(0, 'DiffAdd', { fg = 'NONE', bg = '#0f2909', })  -- bg a dim green
-                    hl(0, 'DiffDelete', { fg = 'NONE', bg = '#331c1c', })  -- bg a dim red
-                    hl(0, 'DiffChange', { fg = 'NONE', bg = '#242418', })  -- bg a dim gray-ish yellow
-                    hl(0, 'DiffText', { fg = 'NONE', bg = '#343400', })  -- bg a brighter yellow
+                    hl(0, 'DiffAdd', { fg = 'NONE', bg = palette.dim_green, })  -- bg a dim green
+                    hl(0, 'DiffDelete', { fg = 'NONE', bg = palette.dim_red, })  -- bg a dim red
+                    hl(0, 'DiffChange', { fg = 'NONE', bg = palette.dim_yellow, })  -- bg a dim gray-ish yellow
+                    hl(0, 'DiffText', { fg = 'NONE', bg = palette.prominent_yellow, })  -- bg a brighter yellow
 
 
                     -- Gitsign current line blame
