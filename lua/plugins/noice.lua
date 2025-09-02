@@ -114,6 +114,16 @@ return {
                     {
                         filter = {
                             event = 'msg_show',
+                            kind = 'echomsg',
+                            any = {
+                                { find = '[lsp-status] Received `end`' },
+                            },
+                        },
+                        opts = { skip = true },
+                    },
+                    {
+                        filter = {
+                            event = 'msg_show',
                             kind = 'lua_error',
                             any = {
                                 { find = 'Invalid buffer id' },
