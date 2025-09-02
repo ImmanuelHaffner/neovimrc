@@ -143,6 +143,9 @@ function renderer.render(props)
         if lines[1]:len() + get_incline_width() > text_width then  -- line too wide
             local _, linenum, colnum, _, _ = table.unpack(vim.fn.getcurpos(props.win))
             local num_lines_displayed = wininfo.botline - wininfo.topline + 1
+            if colnum > text_width - get_incline_width() then  -- cursor overlaps incline
+                return ''
+            end
             if linenum - wininfo.topline < num_lines_displayed / 3 then  -- cursor in upper third of win
                 if colnum > wininfo.width / 2 then  -- cursor not in the front half
                     return ''
