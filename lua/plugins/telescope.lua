@@ -69,6 +69,7 @@ return {
                     find_files = {
                         prompt_prefix = '󰱼 ',  -- alternatives: 󰱽 󰮗 󰈞 󰱼 🔍
                         hidden = true,
+                        no_ignore = true,
                     },
                     git_files = {
                         prompt_prefix = '  ',
