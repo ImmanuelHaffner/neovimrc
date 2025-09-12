@@ -1,5 +1,37 @@
 local M = { }
 
+function M.zen()
+    -- Clear regular search
+    vim.cmd[[nohlsearch]]
+
+    -- Clear notifications
+    local has_notify, notify = pcall(require, 'notify')
+    if has_notify then notify.dismiss() end
+
+    -- Hide search from galaxyline
+    local has_gl, gl = pcall(require, 'galaxyline')
+    if has_gl then
+        gl._mysection.search_active = false
+        gl.load_galaxyline()  -- force redraw
+    end
+
+    -- Close all Noice windows
+    local curr_tab = vim.api.nvim_get_current_tabpage()
+    local windows = vim.api.nvim_tabpage_list_wins(curr_tab)
+
+    -- Iterate in reverse to avoid issues with window IDs changing during closure
+    for i = #windows, 1, -1 do
+        local win = windows[i]
+        if vim.api.nvim_win_is_valid(win) then
+            local buf = vim.api.nvim_win_get_buf(win)
+            local filetype = vim.api.nvim_buf_get_option(buf, 'filetype')
+            if filetype == 'noice' then
+                vim.api.nvim_win_close(win, false)
+            end
+        end
+    end
+end
+
 function M.setup()
     local Utils = require'utils'
     local has_wk, wk = pcall(require, 'which-key')
@@ -10,20 +42,7 @@ function M.setup()
 
     -- Normal mode
     wk.add{
-        { '<Esc>', function()
-            -- Clear regular search
-            vim.cmd[[nohlsearch]]
-
-            -- Clear notifications
-            local has_notify, notify = pcall(require, 'notify')
-            if has_notify then notify.dismiss() end
-
-            local has_gl, gl = pcall(require, 'galaxyline')
-            if has_gl then
-                gl._mysection.search_active = false
-                gl.load_galaxyline()  -- force redraw
-            end
-        end, desc = 'Zen. Hide search results.' },
+        { '<Esc>', M.zen, desc = 'Zen. Hide search results and close noisy windows.' },
         { '<BS>', ':%s/\\s\\+$//<cr>:w<cr>', desc = 'Remove trailing whitespaces' },
         { '<F3>', function() Utils.toggle(vim.wo, 'spell') end, desc = 'Toggle spell' },
         { '<F4>', function() Utils.toggle(vim.wo, 'cursorcolumn') end, desc = 'Toggle crosshair' },
