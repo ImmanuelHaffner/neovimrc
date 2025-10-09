@@ -40,6 +40,9 @@ local lazyopts = {
 }
 require("lazy").setup(plugins, lazyopts)
 
+-- Configure LSPs
+require'lsp'.setup()
+
 -- Load our keymap
 require'keymap'.setup()
 
