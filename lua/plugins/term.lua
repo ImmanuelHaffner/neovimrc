@@ -92,7 +92,7 @@ return {
                 },
                 -- function to run on opening the terminal
                 on_open = function(term)
-                    vim.wo[term.window].spell = false  -- no spell checking
+                    vim.bo[term.bufnr].spell = false  -- no spell checking
                     vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
                     vim.cmd[[startinsert!]]
                 end,
@@ -104,7 +104,7 @@ return {
                     border = 'double',
                 },
                 on_open = function(term)
-                    vim.wo[term.window].spell = false  -- no spell checking
+                    vim.bo[term.bufnr].spell = false  -- no spell checking
                     vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
                     vim.cmd[[startinsert!]]
                 end,
@@ -116,6 +116,7 @@ return {
                 on_open = function(term)
                     local winid = vim.api.nvim_get_current_win()
                     vim.api.nvim_win_set_width(winid, 80)
+                    vim.bo[term.bufnr].spell = false  -- no spell checking
                     vim.cmd[[startinsert!]]
                 end,
             }
