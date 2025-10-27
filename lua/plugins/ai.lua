@@ -324,7 +324,7 @@ return {
                 callback = function(request)
                     -- Render output nicely as Markdown
                     vim.treesitter.start(request.buf, 'markdown')
-                    vim.b.colorcolumn = ''
+                    vim.wo.colorcolumn = ''
                 end,
             })
             -- Get the plugin root directory
