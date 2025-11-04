@@ -16,6 +16,7 @@ return {
             'rcarriga/nvim-notify',  -- optional
         },
         branch = 'experimental',
+        enabled = false,
         opts = {
             dirs = {
                 '/home/immanuel/Documents/Firebolt/replays/',
