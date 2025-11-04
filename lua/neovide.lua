@@ -15,12 +15,21 @@ local function compute_font_size(dpi)
     return math.floor(-.05 * dpi + 16.45 + .5)  -- +.5 to round
 end
 
+local function get_emoji_font()
+    local is_macos = vim.fn.has('mac') == 1
+    if is_macos then
+        return 'Apple_Color_Emoji'
+    else
+        return 'Noto_Color_Emoji'
+    end
+end
+
 local dpi = get_dpi()
 local default_font_size = compute_font_size(dpi)
 
 vim.g.gui_font_faces = {
     'Source_Code_Pro',
-    'Noto_Color_Emoji',
+    get_emoji_font(),
 }
 vim.g.gui_font_size = default_font_size
 
