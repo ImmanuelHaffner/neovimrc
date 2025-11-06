@@ -1,11 +1,31 @@
 local function get_dpi()
-  local handle = io.popen[[xrdb -query | grep Xft.dpi | awk '{print $2}']]
-  if handle then
-    local result = handle:read'*a'
-    handle:close()
-    return tonumber(result) or 96
+  local is_macos = vim.fn.has('mac') == 1
+  
+  if is_macos then
+    -- macOS: Use system_profiler to get display info
+    local handle = io.popen[[system_profiler SPDisplaysDataType | grep -B 3 "Main Display: Yes" | grep "Resolution" | head -1]]
+    if handle then
+      local display_info = handle:read('*a')
+      handle:close()
+      -- For Retina displays, macOS reports logical resolution, so we need to calculate actual DPI
+      -- Most modern Macs have ~220 DPI for Retina displays, ~110 for non-Retina
+      if display_info:find("Retina") then
+        return 220  -- High DPI for Retina displays
+      else
+        return 110  -- Standard DPI for non-Retina displays
+      end
+    end
+    return 110  -- Default DPI for macOS if detection fails
+  else
+    -- Linux: Use xrdb to get DPI
+    local handle = io.popen[[xrdb -query | grep Xft.dpi | awk '{print $2}']]
+    if handle then
+      local result = handle:read('*a')
+      handle:close()
+      return tonumber(result) or 96
+    end
+    return 96  -- Default DPI for Linux if not found
   end
-  return 96  -- Default DPI if not found
 end
 
 
