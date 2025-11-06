@@ -10,7 +10,7 @@ local function get_dpi()
       -- For Retina displays, macOS reports logical resolution, so we need to calculate actual DPI
       -- Most modern Macs have ~220 DPI for Retina displays, ~110 for non-Retina
       if display_info:find("Retina") then
-        return 220  -- High DPI for Retina displays
+        return 90
       else
         return 110  -- Standard DPI for non-Retina displays
       end
