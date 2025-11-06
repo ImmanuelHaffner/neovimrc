@@ -1,0 +1,19 @@
+.PHONY: install
+
+install:
+	@echo "Installing on MacOS"
+	# Remove existing configuration
+	rm -rf ${HOME}/.config/nvim
+	# Install configuration files
+	mkdir -p "${HOME}/.config/nvim/"
+	cp -f init.lua "${HOME}/.config/nvim/init.lua"
+	cp -Rf lua/ "${HOME}/.config/nvim/lua"
+	cp -Rf after/ "${HOME}/.config/nvim/after"
+	cp -Rf ftdetect/ "${HOME}/.config/nvim/ftdetect"
+	cp -Rf ftplugin/ "${HOME}/.config/nvim/ftplugin"
+	cp -Rf indent/ "${HOME}/.config/nvim/indent"
+	cp -Rf syntax/ "${HOME}/.config/nvim/syntax"
+	cp -Rf assets/ "${HOME}/.config/nvim/assets"
+	# Install nvimdiff thin wrapper
+	mkdir -p "${HOME}/.local/bin/"
+	install -m 755 nvimdiff "${HOME}/.local/bin/nvimdiff"
