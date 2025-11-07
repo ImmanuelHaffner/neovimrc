@@ -120,6 +120,10 @@ return {
     },
     { 'Davidyz/VectorCode',
         version = '0.7.12', -- optional, depending on whether you're on nightly or release
+        enabled = function()
+            -- Check whether `vectorcode` binary is executable
+            return vim.fn.executable('vectorcode') == 1
+        end,
         dependencies = {
             'nvim-lua/plenary.nvim'
         },
@@ -256,7 +260,7 @@ return {
                             show_result_in_chat = true,
                         }
                     },
-                    vectorcode = {
+                    vectorcode = vim.fn.executable('vectorcode') == 1 and {
                         ---@type VectorCode.CodeCompanion.ExtensionOpts
                         opts = {
                             tool_group = {
@@ -299,7 +303,7 @@ return {
                                 files_rm = {}
                             }
                         },
-                    },
+                    } or nil,
                 }
             }
 
