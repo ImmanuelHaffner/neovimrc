@@ -49,6 +49,29 @@ return {
         end
     },
     {
+        'scalameta/nvim-metals',
+        ft = { 'scala', 'sbt', 'java' },
+        opts = function()
+            local metals_config = require('metals').bare_config()
+            local global_config = vim.lsp.config['*']
+            if global_config and global_config.on_attach then
+                metals_config.on_attach = global_config.on_attach
+            end
+
+            return metals_config
+        end,
+        config = function(self, metals_config)
+            local nvim_metals_group = vim.api.nvim_create_augroup('nvim-metals', { clear = true })
+            vim.api.nvim_create_autocmd('FileType', {
+                pattern = self.ft,
+                callback = function()
+                    require('metals').initialize_or_attach(metals_config)
+                end,
+                group = nvim_metals_group,
+            })
+        end
+    },
+    {
         -- List of further plugins that don't need configuration.
         'barreiroleo/ltex_extra.nvim',
         'https://git.sr.ht/~p00f/clangd_extensions.nvim',

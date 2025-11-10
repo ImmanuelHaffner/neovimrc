@@ -1,6 +1,5 @@
 local M = { }
 
-
 function M.setup()
     local lsp_status = require'lsp-status'
     local navic = require'nvim-navic'
