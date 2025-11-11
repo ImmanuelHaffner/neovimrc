@@ -10,7 +10,9 @@ local function has_tree_sitter_cli()
 
     -- Check if command executed successfully and returned version info
     local is_tree_sitter_cli_available = success and result and result:match('tree%-sitter') ~= nil
-    vim.notify('tree-sitter CLI available? ' .. tostring(is_tree_sitter_cli_available))
+    if not is_tree_sitter_cli_available then
+        vim.notify('Tree-sitter CLI is not available. Some grammars will not be installed.')
+    end
     return is_tree_sitter_cli_available
 end
 
