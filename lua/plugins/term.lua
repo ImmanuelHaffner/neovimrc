@@ -29,12 +29,47 @@ return {
 
             local Terminal = require'toggleterm.terminal'.Terminal
 
+            -- Function to get SSH_AUTH_SOCK value based on platform and existing environment
+            local function get_ssh_auth_sock()
+                -- First check if SSH_AUTH_SOCK is already set in environment
+                local existing_ssh_auth_sock = vim.env.SSH_AUTH_SOCK
+                if existing_ssh_auth_sock and existing_ssh_auth_sock ~= '' then
+                    return existing_ssh_auth_sock
+                end
+
+                -- If not set, determine platform-specific default
+                local uname = vim.fn.system('uname -s'):gsub('\n', '')
+                if uname == 'Darwin' then
+                    -- macOS: ssh-agent (dealing with weirdly inconsistent socket path)
+                    local possible_sockets = vim.fn.glob('/private/tmp/com.apple.launchd.*/Listeners', false, true)
+
+                    if #possible_sockets > 1 then
+                        vim.notify('Found multiple possible ssh-agent sockets; you should probably investigate this.', vim.log.levels.WARN)
+                    end
+
+                    for _, possible_socket in ipairs(possible_sockets) do
+                        if vim.fn.filereadable(possible_socket) == 1 then
+                            return possible_socket
+                        end
+                    end
+
+                    -- Fallback if no socket found
+                    return nil
+                else
+                    -- Linux/other Unix systems typically use XDG_RUNTIME_DIR
+                    return '$XDG_RUNTIME_DIR/ssh-agent.socket'
+                end
+            end
+
+            local custom_env = {
+                ['GPG_TTY'] = '$(tty)',
+                ['SSH_AUTH_SOCK'] = get_ssh_auth_sock(),
+                ['NVIM_LISTEN_ADDRESS'] = tostring(vim.v.servername),
+            }
+            local env_string = make_env_string(custom_env)
+
             local lazygit = Terminal:new{
-                cmd = make_env_string({
-                    ['GPG_TTY'] = '$(tty)',
-                    ['SSH_AUTH_SOCK'] = '$XDG_RUNTIME_DIR/ssh-agent.socket',
-                    ['NVIM_LISTEN_ADDRESS'] = tostring(vim.v.servername),
-                }) .. ' lazygit',
+                cmd = env_string .. ' lazygit',
                 dir = 'git_dir',
                 direction = 'tab',
                 -- function to run on opening the terminal
