@@ -117,6 +117,7 @@ return {
                             kind = 'echomsg',
                             any = {
                                 { find = '[lsp-status] Received `end`' },
+                                { find = 'Following fonts couldn\'t be loaded:' },
                             },
                         },
                         opts = { skip = true },
