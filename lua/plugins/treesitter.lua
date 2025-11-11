@@ -66,7 +66,7 @@ return {
             ---@diagnostic disable-next-line: missing-fields
             require'nvim-treesitter.configs'.setup{
                 sync_install = false,
-                auto_install = true,
+                auto_install = false,
                 ignore_install = {},
                 highlight = {
                     enable = true,
