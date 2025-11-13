@@ -110,6 +110,7 @@ return {
     { 'ravitemer/mcphub.nvim',
         dependencies = {
             'nvim-lua/plenary.nvim',  -- Required for Job and HTTP requests
+            'Joakker/lua-json5',
         },
         -- uncomment the following line to load hub lazily
         --cmd = 'MCPHub',  -- lazy load
