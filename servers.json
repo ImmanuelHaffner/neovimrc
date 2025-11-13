@@ -15,7 +15,7 @@
       ],
       "disabled": false
     },
-    "github_firebolt": {
+    "github_databricks": {
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "$$$"
       },
