@@ -179,6 +179,27 @@ function M.setup()
 
     -- Enable all configured LSP servers
     vim.lsp.enable({ 'clangd', 'ltex', 'texlab', 'pylsp', 'bashls', 'lua_ls' })
+
+    -- Configure metals
+    local metals_config = require('metals').bare_config()
+    metals_config.init_options.statusBarProvider = "off"
+    local global_config = vim.lsp.config['*']
+    if global_config then
+        if global_config.on_attach then
+            metals_config.on_attach = global_config.on_attach
+        end
+        if global_config.capabilities then
+            metals_config.capabilities = global_config.capabilities
+        end
+    end
+    local nvim_metals_group = vim.api.nvim_create_augroup('nvim-metals', { clear = true })
+    vim.api.nvim_create_autocmd('FileType', {
+        pattern = { 'scala', 'sbt', 'java' },
+        callback = function()
+            require'metals'.initialize_or_attach(metals_config)
+        end,
+        group = nvim_metals_group,
+    })
 end
 
 return M
