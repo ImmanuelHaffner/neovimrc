@@ -38,7 +38,7 @@ local lazyopts = {
         lazy = false,
     },
 }
-require("lazy").setup(plugins, lazyopts)
+require'lazy'.setup(plugins, lazyopts)
 
 -- Configure LSPs
 require'lsp'.setup()
