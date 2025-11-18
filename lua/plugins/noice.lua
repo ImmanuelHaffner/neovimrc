@@ -70,14 +70,20 @@ return {
                         },
                         view = 'confirm',
                     },
-                      -- Don't show a message for the "File written" prompt.
-                      {
-                          filter = {
-                              event = 'msg_show',
-                              kind = 'bufwrite',
-                          },
-                          opts = { skip = true },
-                      },
+                    -- Don't show a message for the "File written" prompt.
+                    {
+                        filter = {
+                            event = 'msg_show',
+                            kind = 'bufwrite',
+                        },
+                        opts = { skip = true },
+                    },
+                    {
+                        filter = {
+                            event = 'msg_show',
+                            find = 'B written',  -- to match '... 4491L, 184689B written'
+                        },
+                    },
                     -- Don't show a message for the search match count while searching.
                     {
                         filter = {
