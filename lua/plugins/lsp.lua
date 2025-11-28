@@ -50,6 +50,9 @@ return {
     },
     {
         'scalameta/nvim-metals',
+        dependencies = {
+            'mfussenegger/nvim-dap',
+        },
         ft = { 'scala', 'sbt', 'java' },
         -- We configure metals *after* loading all plugins and after defining default capabilities and on_attach
     },
