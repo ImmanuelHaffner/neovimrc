@@ -138,6 +138,15 @@ return {
                         },
                         opts = { skip = true },
                     },
+                    {
+                        filter = {
+                            event = 'msg_show',
+                            any = {
+                                { find = '%--' },
+                            },
+                        },
+                        opts = { skip = true },
+                    },
                     -- Skip warning messages from CodeCompanion
                     {
                         filter = {
