@@ -108,6 +108,8 @@ return {
                         if vim.tbl_contains(FRAGILE_FILETYPES, filetype) then return true end
                         -- Don't save certain buftypes
                         if vim.tbl_contains(FRAGILE_BUFTYPES, buftype) then return true end
+                        -- Don't save when gitsigns is open
+                        if vim.startswith(bufname, 'gitsigns://') then return true end
                     end
                     if utils.any_visible_buffer(is_ephemeral_buffer) then return end
 
