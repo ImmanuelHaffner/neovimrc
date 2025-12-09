@@ -3,6 +3,7 @@ local M = { }
 function M.setup()
     local lsp_status = require'lsp-status'
     local navic = require'nvim-navic'
+    local wk = require'which-key'
 
     lsp_status.register_progress()
 
@@ -22,7 +23,6 @@ function M.setup()
         on_attach = function(client, bufnr)
             -- Keymaps and UI setup
             local opts = { buffer = bufnr, noremap = true, silent = true }
-            local wk = require'which-key'
             local buf = vim.lsp.buf
             local diag = vim.diagnostic
 
@@ -67,7 +67,14 @@ function M.setup()
                 {
                     { '<leader>lc', 'Code …' },
                     { '<leader>lca', buf.code_action, desc = 'Perform code action for item under cursor' },
+                    { '<leader>lcl', vim.lsp.codelens.run, desc = 'Open code lens' },
                     { '<leader>lcf', function() buf.format({ async = false }) end, desc = 'Perform formatting (whole file)' },
+                },
+                {
+                    { '<leader>lf', group = 'Find …' },
+                    { '<leader>lfw', buf.workspace_symbol, desc = 'Workspace symbols' },
+                    { '<leader>lfd', buf.document_symbol, desc = 'Document symbols' },
+                    { '<leader>lfr', require('telescope.builtin').lsp_references, desc = 'References' },
                 },
             }
 
