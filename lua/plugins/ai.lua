@@ -241,7 +241,7 @@ return {
 
                     chat = {
                         show_token_count = true,
-                        show_settings = true,  -- when `true` prevents changing adapter/model
+                        show_settings = false,  -- when `true` prevents changing adapter/model
 
                         --- Customize how tokens are displayed
                         --- @param tokens number
