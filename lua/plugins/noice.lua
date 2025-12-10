@@ -83,6 +83,7 @@ return {
                             event = 'msg_show',
                             find = 'B written',  -- to match '... 4491L, 184689B written'
                         },
+                        opts = { skip = true },
                     },
                     -- Don't show a message for the search match count while searching.
                     {
