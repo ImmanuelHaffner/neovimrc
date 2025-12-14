@@ -41,7 +41,6 @@ return {
     {
         -- Good enough syntax highlight for MDX in Neovim using Treesitter.
         'davidmh/mdx.nvim',
-        config = true,
         dependencies = {'nvim-treesitter/nvim-treesitter'}
     },
 }
