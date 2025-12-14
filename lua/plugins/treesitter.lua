@@ -45,6 +45,7 @@ return {
                 'regex',
                 'requirements',
                 'rust',
+                'scala',
                 'sql',
                 'vim',
                 'vimdoc',
