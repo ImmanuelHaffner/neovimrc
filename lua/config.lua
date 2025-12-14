@@ -174,6 +174,9 @@ function M.setup()
 
     -- Diff options
     vim.opt.diffopt = 'filler,iwhiteall,vertical,internal,indent-heuristic,algorithm:patience,closeoff,hiddenoff,linematch:60'
+
+    -- Set Python 3 host program for provider support
+    vim.g.python3_host_prog = '/usr/bin/python3'
 end
 
 return M
