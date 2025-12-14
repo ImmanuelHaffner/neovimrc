@@ -15,10 +15,10 @@ return {
                 duck.hatch(pet, speed)
             end
             wk.add{
-                { '<leader>d', group = 'Duck' },
-                { '<leader>dd', function() duck.hatch('🦆', speed) end, desc = 'Hatch duck' },
-                { '<leader>dp', function() hatch() end, desc = 'Hatch a pet' },
-                { '<leader>dc', function() duck.cook() end, desc = 'Cook duck' },
+                { '<leader>,d', group = 'Duck' },
+                { '<leader>,dd', function() duck.hatch('🦆', speed) end, desc = 'Hatch duck' },
+                { '<leader>,dp', function() hatch() end, desc = 'Hatch a pet' },
+                { '<leader>,dc', function() duck.cook() end, desc = 'Cook duck' },
             }
         end
     }
