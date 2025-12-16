@@ -1,7 +1,7 @@
 return {
-    { 'folke/noice.nvim',
+    {
+        'folke/noice.nvim',
         tag = 'v4.10.0',
-        event = 'VeryLazy',
         dependencies = {
             -- if you lazy-load any plugin below, make sure to add proper `module='...'` entries
             'MunifTanjim/nui.nvim',
@@ -11,6 +11,7 @@ return {
             'rcarriga/nvim-notify',
             'hrsh7th/nvim-cmp',
         },
+        event = 'UIEnter',
         config = function()
             local msg_width = 60
 
