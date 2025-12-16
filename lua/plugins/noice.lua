@@ -57,10 +57,11 @@ return {
                     -- Route all confirmation dialogs to the confirm view
                     {
                         filter = {
+                            event = 'msg_show',
                             any = {
-                                { event = 'msg_show', kind = 'confirm' },
-                                { event = 'msg_show', kind = 'confirm_sub' },
-                                { event = 'msg_show', kind = 'number_prompt' },
+                                { kind = 'confirm' },
+                                { kind = 'confirm_sub' },
+                                { kind = 'number_prompt' },
                             },
                         },
                         view = 'confirm',
