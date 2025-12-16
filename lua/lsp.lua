@@ -1,5 +1,72 @@
 local M = { }
 
+local function setup_metals()
+    -- Configure metals
+    local wk = require'which-key'
+    local metals = require'metals'
+    local metals_config = metals.bare_config()
+    metals_config.settings = {
+        defaultBspToBuildTool = true,
+
+        -- Repositories
+        javaHome = '/usr/lib/jvm/java-17-openjdk-amd64',
+
+        showImplicitArguments = true,
+        fallbackScalaVersion = '2.13.16',
+        -- serverProperties = {
+        --     '-Dmetals.verbose=true',
+        --     '-Dmetals.askToReconnect=false',
+        --     '-Dmetals.loglevel=debug',
+        --     '-Dmetals.build-server-ping-interval=10h',
+        --     '-Dmetals.inlayHints.hintsXRayMode=true',
+        --     '-XX:+UseG1GC',
+        --     '-XX:+UseStringDeduplication',
+        --     '-Xss4m',
+        --     '-Xms2g',
+        --     '-Xmx8g',
+        -- },
+
+        -- Databricks custom version
+        serverVersion = "9.9.9-DATABRICKS-LAUNCHER-1",
+
+        -- We set our metals wrapper script here, which acts as an executable for the databricks JAR file
+        useGlobalExecutable = false,
+        metalsBinaryPath = vim.fn.expand('~/.local/bin/metals'),
+    }
+
+    metals_config.init_options.statusBarProvider = 'off'
+    local global_config = vim.lsp.config['*']
+    if global_config then
+        if global_config.on_attach then
+            metals_config.on_attach = global_config.on_attach
+        end
+        if global_config.capabilities then
+            metals_config.capabilities = global_config.capabilities
+        end
+    end
+    metals_config.capabilities.workspace = metals_config.capabilities.workspace or {}
+    metals_config.capabilities.workspace.semanticTokens = metals_config.capabilities.workspace.semanticTokens or {}
+    metals_config.capabilities.workspace.semanticTokens.refreshSupport = true
+
+    -- Override `find_root_dir` to simply use CWD
+    metals_config.find_root_dir = function() return vim.fn.getcwd() end
+
+    local nvim_metals_group = vim.api.nvim_create_augroup('nvim-metals', { clear = true })
+    vim.api.nvim_create_autocmd('FileType', {
+        pattern = { 'scala', 'sbt', 'java' },
+        callback = function(opts)
+            metals.initialize_or_attach(metals_config)
+            wk.add({
+                buffer = opts.buf,
+                { '<leader>lhm', function() require'telescope'.extensions.metals.commands() end, desc = 'Metals Commands' }
+            }, {
+                silent = true
+            })
+        end,
+        group = nvim_metals_group,
+    })
+end
+
 function M.setup()
     local lsp_status = require'lsp-status'
     local navic = require'nvim-navic'
@@ -179,76 +246,14 @@ function M.setup()
         root_markers = { '.luarc.json', '.luarc.jsonc', '.git' },
     }
 
-    -- Set up hover handler with rounded borders
-    vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-        border = "rounded",
-    })
-
     -- Enable all configured LSP servers
     vim.lsp.enable({ 'clangd', 'ltex', 'texlab', 'pylsp', 'bashls', 'lua_ls' })
 
-    -- Configure metals
-    local metals = require'metals'
-    local metals_config = metals.bare_config()
-    metals_config.settings = {
-        defaultBspToBuildTool = true,
+    setup_metals()
 
-        -- Repositories
-        javaHome = '/usr/lib/jvm/java-17-openjdk-amd64',
-
-        showImplicitArguments = true,
-        fallbackScalaVersion = '2.13.16',
-        -- serverProperties = {
-        --     '-Dmetals.verbose=true',
-        --     '-Dmetals.askToReconnect=false',
-        --     '-Dmetals.loglevel=debug',
-        --     '-Dmetals.build-server-ping-interval=10h',
-        --     '-Dmetals.inlayHints.hintsXRayMode=true',
-        --     '-XX:+UseG1GC',
-        --     '-XX:+UseStringDeduplication',
-        --     '-Xss4m',
-        --     '-Xms2g',
-        --     '-Xmx8g',
-        -- },
-
-        -- Databricks custom version
-        serverVersion = "9.9.9-DATABRICKS-LAUNCHER-1",
-
-        -- We set our metals wrapper script here, which acts as an executable for the databricks JAR file
-        useGlobalExecutable = false,
-        metalsBinaryPath = vim.fn.expand('~/.local/bin/metals'),
-    }
-
-    metals_config.init_options.statusBarProvider = 'off'
-    local global_config = vim.lsp.config['*']
-    if global_config then
-        if global_config.on_attach then
-            metals_config.on_attach = global_config.on_attach
-        end
-        if global_config.capabilities then
-            metals_config.capabilities = global_config.capabilities
-        end
-    end
-    metals_config.capabilities.workspace = metals_config.capabilities.workspace or {}
-    metals_config.capabilities.workspace.semanticTokens = metals_config.capabilities.workspace.semanticTokens or {}
-    metals_config.capabilities.workspace.semanticTokens.refreshSupport = true
-
-    -- Override `find_root_dir` to simply use CWD
-    metals_config.find_root_dir = function() return vim.fn.getcwd() end
-
-    local nvim_metals_group = vim.api.nvim_create_augroup('nvim-metals', { clear = true })
-    vim.api.nvim_create_autocmd('FileType', {
-        pattern = { 'scala', 'sbt', 'java' },
-        callback = function(opts)
-            metals.initialize_or_attach(metals_config)
-            wk.add({
-                buffer = opts.buf,
-                { '<leader>lhm', function() require'telescope'.extensions.metals.commands() end, desc = 'Metals Commands' }
-            }, {
-                silent = true
-            })
-        end,
-        group = nvim_metals_group,
+    -- Set up hover handler with rounded borders
+    vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+        border = "rounded",
     })
 end
 
