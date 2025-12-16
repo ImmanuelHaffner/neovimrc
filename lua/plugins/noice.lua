@@ -82,20 +82,21 @@ return {
                         opts = { skip = true },
                     },
                     -- Don't show a message for the search match count while searching.
-                    {
-                        filter = {
-                            event = 'msg_show',
-                            kind = 'search_count',
-                        },
-                        opts = { skip = true },
-                    },
-                    {
-                        filter = {
-                            event = 'msg_show',
-                            kind = 'search_cmd',
-                        },
-                        opts = { skip = true },
-                    },
+                    -- NOTE: Only use this if you *do not* use the Noice built-in `view_search`
+                    -- {
+                    --     filter = {
+                    --         event = 'msg_show',
+                    --         kind = 'search_count',
+                    --     },
+                    --     opts = { skip = true },
+                    -- },
+                    -- {
+                    --     filter = {
+                    --         event = 'msg_show',
+                    --         kind = 'search_cmd',
+                    --     },
+                    --     opts = { skip = true },
+                    -- },
                     -- Suppress a bunch of errors.
                     --  - Don't show a message when search hits end of file.
                     --  - ltex-ls LSP that we want to silence.
