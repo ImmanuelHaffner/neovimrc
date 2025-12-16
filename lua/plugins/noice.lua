@@ -13,21 +13,15 @@ return {
         },
         event = 'UIEnter',
         config = function()
+            local term_width = vim.o.columns
             local msg_width = 60
-
-            -- Set up autocmd to compute width after UI is initialized
-            vim.api.nvim_create_autocmd('UIEnter', {
-                callback = function()
-                    local term_width = vim.o.columns
-                    if term_width then
-                        if term_width > 4 then
-                            msg_width = term_width - 4  -- leave space for border and padding
-                        else
-                            msg_width = term_width
-                        end
-                    end
-                end,
-            })
+            if term_width then
+                if term_width > 4 then
+                    msg_width = term_width - 4  -- leave space for border and padding
+                else
+                    msg_width = term_width
+                end
+            end
 
             require'noice'.setup{
                 lsp = {
