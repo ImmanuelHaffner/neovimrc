@@ -1,20 +1,4 @@
-local function has_tree_sitter_cli()
-    -- Check if tree-sitter CLI is available and working
-    local handle = io.popen('tree-sitter --version 2>/dev/null')
-    if not handle then
-        return false
-    end
-
-    local result = handle:read('*a')
-    local success = handle:close()
-
-    -- Check if command executed successfully and returned version info
-    local is_tree_sitter_cli_available = success and result and result:match('tree%-sitter') ~= nil
-    if not is_tree_sitter_cli_available then
-        vim.notify('Tree-sitter CLI is not available. Some grammars will not be installed.')
-    end
-    return is_tree_sitter_cli_available
-end
+local Utils = require'utils'
 
 return {
     { 'nvim-treesitter/nvim-treesitter',
@@ -55,12 +39,14 @@ return {
                 'zathurarc',
             }
 
-            if has_tree_sitter_cli() then
+            if Utils.has_tree_sitter_cli() then
                 ensure_installed = {
                     table.unpack(ensure_installed),
                     -- List of grammars that require the tree-sitter CLI
                     'latex'
                 }
+            else
+                vim.notify('Tree-sitter CLI is not available. Some grammars will not be installed.')
             end
 
             require'nvim-treesitter'.setup()

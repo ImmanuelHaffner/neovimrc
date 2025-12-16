@@ -222,4 +222,19 @@ function M.get_highlight_group(name)
     }
 end
 
+function M.has_tree_sitter_cli()
+    -- Check if tree-sitter CLI is available and working
+    local handle = io.popen('tree-sitter --version 2>/dev/null')
+    if not handle then
+        return false
+    end
+
+    local result = handle:read('*a')
+    local success = handle:close()
+
+    -- Check if command executed successfully and returned version info
+    return success and result and result:match('tree%-sitter') ~= nil
+end
+
+
 return M
