@@ -13,7 +13,7 @@ for _, file in ipairs(vim.fn.readdir(path[1], [[v:val =~ '\.lua$']])) do
         if ok then
             vim.list_extend(plugins, table)
         else
-            vim.print('Failed to load module \'' .. vim.inspect(module) .. '\'')
+            vim.print('Failed to load module \'' .. vim.inspect(module) .. '\'\n' .. vim.inspect(table))
         end
     end
 end
