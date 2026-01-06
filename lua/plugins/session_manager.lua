@@ -118,6 +118,14 @@ return {
                     vim.api.nvim_echo({{ 'Session saved.' }}, true, {})
                 end
             })
+
+            -- Load project config after session load (and change of CWD)
+            local LoadProjectConfig = vim.api.nvim_create_augroup('LoadProjectConfig', { clear = false })
+            vim.api.nvim_create_autocmd('SessionLoadPost', {
+                group = LoadProjectConfig,
+                pattern = 'global',
+                callback = Utils.load_project_config,
+            })
         end
     },
 }

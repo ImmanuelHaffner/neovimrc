@@ -62,19 +62,11 @@ vim.api.nvim_create_autocmd('UIEnter', {
 })
 
 -- Support for project-specific config {{{------------------------------------------------------------------------------
-local function load_project_config()
-    if vim.fn.filereadable('.project.lua') == 1 then
-        vim.cmd[[luafile .project.lua]]
-    elseif vim.fn.filereadable('.project.vim') == 1 then
-        vim.cmd[[source .project.vim]]
-    end
-end
-
-local LoadProjectConfig = vim.api.nvim_create_augroup('LoadProjectConfig', {})
+local LoadProjectConfig = vim.api.nvim_create_augroup('LoadProjectConfig', { clear = false })
 vim.api.nvim_create_autocmd('DirChanged', {
     group = LoadProjectConfig,
     pattern = 'global',
-    callback = load_project_config,
+    callback = Utils.load_project_config,
 })
-load_project_config()
+Utils.load_project_config()
 ---}}}------------------------------------------------------------------------------------------------------------------

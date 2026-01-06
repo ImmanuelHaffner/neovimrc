@@ -236,5 +236,12 @@ function M.has_tree_sitter_cli()
     return success and result and result:match('tree%-sitter') ~= nil
 end
 
+function M.load_project_config()
+    if vim.fn.filereadable('.project.lua') == 1 then
+        vim.cmd[[luafile .project.lua]]
+    elseif vim.fn.filereadable('.project.vim') == 1 then
+        vim.cmd[[source .project.vim]]
+    end
+end
 
 return M
