@@ -1,3 +1,5 @@
+local Utils = require 'utils'
+
 return {
     { 'nvim-telescope/telescope-fzf-native.nvim',
         build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build build --config Release && cmake --install build --prefix build',
@@ -15,6 +17,42 @@ return {
             local entry_display = require'telescope.pickers.entry_display'
             local builtins = require'telescope.builtin'
             local previewers = require'telescope.previewers'
+            local devicons = require'nvim-web-devicons'
+
+            local function custom_file_entry_maker(opts)
+                opts = opts or {}
+                local utils = require('telescope.utils')
+                local max_len = opts.max_len or 60
+
+                return function(entry)
+                    local filename = utils.path_tail(entry)
+                    local display_path = Utils.shorten_relative_path(entry, max_len)
+                    local glyph, hl_group = devicons.get_icon(filename)
+
+                    local display_formatter = entry_display.create{
+                        separator = ' ',
+                        items = {
+                            { width = 1 },  -- Icon
+                            { remaining = true } -- Path
+                        }
+                    }
+
+                    local display_func = function()
+                        return display_formatter{
+                            { glyph or '', hl_group },
+                            { display_path }
+                        }
+                    end
+
+                    return {
+                        value = entry,
+                        ordinal = entry,
+                        display = display_func,
+                        filename = filename,
+                        path = entry,
+                    }
+                end
+            end
 
             local function custom_git_entry_maker(entry)
                 local commit_hash, author, date, message = entry:match("^(%S+) (.-) (%d%d%d%d%-%d%d%-%d%d) (.+)$")
@@ -51,7 +89,6 @@ return {
                 }
             end
 
-
             ts.setup{
                 defaults = {
                     dynamic_preview_title = true,
@@ -70,9 +107,11 @@ return {
                         prompt_prefix = '󰱼 ',  -- alternatives: 󰱽 󰮗 󰈞 󰱼 🔍
                         hidden = true,
                         no_ignore = true,
+                        entry_maker = custom_file_entry_maker{max_len = 80},
                     },
                     git_files = {
                         prompt_prefix = '  ',
+                        entry_maker = custom_file_entry_maker{max_len = 80},
                     },
                     git_branches = {
                         prompt_prefix = ' ',
