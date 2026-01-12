@@ -89,21 +89,15 @@ function M.setup()
         -- Global on_attach that will be called for all servers
         on_attach = function(client, bufnr)
             -- Keymaps and UI setup
-            local opts = { buffer = bufnr, noremap = true, silent = true }
             local buf = vim.lsp.buf
             local diag = vim.diagnostic
 
             -- Diagnostics navigation
-            vim.keymap.set('n', '?', vim.diagnostic.open_float, opts)
-            vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
-            vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
             wk.add{
-                {
-                    buffer = bufnr,
-                    { '?', vim.diagnostic.open_float, desc = 'Show diagnostic under cursor' },
-                    { '[d', vim.diagnostic.goto_prev, desc = 'Goto previous diagnostic' },
-                    { ']d', diag.goto_next, desc = 'Goto next diagnostic' },
-                }
+                buffer = bufnr,
+                { '?', vim.diagnostic.open_float, desc = 'Show diagnostic under cursor' },
+                { '[d', function() vim.diagnostic.jump{ count=-1, float=true } end, desc = 'Goto previous diagnostic' },
+                { ']d', function() vim.diagnostic.jump{ count=1, float=true } end, desc = 'Goto next diagnostic' },
             }
 
             -- LSP commands
