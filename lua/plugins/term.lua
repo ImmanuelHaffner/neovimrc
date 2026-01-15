@@ -6,6 +6,28 @@ local function make_env_string(env)
     return str
 end
 
+local function goto_previous_tab(previous_tab)
+    if previous_tab == nil then return end
+    vim.schedule(function()
+        local current_tab = vim.api.nvim_get_current_tabpage()
+
+        if current_tab ~= previous_tab then
+            -- Check if previous tab still exists and is different from current
+            local tab_exists = false
+            for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
+                if tab == previous_tab then
+                    tab_exists = true
+                    break
+                end
+            end
+
+            if tab_exists then
+                vim.api.nvim_set_current_tabpage(term.previous_tab)
+            end
+        end
+    end)
+end
+
 return {
     {
         'akinsho/toggleterm.nvim',
@@ -77,27 +99,7 @@ return {
                     -- Install keymaps
                     local function close()
                         vim.api.nvim_win_close(term.window, false)
-
-                        if term.previous_tab then
-                            vim.schedule(function()
-                                local current_tab = vim.api.nvim_get_current_tabpage()
-
-                                if current_tab ~= term.previous_tab then
-                                    -- Check if previous tab still exists and is different from current
-                                    local tab_exists = false
-                                    for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
-                                        if tab == term.previous_tab then
-                                            tab_exists = true
-                                            break
-                                        end
-                                    end
-
-                                    if tab_exists then
-                                        vim.api.nvim_set_current_tabpage(term.previous_tab)
-                                    end
-                                end
-                            end)
-                        end
+                        goto_previous_tab(term.previous_tab)
                     end
                     vim.api.nvim_buf_set_keymap(term.bufnr, 'i', '<C-q>', '', {noremap = true, silent = true, callback = close})
                     vim.api.nvim_buf_set_keymap(term.bufnr, 'n', '<C-q>', '', {noremap = true, silent = true, callback = close})
@@ -116,6 +118,20 @@ return {
                     vim.api.nvim_buf_del_keymap(term.bufnr, 'i', '<C-q>')
                     vim.api.nvim_buf_del_keymap(term.bufnr, 'n', '<C-q>')
                     vim.api.nvim_buf_del_keymap(term.bufnr, 't', '<C-q>')
+                end,
+            }
+
+            local claude_code = Terminal:new{
+                cmd = 'llm agent claude',
+                dir = vim.fn.getcwd(),
+                direction = 'tab',
+                on_open = function(term)
+                    vim.wo[term.window].scrolloff = 0
+                    vim.wo[term.window].sidescrolloff = 0
+                    vim.wo[term.window].spell = false  -- no spell checking
+                    vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
+                    vim.cmd[[startinsert!]]
+                    vim.fn.setcursorcharpos(1, 1)
                 end,
             }
 
@@ -164,6 +180,7 @@ return {
                 { '<leader>ft', '<cmd>TermSelect<cr>', desc = 'Select toggle term' },
 
                 { '<leader>r', group = 'Run command…' },
+                { '<leader>rc', function() claude_code:toggle() end, desc = 'Claude Code' },
                 { '<leader>rr', function() ranger:toggle() end, desc = 'File Ranger' },
                 { '<leader>rt', function() float_term:toggle() end, desc = 'Floating Terminal' },
                 { '<leader>rp', function() ipython:toggle() end, desc = 'IPython Interpreter' },
