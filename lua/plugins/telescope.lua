@@ -1,5 +1,21 @@
 local Utils = require 'utils'
 
+local function get_path_from_entry(entry)
+    if type(entry) == 'string' then
+        if entry ~= '' then
+            return entry
+        end
+    else
+        local from_entry = require'telescope.from_entry'
+        local path = from_entry.path(entry, false, false)
+        if path then return path end
+        if entry.info and entry.info.name then
+            return entry.info.name
+        end
+    end
+    return '[No Name]'
+end
+
 local jump_to_line = function(self, bufnr, entry)
     local utils = require 'telescope.utils'
     local ns_previewer = vim.api.nvim_create_namespace 'telescope.previewers'
@@ -38,19 +54,13 @@ local jump_to_line = function(self, bufnr, entry)
 end
 
 local function buffer_previewer(self, entry)
-    local from_entry = require 'telescope.from_entry'
+    local from_entry = require'telescope.from_entry'
     local conf = require'telescope.config'.values
 
     -- builtin.buffers: bypass path validation for terminal buffers that don't have appropriate path
     local has_buftype = entry.bufnr and vim.api.nvim_buf_is_valid(entry.bufnr) and vim.bo[entry.bufnr].buftype ~= ""
     or false
-    local p
-    if not has_buftype then
-        p = from_entry.path(entry, true, false)
-        if p == nil or p == "" then
-            return
-        end
-    end
+    local p = get_path_from_entry(entry)
 
     -- Workaround for unnamed buffer when using builtin.buffer
     if entry.bufnr and (p == "[No Name]" or has_buftype) then
@@ -97,8 +107,10 @@ return {
                 local max_len = opts.max_len or 60
 
                 return function(entry)
-                    local filename = utils.path_tail(entry)
-                    local display_path = Utils.shorten_relative_path(entry, max_len)
+                    local path = get_path_from_entry(entry)
+
+                    local filename = utils.path_tail(path) or '[No Name]'
+                    local display_path = Utils.shorten_relative_path(path, max_len)
                     local glyph, hl_group = devicons.get_icon(filename)
 
                     local display_formatter = entry_display.create{
@@ -111,17 +123,17 @@ return {
 
                     local display_func = function()
                         return display_formatter{
-                            { glyph or '', hl_group },
+                            { glyph or '', hl_group or 'Normal' },
                             { display_path }
                         }
                     end
 
                     return {
                         value = entry,
-                        ordinal = entry,
+                        ordinal = path,
                         display = display_func,
                         filename = filename,
-                        path = entry,
+                        path = path,
                     }
                 end
             end
@@ -183,11 +195,11 @@ return {
                         previewer = previewers.new_buffer_previewer{
                             define_preview = buffer_previewer,
                             get_buffer_by_name = function(_, entry)
-                                return from_entry.path(entry, false, false)
+                                return get_path_from_entry(entry)
                             end,
                             title = 'Find files',
                             dyn_title = function(self, entry)
-                                return Utils.shorten_relative_path(entry.value, 100)
+                                return Utils.shorten_relative_path(entry.path, 100)
                             end,
                         },
                     },
@@ -197,11 +209,11 @@ return {
                         previewer = previewers.new_buffer_previewer{
                             define_preview = buffer_previewer,
                             get_buffer_by_name = function(_, entry)
-                                return from_entry.path(entry, false, false)
+                                return get_path_from_entry(entry)
                             end,
                             title = 'Git files',
                             dyn_title = function(self, entry)
-                                return Utils.shorten_relative_path(entry.value, 100)
+                                return Utils.shorten_relative_path(entry.path, 100)
                             end,
                         },
                     },
@@ -258,6 +270,17 @@ return {
                         prompt_prefix = ' ',
                         sort_lastused = true,
                         sort_mru = true,
+                        entry_maker = custom_file_entry_maker{max_len = 80},
+                        previewer = previewers.new_buffer_previewer{
+                            define_preview = buffer_previewer,
+                            get_buffer_by_name = function(_, entry)
+                                return get_path_from_entry(entry)
+                            end,
+                            title = 'Buffers',
+                            dyn_title = function(self, entry)
+                                return Utils.shorten_relative_path(entry.path, 100)
+                            end,
+                        },
                     },
                     live_grep = {
                         prompt_prefix = ' ',
