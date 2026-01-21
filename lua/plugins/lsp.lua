@@ -45,6 +45,7 @@ return {
                 show_filename = false,
                 status_symbol = '',
                 current_function = false,  -- we use navic for that
+                spinner_frames = { '⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧' },
             }
         end
     },
