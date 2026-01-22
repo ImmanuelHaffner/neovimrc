@@ -82,16 +82,22 @@ local function buffer_previewer(self, entry)
 end
 
 return {
-    { 'nvim-telescope/telescope-fzf-native.nvim',
+    {
+        'nvim-telescope/telescope-fzf-native.nvim',
         build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build build --config Release && cmake --install build --prefix build',
     },
-    { 'nvim-telescope/telescope.nvim',
+    {
+        'nvim-telescope/telescope.nvim',
         dependencies = {
             'folke/which-key.nvim',
             'nvim-lua/plenary.nvim',
             'nvim-telescope/telescope-fzf-native.nvim',
             'nvim-telescope/telescope-ui-select.nvim',
             'tknightz/telescope-termfinder.nvim',
+            {
+                'nvim-telescope/telescope-live-grep-args.nvim',
+                version = 'v1.1.0',
+            }
         },
         config = function()
             local ts = require'telescope'
@@ -301,6 +307,7 @@ return {
             }
             ts.load_extension'fzf'
             ts.load_extension'ui-select'
+            ts.load_extension'live_grep_args'
             local termfinder = require'telescope'.load_extension'termfinder'
 
             local wk = require'which-key'
@@ -309,7 +316,7 @@ return {
                 { '<leader>ff', function() builtins.find_files() end, desc = 'Find file' },
                 { '<leader>fb', function() builtins.buffers() end, desc = 'Select buffer' },
                 { '<leader>fc', function() builtins.tags() end, desc = 'Select ctag' },
-                { '<leader>fl', function() builtins.live_grep() end, desc = 'Live grep' },
+                { '<leader>fl', function() ts.extensions.live_grep_args.live_grep_args() end, desc = 'Live grep' },
                 {
                     { '<leader>fg', group = 'Find Git …' },
                     { '<leader>fgf', function() builtins.git_files() end, desc = 'Find file tracked in Git' },
