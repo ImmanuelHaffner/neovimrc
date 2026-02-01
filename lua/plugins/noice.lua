@@ -132,6 +132,7 @@ return {
                             kind = 'lua_error',
                             any = {
                                 { find = 'Invalid buffer id' },
+                                { find = 'lsp-status' },
                             },
                         },
                         opts = { skip = true },
