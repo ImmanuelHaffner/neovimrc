@@ -6,6 +6,28 @@ local function make_env_string(env)
     return str
 end
 
+local function goto_previous_tab(previous_tab)
+    if previous_tab == nil then return end
+    vim.schedule(function()
+        local current_tab = vim.api.nvim_get_current_tabpage()
+
+        if current_tab ~= previous_tab then
+            -- Check if previous tab still exists and is different from current
+            local tab_exists = false
+            for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
+                if tab == previous_tab then
+                    tab_exists = true
+                    break
+                end
+            end
+
+            if tab_exists then
+                vim.api.nvim_set_current_tabpage(previous_tab)
+            end
+        end
+    end)
+end
+
 return {
     {
         'akinsho/toggleterm.nvim',
@@ -77,27 +99,7 @@ return {
                     -- Install keymaps
                     local function close()
                         vim.api.nvim_win_close(term.window, false)
-
-                        if term.previous_tab then
-                            vim.schedule(function()
-                                local current_tab = vim.api.nvim_get_current_tabpage()
-
-                                if current_tab ~= term.previous_tab then
-                                    -- Check if previous tab still exists and is different from current
-                                    local tab_exists = false
-                                    for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
-                                        if tab == term.previous_tab then
-                                            tab_exists = true
-                                            break
-                                        end
-                                    end
-
-                                    if tab_exists then
-                                        vim.api.nvim_set_current_tabpage(term.previous_tab)
-                                    end
-                                end
-                            end)
-                        end
+                        goto_previous_tab(term.previous_tab)
                     end
                     vim.api.nvim_buf_set_keymap(term.bufnr, 'i', '<C-q>', '', {noremap = true, silent = true, callback = close})
                     vim.api.nvim_buf_set_keymap(term.bufnr, 'n', '<C-q>', '', {noremap = true, silent = true, callback = close})
