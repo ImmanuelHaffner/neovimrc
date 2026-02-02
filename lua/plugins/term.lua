@@ -121,6 +121,20 @@ return {
                 end,
             }
 
+            local claude_code = Terminal:new{
+                cmd = 'llm agent claude',
+                dir = vim.fn.getcwd(),
+                direction = 'tab',
+                on_open = function(term)
+                    vim.wo[term.window].scrolloff = 0
+                    vim.wo[term.window].sidescrolloff = 0
+                    vim.wo[term.window].spell = false  -- no spell checking
+                    vim.cmd[[nohlsearch]]  -- no search highlighting (until next search)
+                    vim.cmd[[startinsert!]]
+                    vim.fn.setcursorcharpos(1, 1)
+                end,
+            }
+
             local ranger = Terminal:new{
                 cmd = 'ranger',
                 direction = 'float',
@@ -166,6 +180,7 @@ return {
                 { '<leader>ft', '<cmd>TermSelect<cr>', desc = 'Select toggle term' },
 
                 { '<leader>r', group = 'Run command…' },
+                { '<leader>rc', function() claude_code:toggle() end, desc = 'Claude Code' },
                 { '<leader>rr', function() ranger:toggle() end, desc = 'File Ranger' },
                 { '<leader>rt', function() float_term:toggle() end, desc = 'Floating Terminal' },
                 { '<leader>rp', function() ipython:toggle() end, desc = 'IPython Interpreter' },
