@@ -104,7 +104,7 @@ return {
 
             gl._mysection = gl._mysection or {}
             local gls = gl.section
-            gl.short_line_list = {'neo-tree'}
+            gl.short_line_list = { 'neo-tree' }
 
             -- Expand %S to pending command in statusline.  We will hack this into Galaxyline as a separator, see below
             -- the `OperatorPending` entry.
