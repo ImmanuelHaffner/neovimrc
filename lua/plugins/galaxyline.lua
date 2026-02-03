@@ -219,6 +219,38 @@ return {
 
             -- Left side
             gls.left = {
+                { Remote = {
+                    provider = function()
+                        local host = vim.fn.hostname()
+                        local servername = vim.v.servername
+                        local port = ''
+                        if servername ~= nil then 
+                            local pos = servername:find(':')
+                            if pos then
+                                port = servername:sub(pos)
+                            end
+                        end
+                        return '   ' .. host .. port .. ' '
+                    end,
+                    condition = function()
+                        -- Remote: SSH detected
+                        if (vim.env.SSH_CLIENT and vim.env.SSH_CLIENT ~= '')
+                            or (vim.env.SSH_CONNECTION and vim.env.SSH_CONNECTION ~= '')
+                            or (vim.env.SSH_TTY and vim.env.SSH_TTY ~= '') then
+                            return true
+                        end
+
+                        -- Remote: Neovim client/server sessions (e.g. nvim --server, nvr, --listen)
+                        if (vim.env.NVIM_LISTEN_ADDRESS and vim.env.NVIM_LISTEN_ADDRESS ~= '')
+                            or (vim.env.NVIM and vim.env.NVIM ~= '') then
+                            return true
+                        end
+
+                        -- v:servername is set when Neovim is listening for remote commands
+                        return (vim.v.servername ~= nil and vim.v.servername ~= '')
+                    end,
+                    highlight = { colors.gray, colors.light_red }
+                }},
                 { ViMode = {
                     provider = function()
                         local color, mode = table.unpack(Utils.get_vim_mode_info())
