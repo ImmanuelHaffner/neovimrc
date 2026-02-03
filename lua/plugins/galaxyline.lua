@@ -74,31 +74,32 @@ return {
             local navic = require'nvim-navic'
 
             local function get_lsp_progress()
-              local lsp_messages = lsp_status.messages()
-              local message_list = {}
-              local spinner_frames = { '⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷' }
+                local lsp_messages = lsp_status.messages()
+                local message_list = {}
+                -- local spinner_frames = { '⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷' }
+                local spinner_frames = { '⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏' }
 
-              for _, msg in ipairs(lsp_messages) do
-                if msg.progress then
-                  local message = msg.title
-                  if msg.message then message = message .. ' ' .. msg.message end
+                for _, msg in ipairs(lsp_messages) do
+                    if msg.progress then
+                        local message = msg.title
+                        if msg.message then message = message .. ' ' .. msg.message end
 
-                  -- this percentage format string escapes a percent sign once to show a percentage and one more
-                  -- time to prevent errors in vim statusline's because of it's treatment of % chars
-                  if msg.percentage then message = message .. string.format(" (%.0f%%%%)", msg.percentage) end
+                        -- this percentage format string escapes a percent sign once to show a percentage and one more
+                        -- time to prevent errors in vim statusline's because of it's treatment of % chars
+                        if msg.percentage then message = message .. string.format(" (%.0f%%%%)", msg.percentage) end
 
-                  if msg.spinner then
-                    message = spinner_frames[(msg.spinner % #spinner_frames) + 1] .. ' ' .. message
-                  end
-                  table.insert(message_list, message)
-                elseif msg.status then
-                    if msg.content ~= 'idle' then
-                        table.insert(message_list, msg.content)
+                        if msg.spinner then
+                            message = spinner_frames[(msg.spinner % #spinner_frames) + 1] .. ' ' .. message
+                        end
+                        table.insert(message_list, message)
+                    elseif msg.status then
+                        if msg.content ~= 'idle' then
+                            table.insert(message_list, msg.content)
+                        end
                     end
                 end
-              end
 
-              return message_list
+                return message_list
             end
 
             gl._mysection = gl._mysection or {}
