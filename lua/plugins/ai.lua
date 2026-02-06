@@ -177,12 +177,35 @@ return {
                                     },
                                 },
                             })
+                        end,
+                        databricks = function()
+                            return require'codecompanion.adapters'.extend('openai_compatible', {
+                                env = {
+                                    api_key = 'DATABRICKS_TOKEN',
+                                },
+                                url = 'https://6051921418418893.ai-gateway.staging.cloud.databricks.com/mlflow/v1/chat/completions',
+                                headers = {
+                                    ['Content-Type'] = 'application/json',
+                                    ['Authorization'] = 'Bearer ${api_key}',
+                                },
+                                schema = {
+                                    model = {
+                                        default = 'databricks-claude-opus-4-5',
+                                        choices = {
+                                            'databricks-claude-opus-4-5',
+                                            'databricks-claude-sonnet-4-5',
+                                            'databricks-gpt-5-2',
+                                            'databricks-gpt-5-1-codex-max',
+                                        },
+                                    },
+                                },
+                            })
                         end
                     }
                 },
                 strategies = {
                     chat = {
-                        adapter = 'copilot',
+                        adapter = 'databricks',  -- or 'copilot'
                         variables = {},
                         tools = {
                             opts = {
@@ -220,10 +243,10 @@ return {
                         },
                     },
                     inline = {
-                        adapter = 'copilot',
+                        adapter = 'databricks',  -- or 'copilot'
                     },
                     cmd = {
-                        adapter = 'copilot',
+                        adapter = 'databricks',  -- or 'copilot'
                     }
                 },
                 ui = {
