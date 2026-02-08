@@ -133,6 +133,7 @@ return {
                             any = {
                                 { find = 'Invalid buffer id' },
                                 { find = 'lsp-status' },
+                                { find = 'Error executing vim.schedule lua callback' },
                             },
                         },
                         opts = { skip = true },
