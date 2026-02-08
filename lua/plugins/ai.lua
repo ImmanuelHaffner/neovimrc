@@ -165,6 +165,43 @@ return {
             -- Run the check when Neovim starts
             check_docker_service()
 
+            --- Returns the default adapter based on available credentials/configuration.
+            --- Adapters are checked in priority order; first available one wins.
+            --- @return string adapter_name The name of the adapter to use.
+            local function get_default_adapter()
+                -- Define adapters in priority order (highest priority first).
+                -- Each entry specifies:
+                --   - name: the adapter name as registered in codecompanion
+                --   - is_available: function that returns true if this adapter can be used
+                local adapters = {
+                    {
+                        name = 'databricks',
+                        is_available = function()
+                            local token = vim.env.DATABRICKS_TOKEN
+                            return token ~= nil and token ~= ''
+                        end,
+                    },
+                    -- Future adapters can be added here, e.g.:
+                    -- {
+                    --     name = 'anthropic',
+                    --     is_available = function()
+                    --         local key = vim.env.ANTHROPIC_API_KEY
+                    --         return key ~= nil and key ~= ''
+                    --     end,
+                    -- },
+                }
+
+                -- Check each adapter in priority order.
+                for _, adapter in ipairs(adapters) do
+                    if adapter.is_available() then
+                        return adapter.name
+                    end
+                end
+
+                -- Fallback adapter (always available via GitHub auth).
+                return 'copilot'
+            end
+
             local cc = require'codecompanion'
             cc.setup{
                 adapters = {
@@ -205,7 +242,7 @@ return {
                 },
                 strategies = {
                     chat = {
-                        adapter = 'databricks',  -- or 'copilot'
+                        adapter = get_default_adapter(),
                         variables = {},
                         tools = {
                             opts = {
@@ -243,10 +280,10 @@ return {
                         },
                     },
                     inline = {
-                        adapter = 'databricks',  -- or 'copilot'
+                        adapter = get_default_adapter(),
                     },
                     cmd = {
-                        adapter = 'databricks',  -- or 'copilot'
+                        adapter = get_default_adapter(),
                     }
                 },
                 ui = {
