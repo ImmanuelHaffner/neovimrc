@@ -70,7 +70,7 @@ function M.basename(path)
 end
 
 function M.shorten_path(path, max_len)
-    if path == nil or path == '' then return path end
+    if path == nil or path == '' or path == '/' then return path end
 
     local len = path:len()
     local fields = M.split_str(path, '/')
