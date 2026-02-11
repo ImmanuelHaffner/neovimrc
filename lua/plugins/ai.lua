@@ -243,7 +243,6 @@ return {
                 strategies = {
                     chat = {
                         adapter = get_default_adapter(),
-                        variables = {},
                         tools = {
                             -- The `memory` tool needs no approval.
                             ['memory'] = {
@@ -251,12 +250,14 @@ return {
                                     require_approval_before = false,
                                 },
                             },
+                            -- editor_context tool is registered via the nvu.editor_context extension
                             opts = {
                                 auto_submit_errors = true, -- Send any errors to the LLM automatically?
                                 auto_submit_success = true, -- Send any successful output to the LLM automatically?
                                 default_tools = {
                                     'memory',
                                     'neovim',  -- all tools from the Neovim MCP server
+                                    'editor_context',  -- provide context on open buffers, cursor pos, active buffer
                                 },
                             },
                             groups = {
@@ -266,6 +267,7 @@ return {
                                         'read_file',
                                         'file_search',
                                         'grep_search',
+                                        'editor_context',  -- custom tool for editor state
                                         'neovim',  -- all tools from the Neovim MCP server
                                     },
                                     opts = {
@@ -320,6 +322,13 @@ return {
                     },
                 },
                 extensions = {
+                    -- Editor context extension from nvu library (provides #editor variable and editor_context tool)
+                    editor_context = {
+                        callback = 'codecompanion._extensions.editor_context',
+                        opts = {
+                            require_approval_before = false,  -- This is a read-only tool, no approval needed
+                        },
+                    },
                     mcphub = {
                         callback = 'mcphub.extensions.codecompanion',
                         opts = {
