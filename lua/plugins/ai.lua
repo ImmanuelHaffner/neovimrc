@@ -216,14 +216,162 @@ return {
                             })
                         end,
                         databricks = function()
+                            local openai = require('codecompanion.adapters.http.openai')
                             return require'codecompanion.adapters'.extend('openai_compatible', {
                                 env = {
                                     api_key = 'DATABRICKS_TOKEN',
                                 },
+                                -- Dogfood
                                 url = 'https://6051921418418893.ai-gateway.staging.cloud.databricks.com/mlflow/v1/chat/completions',
                                 headers = {
                                     ['Content-Type'] = 'application/json',
                                     ['Authorization'] = 'Bearer ${api_key}',
+                                },
+                                handlers = {
+                                    -- Override form_messages to ensure tool_calls have valid function.name
+                                    -- and valid JSON arguments.
+                                    -- Databricks API strictly validates that:
+                                    -- 1. Every tool_calls[].function.name field is present
+                                    -- 2. Every tool_calls[].function.arguments is a valid JSON string
+                                    form_messages = function(self, messages)
+                                        -- Call the base OpenAI form_messages first
+                                        local result = openai.handlers.form_messages(self, messages)
+
+                                        -- Helper function to validate and fix JSON arguments
+                                        local function ensure_valid_json_args(args)
+                                            if args == nil or args == '' then
+                                                return '{}'
+                                            end
+                                            -- Try to parse the JSON to validate it
+                                            local ok, _ = pcall(vim.json.decode, args)
+                                            if ok then
+                                                return args  -- Valid JSON, return as-is
+                                            end
+                                            -- Invalid JSON - try to salvage by completing truncated JSON
+                                            -- Common case: streaming left incomplete object like '{"path": "foo'
+                                            -- Count unmatched braces and brackets
+                                            local open_braces = 0
+                                            local open_brackets = 0
+                                            local in_string = false
+                                            local escape_next = false
+                                            for i = 1, #args do
+                                                local c = args:sub(i, i)
+                                                if escape_next then
+                                                    escape_next = false
+                                                elseif c == '\\' and in_string then
+                                                    escape_next = true
+                                                elseif c == '"' and not escape_next then
+                                                    in_string = not in_string
+                                                elseif not in_string then
+                                                    if c == '{' then open_braces = open_braces + 1
+                                                    elseif c == '}' then open_braces = open_braces - 1
+                                                    elseif c == '[' then open_brackets = open_brackets + 1
+                                                    elseif c == ']' then open_brackets = open_brackets - 1
+                                                    end
+                                                end
+                                            end
+                                            -- Try to complete the JSON
+                                            local fixed = args
+                                            if in_string then
+                                                fixed = fixed .. '"'  -- Close unclosed string
+                                            end
+                                            -- Close any unclosed brackets/braces
+                                            for _ = 1, open_brackets do
+                                                fixed = fixed .. ']'
+                                            end
+                                            for _ = 1, open_braces do
+                                                fixed = fixed .. '}'
+                                            end
+                                            -- Verify the fix worked
+                                            local ok2, _ = pcall(vim.json.decode, fixed)
+                                            if ok2 then
+                                                return fixed
+                                            end
+                                            -- If still invalid, fall back to empty object
+                                            return '{}'
+                                        end
+
+                                        -- Ensure all tool_calls have function.name and valid arguments
+                                        if result and result.messages then
+                                            for _, msg in ipairs(result.messages) do
+                                                if msg.tool_calls then
+                                                    for _, tool_call in ipairs(msg.tool_calls) do
+                                                        if tool_call['function'] then
+                                                            -- Ensure name is present (use id as fallback if missing)
+                                                            if not tool_call['function']['name'] or tool_call['function']['name'] == '' then
+                                                                tool_call['function']['name'] = tool_call.id or 'unknown_tool'
+                                                            end
+                                                            -- Ensure arguments is valid JSON
+                                                            tool_call['function']['arguments'] = ensure_valid_json_args(
+                                                                tool_call['function']['arguments']
+                                                            )
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end
+
+                                        return result
+                                    end,
+                                    tools = {
+                                        -- Override format_tool_calls to fix empty/invalid arguments issue for Databricks API.
+                                        -- Databricks requires `arguments` to be a valid JSON string.
+                                        format_tool_calls = function(self, tools)
+                                            -- Reuse the same JSON validation helper
+                                            local function ensure_valid_json_args(args)
+                                                if args == nil or args == '' then
+                                                    return '{}'
+                                                end
+                                                local ok, _ = pcall(vim.json.decode, args)
+                                                if ok then
+                                                    return args
+                                                end
+                                                -- Try to complete truncated JSON
+                                                local open_braces, open_brackets = 0, 0
+                                                local in_string, escape_next = false, false
+                                                for i = 1, #args do
+                                                    local c = args:sub(i, i)
+                                                    if escape_next then
+                                                        escape_next = false
+                                                    elseif c == '\\' and in_string then
+                                                        escape_next = true
+                                                    elseif c == '"' and not escape_next then
+                                                        in_string = not in_string
+                                                    elseif not in_string then
+                                                        if c == '{' then open_braces = open_braces + 1
+                                                        elseif c == '}' then open_braces = open_braces - 1
+                                                        elseif c == '[' then open_brackets = open_brackets + 1
+                                                        elseif c == ']' then open_brackets = open_brackets - 1
+                                                        end
+                                                    end
+                                                end
+                                                local fixed = args
+                                                if in_string then fixed = fixed .. '"' end
+                                                for _ = 1, open_brackets do fixed = fixed .. ']' end
+                                                for _ = 1, open_braces do fixed = fixed .. '}' end
+                                                local ok2, _ = pcall(vim.json.decode, fixed)
+                                                if ok2 then return fixed end
+                                                return '{}'
+                                            end
+
+                                            for _, tool in ipairs(tools) do
+                                                if tool['function'] then
+                                                    -- Ensure name is present
+                                                    if not tool['function']['name'] or tool['function']['name'] == '' then
+                                                        tool['function']['name'] = tool.id or 'unknown_tool'
+                                                    end
+                                                    -- Ensure arguments is valid JSON
+                                                    tool['function']['arguments'] = ensure_valid_json_args(
+                                                        tool['function']['arguments']
+                                                    )
+                                                end
+                                            end
+                                            return tools
+                                        end,
+                                        output_response = function(self, tool_call, output)
+                                            return openai.handlers.tools.output_response(self, tool_call, output)
+                                        end,
+                                    },
                                 },
                                 schema = {
                                     model = {
