@@ -190,7 +190,25 @@ end
 --- Checks whether this is a local nvim instance.
 --- @return boolean `true` if this is a local nvim instance, `false` otherwise
 function M.is_local_nvim()
-    return os.getenv'DISPLAY' ~= nil and M.starts_with(vim.v.servername, '/')
+    return M.starts_with(vim.v.servername, '/')
+end
+
+--- Checks whether the current Neovim session is running over an SSH connection.
+--- Detects SSH by checking for the presence of SSH-related environment variables.
+--- @return boolean `true` if running over SSH, `false` otherwise
+function M.is_ssh_connection()
+    return
+        (vim.env.SSH_CLIENT and vim.env.SSH_CLIENT ~= '') or
+        (vim.env.SSH_CONNECTION and vim.env.SSH_CONNECTION ~= '') or
+        (vim.env.SSH_TTY and vim.env.SSH_TTY ~= '')
+end
+
+--- Checks whether the current Neovim instance is connected via a TCP client-server connection.
+--- Detects this by checking if `vim.v.servername` matches the pattern of a host/IP followed by
+--- a colon and port number (e.g., "127.0.0.1:12345" or "hostname:6789").
+--- @return boolean `true` if connected via TCP client-server, `false` otherwise
+function M.is_client_server_connection()
+    return vim.v.servername and vim.v.servername:find(':%d+$') ~= nil
 end
 
 --- Checks whether the UI is connected to a headless server.
