@@ -24,7 +24,7 @@ function M.zen()
         local win = windows[i]
         if vim.api.nvim_win_is_valid(win) then
             local buf = vim.api.nvim_win_get_buf(win)
-            local filetype = vim.api.nvim_buf_get_option(buf, 'filetype')
+            local filetype = vim.api.nvim_get_option_value('filetype', { buf = buf })
             if filetype == 'noice' then
                 vim.api.nvim_win_close(win, false)
             end
@@ -79,19 +79,27 @@ function M.setup()
     -- Terminal mode
     wk.add{
         mode = { 't' },
-        { '<C-l>', function()
-            vim.fn.feedkeys('', 'n')
-            local sb = vim.bo.scrollback
-            vim.bo.scrollback = 1
-            vim.bo.scrollback = sb
-        end, desc = 'Clear terminal' },
+        {
+            '<C-l>',
+            function()
+                vim.fn.feedkeys('', 'n')
+                local sb = vim.bo.scrollback
+                vim.bo.scrollback = 1
+                vim.bo.scrollback = sb
+            end,
+            desc = 'Clear terminal'
+        },
         {
             expr = true,
-            { '<C-v>', function()
-                local next_char_code = vim.fn.getchar()
-                local next_char = vim.fn.nr2char(next_char_code)
-                return '<C-\\><C-N>"'..next_char..'pi'
-            end, desc = 'Access registers' },
+            {
+                '<C-v>',
+                function()
+                    local next_char_code = vim.fn.getchar()
+                    local next_char = vim.fn.nr2char(next_char_code)
+                    return '<C-\\><C-N>"' .. next_char .. 'pi'
+                end,
+                desc = 'Access registers'
+            },
         }
     }
 end
