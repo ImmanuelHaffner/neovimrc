@@ -246,10 +246,17 @@ return {
                         adapter = get_default_adapter(),
                         variables = {},
                         tools = {
+                            -- The `memory` tool needs no approval.
+                            ['memory'] = {
+                                opts = {
+                                    require_approval_before = false,
+                                },
+                            },
                             opts = {
                                 auto_submit_errors = true, -- Send any errors to the LLM automatically?
                                 auto_submit_success = true, -- Send any successful output to the LLM automatically?
                                 default_tools = {
+                                    'memory',
                                     'neovim',  -- all tools from the Neovim MCP server
                                 },
                             },
