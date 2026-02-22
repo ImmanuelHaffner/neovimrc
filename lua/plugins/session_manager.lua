@@ -1,5 +1,3 @@
-local utils = require 'utils'
-
 --- List of filetypes that would be removed by saving the session.
 local FRAGILE_FILETYPES = {
     'codecompanion',
@@ -24,6 +22,7 @@ return {
             'folke/which-key.nvim',
         },
         config = function()
+            local utils = require'utils'
             local Path = require'plenary.path'
             local session_manager = require'session_manager'
             session_manager.setup{
@@ -124,7 +123,7 @@ return {
             vim.api.nvim_create_autocmd('SessionLoadPost', {
                 group = LoadProjectConfig,
                 pattern = 'global',
-                callback = Utils.load_project_config,
+                callback = utils.load_project_config,
             })
         end
     },

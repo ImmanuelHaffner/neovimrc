@@ -1,5 +1,3 @@
-local Utils = require'utils'
-
 return {
     {
         'mfussenegger/nvim-dap',
@@ -63,6 +61,7 @@ return {
             'mfussenegger/nvim-dap',
         },
         config = function()
+            local Utils = require'utils'
             require'nvim-dap-repl-highlights'.setup()
             if Utils.has_tree_sitter_cli() then
                 local parsers = require'nvim-treesitter.parsers'

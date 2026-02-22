@@ -1,5 +1,3 @@
-local Utils = require'utils'
-
 return {
     { 'nvim-treesitter/nvim-treesitter',
         dependencies = {
@@ -8,6 +6,7 @@ return {
         lazy = false,
         build = ':TSUpdate',
         config = function()
+            local Utils = require'utils'
             local ensure_installed = {
                 'awk',
                 'bash',

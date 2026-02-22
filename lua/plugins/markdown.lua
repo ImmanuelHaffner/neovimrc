@@ -1,8 +1,7 @@
-local Utils = require'utils'
-
 return {
     { 'euclio/vim-markdown-composer',
-        enabled = Utils.is_local_nvim,
+        -- Inline check: local instance has servername starting with '/'
+        cond = function() return (vim.v.servername or ''):sub(1, 1) == '/' end,
         build = { 'cargo build --release', ':UpdateRemotePlugins' }
     },
     {

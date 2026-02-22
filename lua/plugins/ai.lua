@@ -1,10 +1,9 @@
-local utils = require'utils'
-
 --- Parse a Cursor rule file.
 --- @param file_path string
 --- @return table header  The header of the rule.
 --- @return table lines  The lines making the actual content of the rule.
 local function parse_rule_file(file_path)
+    local utils = require'utils'
     local lines = vim.fn.readfile(file_path)
     local line_itr = next(lines, nil)
     local header = {}
@@ -422,6 +421,7 @@ return {
                     local additional_prompt = {'\n'}
 
                     -- Read all rules files and combine their content
+                    local utils = require'utils'
                     for _, file_path in ipairs(rule_files) do
                         local header, content = parse_rule_file(file_path)
                         local basename = utils.basename(file_path)

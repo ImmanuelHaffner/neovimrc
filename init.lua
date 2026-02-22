@@ -26,9 +26,6 @@ vim.opt.rtp:prepend(lazypath)
 -- Load our global config
 require'config'.setup()
 
--- Load our utilities
-Utils = require'utils'
-
 -- Load lazy.nvim
 require'lazy'.setup{
     defaults = {
@@ -38,6 +35,9 @@ require'lazy'.setup{
         import = 'plugins'
     },
 }
+
+-- Load our neovim utilities (after loading plugins)
+local Utils = require'utils'
 
 -- Configure LSPs
 require'lsp'.setup()

@@ -1,11 +1,10 @@
-local Utils = require'utils'
-
 local renderer = { }
 
 function renderer.init()
     renderer.helpers = require'incline.helpers'
     renderer.devicons = require'nvim-web-devicons'
     renderer.colors = require'theme'.colors()
+    renderer.Utils = require'utils'
 end
 
 --- Returns a table with the icon's glyph, highlight group, foreground color, and background color.
@@ -64,7 +63,7 @@ function renderer.make_ft_icon(filename, filetype)
 
     local icon_name = devicons.get_icon_name_by_filetype(filetype)
     if icon_name ~= nil and icon_name ~= '' then
-        local hl_group = Utils.get_highlight_group('DevIcon' .. icon_name)
+        local hl_group = renderer.Utils.get_highlight_group('DevIcon' .. icon_name)
         if hl_group and hl_group.bg ~= '' then
             return { ' ', icon.glyph, ' ', guifg = hl_group.fg, guibg = hl_group.bg }
         end

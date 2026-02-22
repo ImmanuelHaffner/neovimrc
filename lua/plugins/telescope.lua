@@ -1,17 +1,17 @@
-local Utils = require 'utils'
-
 local function get_path_from_entry(entry)
     if type(entry) == 'string' then
         if entry ~= '' then
             return entry
         end
-    else
-        local from_entry = require'telescope.from_entry'
-        local path = from_entry.path(entry, false, false)
-        if path then return path end
+    elseif type(entry) == 'table' then
+        -- Handle buffer entries from builtin.buffers (have bufnr, flag, info fields)
         if entry.info and entry.info.name then
             return entry.info.name
         end
+        -- Handle standard telescope entries
+        local from_entry = require'telescope.from_entry'
+        local path = from_entry.path(entry, false, false)
+        if path then return path end
     end
     return '[No Name]'
 end
@@ -100,6 +100,7 @@ return {
             }
         },
         config = function()
+            local Utils = require'utils'
             local ts = require'telescope'
             local entry_display = require'telescope.pickers.entry_display'
             local builtins = require'telescope.builtin'

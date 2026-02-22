@@ -1,7 +1,6 @@
-local colors = require'theme'.colors()
-local Utils = require'utils'
-
-local navic_style_table = {
+local function get_navic_style_table()
+    local colors = require'theme'.colors()
+    return {
     -- Separator
     { '> ', ' ', fg = colors.gray, bg = colors.gray3 },
     -- Function
@@ -22,11 +21,13 @@ local navic_style_table = {
     { ' ', ' ', fg = colors.magenta, bg = colors.gray3 },
     --
     { '󰀬 ', '󰀬 ', fg = colors.orange, bg = colors.gray3 },
-}
+    }
+end
 
 --- Enrich the navic location string with colors via highlight groups.
 --- @param loc string
 local function stylize_lsp_status(loc)
+    local navic_style_table = get_navic_style_table()
     local hl_groupname_proto = 'GalaxylineLSP%d'
 
     -- %%#Comment#
