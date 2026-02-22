@@ -48,6 +48,7 @@ return {
         dependencies = {
             'folke/which-key.nvim',
         },
+        enabled = false,
         event = 'VeryLazy',
         config = function()
             local neocodeium = require'neocodeium'
@@ -144,7 +145,7 @@ return {
             'nvim-lua/plenary.nvim',
             'nvim-treesitter/nvim-treesitter',
             'ravitemer/mcphub.nvim',
-            -- 'zbirenbaum/copilot.lua',
+            'zbirenbaum/copilot.lua',
             -- 'CopilotC-Nvim/CopilotChat.nvim',
             'folke/which-key.nvim',
             'Davidyz/VectorCode',
