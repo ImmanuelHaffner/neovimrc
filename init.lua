@@ -29,16 +29,15 @@ require'config'.setup()
 -- Load our utilities
 Utils = require'utils'
 
--- Build plugin table
-local plugins = require('plugins')
-
 -- Load lazy.nvim
-local lazyopts = {
+require'lazy'.setup{
     defaults = {
         lazy = false,
     },
+    spec = {
+        import = 'plugins'
+    },
 }
-require'lazy'.setup(plugins, lazyopts)
 
 -- Configure LSPs
 require'lsp'.setup()
