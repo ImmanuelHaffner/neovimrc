@@ -155,8 +155,13 @@ return {
             'Davidyz/VectorCode',
         },
         config = function()
-            -- Check if Docker service is running
+            -- Check if Docker service is running (Linux with systemd only)
             local function check_docker_service()
+                -- Only check on Linux with systemd
+                if vim.fn.has('linux') == 0 or vim.fn.executable('systemctl') == 0 then
+                    return
+                end
+
                 local result = vim.fn.system('systemctl status docker.service')
                 if not string.match(result, 'Active: active %(running%)') then
                     vim.notify(
