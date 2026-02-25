@@ -212,6 +212,17 @@ return {
                 return 'copilot'
             end
 
+            -- Capture the default system prompt BEFORE setup (to avoid infinite recursion)
+            local default_system_prompt_fn = require('codecompanion.config').config.interactions.chat.opts.system_prompt
+
+            -- Load Neovim-specific additions from file
+            local plugin_root = vim.fn.fnamemodify(debug.getinfo(1, 'S').source:sub(2), ':p:h:h:h')
+            local additions_path = plugin_root .. '/assets/code-companion-neovim-additions.md'
+            local neovim_additions = ''
+            if vim.fn.filereadable(additions_path) == 1 then
+                neovim_additions = table.concat(vim.fn.readfile(additions_path), '\n')
+            end
+
             local cc = require'codecompanion'
             cc.setup{
                 adapters = {
@@ -436,6 +447,18 @@ return {
                             },
                         },
                         opts = {
+                            ---Extend the default system prompt with Neovim-specific additions
+                            ---@param opts table Options passed by CodeCompanion (contains language, etc.)
+                            ---@return string
+                            system_prompt = function(opts)
+                                -- Use the captured default prompt (avoids infinite recursion)
+                                local base_prompt = type(default_system_prompt_fn) == 'function'
+                                    and default_system_prompt_fn(opts)
+                                    or (default_system_prompt_fn or '')
+
+                                return base_prompt .. '\n' .. neovim_additions
+                            end,
+
                             ---Decorate the user message before it's sent to the LLM
                             ---@param message string
                             ---@param _ CodeCompanion.Adapter
@@ -577,11 +600,6 @@ return {
                     vim.wo.colorcolumn = ''
                 end,
             })
-            -- Get the plugin root directory
-            local plugin_root = vim.fn.fnamemodify(debug.getinfo(1, 'S').source:sub(2), ':p:h:h:h')
-            -- Read the default system prompt.
-            local prompt_path = plugin_root .. '/assets/code-companion-system-prompt.md'
-            local default_system_prompt = table.concat(vim.fn.readfile(prompt_path), '\n')
 
             -- local function load_rules()
             --     local cc_config = require'codecompanion.config'
