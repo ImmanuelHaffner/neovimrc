@@ -59,6 +59,36 @@ local function stylize_lsp_status(loc)
     return loc
 end
 
+--- Check if the given host is an Arca devbox.
+--- Detection: ~/.arca directory exists (created by Arca tooling)
+--- @param host string The hostname to check
+--- @return boolean True if running on an Arca devbox
+local function is_arca_devbox(host)
+    -- Check for ~/.arca directory which is created by Arca tooling
+    local arca_dir = vim.fn.expand('~/.arca')
+    return vim.fn.isdirectory(arca_dir) == 1
+end
+
+--- Get a friendly alias for the remote host.
+--- @param host string The hostname
+--- @param port number|nil The port number (optional)
+--- @return string|nil The alias if found, nil otherwise
+local function get_host_alias(host, port)
+    if is_arca_devbox(host) then
+        if port then
+            if port == 42137 then
+                return 'Arca[1]'
+            elseif port == 42138 then
+                return 'Arca[2]'
+            else
+                return 'Arca:' .. port
+            end
+        end
+        return 'Arca'
+    end
+    return nil
+end
+
 return {
     { 'glepnir/galaxyline.nvim',
         dependencies = {
@@ -224,16 +254,25 @@ return {
                     provider = function()
                         local host = vim.fn.hostname()
                         local servername = vim.v.servername
-                        local port = nil
+                        local port_num = nil
+                        local port_str = nil
                         if servername ~= nil then
                             local pos = servername:find(':')
                             if pos then
-                                port = servername:sub(pos)
+                                port = tonumber(servername:sub(pos + 1))
                             end
                         end
+
+                        -- Check for known alias
+                        local alias = get_host_alias(host, port)
+                        if alias then
+                            return '   ' .. alias .. ' '
+                        end
+
+                        -- Fallback to host + connection type
                         local suffix = ' (SSH)'
                         if port then
-                            suffix = port .. ' (TCP)'
+                            suffix = ':' .. port .. ' (TCP)'
                         end
                         return '   ' .. host .. suffix .. ' '
                     end,
