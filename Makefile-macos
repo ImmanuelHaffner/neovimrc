@@ -14,6 +14,7 @@ install:
 	cp -Rf indent/ "${HOME}/.config/nvim/indent"
 	cp -Rf syntax/ "${HOME}/.config/nvim/syntax"
 	cp -Rf assets/ "${HOME}/.config/nvim/assets"
+	cp -Rf prompts/ "${HOME}/.config/nvim/prompts"
 	# Install nvimdiff thin wrapper
 	mkdir -p "${HOME}/.local/bin/"
 	install -m 755 nvimdiff "${HOME}/.local/bin/nvimdiff"
