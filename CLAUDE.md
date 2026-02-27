@@ -64,7 +64,7 @@ make install    # Copies configuration files to ~/.config/nvim
 
 The Makefile detects the OS (Linux/macOS) and runs the appropriate install target:
 - Removes any existing `~/.config/nvim` directory
-- Copies `init.lua`, `lua/`, `after/`, `ftdetect/`, `ftplugin/`, `indent/`, `syntax/`, and `assets/` to `~/.config/nvim/`
+- Copies `init.lua`, `lua/`, `after/`, `ftdetect/`, `ftplugin/`, `indent/`, `syntax/`, `assets/`, and `prompts/` to `~/.config/nvim/`
 - Installs the `nvimdiff` wrapper script to `~/.local/bin/`
 
 ### Development
