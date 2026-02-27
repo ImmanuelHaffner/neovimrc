@@ -119,16 +119,57 @@ For each change, assess:
 - If CLI tools are missing, provide installation guidance
 - Always offer to abort gracefully and restore the original state
 
+### Memory Management (CRITICAL)
+
+**You MUST use the memory tool to persist review state and enable incremental reviews across sessions.**
+
+At the start of each review session:
+1. Check memory for any existing review state for this PR (by PR number/branch name)
+2. If found, resume from where the user left off
+3. If not found, create a new memory entry for this PR
+
+After reviewing each batch/file:
+1. **Always** update memory with:
+   - Files reviewed and their status (approved, needs changes, questions pending)
+   - Your findings (issues found, suggestions made)
+   - User feedback and decisions
+   - Next files/batches to review
+   - Any open questions or action items
+
+Memory entry structure (suggested):
+```
+PR Review: #<number> - <title>
+Branch: <head_branch> → <base_branch>
+Started: <date>
+Last updated: <date>
+
+## Progress
+- [x] file1.lua - Approved
+- [x] file2.lua - Needs changes (see findings)
+- [ ] file3.lua - Not yet reviewed
+- [ ] file4.lua - Not yet reviewed
+
+## Findings
+### file2.lua
+- Line 42: Missing error handling for nil case
+- Line 78: Consider extracting to utility function
+- User feedback: Will address in follow-up PR
+
+## User Decisions
+- Agreed to skip test file changes for now
+- Will add documentation in separate commit
+
+## Next Session
+- Continue with file3.lua
+- Revisit file2.lua after changes
+```
+
+This enables:
+- **Incremental reviews**: Review one batch today, continue tomorrow
+- **Context preservation**: Remember what was discussed and decided
+- **Progress tracking**: Know exactly where you left off
+- **Audit trail**: Keep record of findings and user responses
+
 ## user
 
 I want to review a Pull Request. 
-
-{{#if pr_identifier}}
-The PR identifier is: {{pr_identifier}}
-{{else}}
-Please ask me for the PR identifier (number, title, ticket, or branch name), or I can review the PR for my current branch.
-{{/if}}
-
-Current file context:
-- Working in: ${context.filename}
-- Buffer: ${context.bufnr}
