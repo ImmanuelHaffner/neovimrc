@@ -31,7 +31,6 @@ This is a personalized Neovim configuration written primarily in Lua. It uses **
 ├── after/ftplugin/          # After-load filetype settings
 ├── syntax/                  # Custom syntax definitions
 ├── indent/                  # Custom indentation rules
-└── lua/codecompanion/       # CodeCompanion custom tools/variables
 ```
 
 ## Key Conventions
@@ -77,6 +76,21 @@ The Makefile detects the OS (Linux/macOS) and runs the appropriate install targe
 ## LSP Setup
 
 LSP servers are configured in `lua/lsp.lua`. Server-specific settings may be in `servers.json`. The setup uses nvim-lspconfig with custom handlers.
+
+## Related Projects
+
+### nvu.nvim
+We own the **nvu.nvim** library, a collection of Neovim utilities used by this configuration. It is typically located at:
+```
+~/.local/share/nvim/lazy/nvu.nvim/
+```
+
+The library provides:
+- **CodeCompanion extensions**: `editor_context` tool and `#editor` variable (in `lua/codecompanion/_extensions/`)
+- **Telescope extensions**: Adaptive pickers with path shortening (in `lua/telescope/_extensions/`)
+- **Core utilities**: Editor context, buffer info, path manipulation, highlighting helpers (in `lua/nvu/`)
+
+When making changes to CodeCompanion tools/variables or Telescope utilities, check if they belong in the nvu library rather than this repository.
 
 ## Important Notes
 
