@@ -549,6 +549,21 @@ return {
                     -- Render output nicely as Markdown
                     vim.treesitter.start(request.buf, 'markdown')
                     vim.wo.colorcolumn = ''
+
+                    -- Auto-include editor context on chat initialization
+                    local chat = cc.buf_get_chat(request.buf)
+                    if chat then
+                        local ok, ext = pcall(require, 'codecompanion._extensions.editor_context')
+                        if ok and ext.exports then
+                            local context = ext.exports.get_formatted_context(chat.buffer_context)
+                            if context and context ~= '' then
+                                chat:add_message({
+                                    role = 'user',
+                                    content = '<editorContext>\n' .. context .. '\n</editorContext>',
+                                }, { visible = false })
+                            end
+                        end
+                    end
                 end,
             })
         end,
