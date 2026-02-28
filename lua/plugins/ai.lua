@@ -230,6 +230,7 @@ return {
                                         default = 'databricks-claude-opus-4-5',
                                         choices = {
                                             'databricks-claude-opus-4-5',
+                                            'databricks-claude-opus-4-6',
                                             'databricks-claude-sonnet-4-5',
                                             'databricks-gpt-5-2',
                                             'databricks-gpt-5-1-codex-max',
