@@ -40,6 +40,34 @@ This is a personalized Neovim configuration written primarily in Lua. It uses **
 - Each plugin file returns a table (or list of tables) with plugin specs
 - Use `lazy = true` for plugins that should be lazy-loaded
 
+### Reading Plugin Documentation
+When working on plugin configurations, **always read the plugin's help documentation** to understand available options, commands, and APIs:
+
+```lua
+-- Read help for a plugin (e.g., codecompanion)
+vim.cmd('help codecompanion')
+local buf = vim.api.nvim_get_current_buf()
+local cursor = vim.api.nvim_win_get_cursor(0)[1]
+local lines = vim.api.nvim_buf_get_lines(buf, cursor - 3, cursor + 40, false)
+vim.cmd('helpclose')
+print(table.concat(lines, '\n'))
+```
+
+Common plugin help topics:
+- `:help lazy.nvim` - Plugin manager
+- `:help codecompanion` - AI assistant
+- `:help telescope` - Fuzzy finder
+- `:help nvim-treesitter` - Syntax highlighting
+- `:help nvim-lspconfig` - LSP configuration
+- `:help which-key` - Key mapping display
+
+Use `:help <plugin>-configuration` or `:help <plugin>-setup` for setup options.
+
+### CodeCompanion
+- Configuration file: `lua/plugins/ai.lua`
+- In-editor help: `:help codecompanion`
+- Online documentation: https://codecompanion.olimorris.dev/
+
 ### Lua Style
 - Maximum line width: 120 columns
 - Use `require'module'` syntax (single quotes, no parentheses for simple requires)
