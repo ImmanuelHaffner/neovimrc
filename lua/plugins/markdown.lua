@@ -1,7 +1,12 @@
 return {
-    { 'euclio/vim-markdown-composer',
-        -- Inline check: local instance has servername starting with '/'
-        cond = function() return (vim.v.servername or ''):sub(1, 1) == '/' end,
+    {
+        'euclio/vim-markdown-composer',
+        -- Only load on local instances (servername starts with '/') and not over SSH
+        cond = function()
+            local is_local = (vim.v.servername or ''):sub(1, 1) == '/'
+            local is_ssh = vim.env.SSH_TTY ~= nil or vim.env.SSH_CONNECTION ~= nil
+            return is_local and not is_ssh
+        end,
         build = { 'cargo build --release', ':UpdateRemotePlugins' }
     },
     {
