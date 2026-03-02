@@ -252,6 +252,9 @@ return {
             gls.left = {
                 { Remote = {
                     provider = function()
+                        if not Utils.is_ssh_connection() and not Utils.is_client_server_connection() then
+                            return ' '
+                        end
                         local host = vim.fn.hostname()
                         local servername = vim.v.servername
                         local port_num = nil
@@ -276,8 +279,11 @@ return {
                         end
                         return '   ' .. host .. suffix .. ' '
                     end,
-                    condition = function()
-                        return Utils.is_ssh_connection() or Utils.is_client_server_connection()
+                    highlight = { colors.gray, colors.light_red }
+                }},
+                { Cwd = {
+                    provider = function()
+                        return Utils.shorten_absolute_path(vim.fn.getcwd() .. ' ', 30)
                     end,
                     highlight = { colors.gray, colors.light_red }
                 }},
