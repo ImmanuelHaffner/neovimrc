@@ -1,5 +1,6 @@
 return {
-    { 'monkoose/neocodeium',
+    {
+        'monkoose/neocodeium',
         dependencies = {
             'folke/which-key.nvim',
         },
@@ -44,7 +45,8 @@ return {
             end)
         end,
     },
-    { 'zbirenbaum/copilot.lua',
+    {
+        'zbirenbaum/copilot.lua',
         enabled = true,
         cmd = 'Copilot',
         event = 'InsertEnter',
@@ -52,7 +54,8 @@ return {
             require'copilot'.setup{}
         end,
     },
-    { 'CopilotC-Nvim/CopilotChat.nvim',
+    {
+        'CopilotC-Nvim/CopilotChat.nvim',
         enabled = false,
         dependencies = {
             { 'zbirenbaum/copilot.lua' },
@@ -63,7 +66,8 @@ return {
             model = 'claude-sonnet-4',
         },
     },
-    { 'ravitemer/mcphub.nvim',
+    {
+        'ravitemer/mcphub.nvim',
         dependencies = {
             'nvim-lua/plenary.nvim',  -- Required for Job and HTTP requests
             'Joakker/lua-json5',
@@ -75,7 +79,8 @@ return {
             require("mcphub").setup()
         end
     },
-    { 'Davidyz/VectorCode',
+    {
+        'Davidyz/VectorCode',
         version = '0.7.12', -- optional, depending on whether you're on nightly or release
         enabled = function()
             -- Check whether `vectorcode` binary is executable
@@ -95,7 +100,8 @@ return {
             }
         end
     },
-    { 'olimorris/codecompanion.nvim',
+    {
+        'olimorris/codecompanion.nvim',
         dependencies = {
             'nvim-lua/plenary.nvim',
             'nvim-treesitter/nvim-treesitter',
@@ -540,9 +546,3 @@ return {
         end,
     },
 }
-
-
-
-
-
-
