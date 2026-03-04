@@ -518,6 +518,26 @@ return {
 
             local cc_group = vim.api.nvim_create_augroup('CodeCompanionHooks', {})
 
+            --- Refresh the CodeCompanion prompt library cache (silently, in background)
+            local function refresh_prompt_library()
+                local context = require('codecompanion.utils.context').get(vim.api.nvim_get_current_buf())
+                require('codecompanion.actions').refresh_cache(context)
+            end
+
+            -- Refresh prompt library on CWD change
+            vim.api.nvim_create_autocmd('DirChanged', {
+                group = cc_group,
+                callback = refresh_prompt_library,
+                desc = 'Refresh CodeCompanion prompt library on CWD change',
+            })
+
+            -- Refresh prompt library after session load
+            vim.api.nvim_create_autocmd('SessionLoadPost', {
+                group = cc_group,
+                callback = refresh_prompt_library,
+                desc = 'Refresh CodeCompanion prompt library after session load',
+            })
+
             -- Automatically attach current buffer to new chat
             vim.api.nvim_create_autocmd('User', {
                 pattern = 'CodeCompanionChatCreated',
