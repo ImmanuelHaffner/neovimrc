@@ -44,7 +44,10 @@ function M.setup()
     wk.add{
         { '<Esc>', M.zen, desc = 'Zen. Hide search results and close noisy windows.' },
         { '<BS>', ':%s/\\s\\+$//<cr>:w<cr>', desc = 'Remove trailing whitespaces' },
-        { '<F3>', function() Utils.toggle(vim.wo, 'spell') end, desc = 'Toggle spell' },
+        { '<F3>', function()
+            Utils.toggle(vim.wo, 'spell')
+            vim.print(Utils.select(vim.wo.spell, 'Enabled', 'Disabled') .. " spell checks.")
+        end, desc = 'Toggle spell' },
         { '<F4>', function() Utils.toggle(vim.wo, 'cursorcolumn') end, desc = 'Toggle crosshair' },
         { '<F7>', function()
             if Utils.toggle_quickfix() then
