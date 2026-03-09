@@ -324,7 +324,7 @@ return {
                                 },
                                 schema = {
                                     model = {
-                                        default = 'databricks-claude-opus-4-5',
+                                        default = 'databricks-claude-opus-4-6',
                                         choices = {
                                             'databricks-claude-opus-4-5',
                                             'databricks-claude-opus-4-6',
