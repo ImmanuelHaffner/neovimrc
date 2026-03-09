@@ -30,8 +30,10 @@ end
 
 return {
     {
-        'akinsho/toggleterm.nvim',
-        version = '*',
+        -- 'akinsho/toggleterm.nvim',
+        -- Use our fork for now with hand-picked patches until they are merged upstream.
+        'ImmanuelHaffner/toggleterm.nvim',
+        branch = 'dev',
         dependencies = {
             'folke/which-key.nvim',
         },
