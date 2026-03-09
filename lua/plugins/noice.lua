@@ -108,9 +108,9 @@ return {
                             any = {
                                 { find = 'E384:' },  -- wrap scan, reached top of file
                                 { find = 'E385:' },  -- wrap scan, reached end of file
-                                { find = 'vim.schedule' },
+                                { find = 'vim%.schedule' },
                                 { find = 'Running command:' },  -- AsyncRun
-                                { find = 'ns=nvim.treesitter.highlighter' },  -- treesitter highlighting error
+                                { find = 'ns=nvim%.treesitter%.highlighter' },  -- treesitter highlighting error
                             },
                         },
                         opts = { skip = true },
@@ -120,7 +120,7 @@ return {
                             event = 'msg_show',
                             kind = 'echomsg',
                             any = {
-                                { find = '[lsp-status] Received `end`' },
+                                { find = '%[lsp%-status%] Received `end`' },
                                 { find = 'Following fonts couldn\'t be loaded:' },
                             },
                         },
@@ -132,8 +132,8 @@ return {
                             kind = 'lua_error',
                             any = {
                                 { find = 'Invalid buffer id' },
-                                { find = 'lsp-status' },
-                                { find = 'Error executing vim.schedule lua callback' },
+                                { find = 'lsp%-status' },
+                                { find = 'Error executing vim%.schedule lua callback' },
                             },
                         },
                         opts = { skip = true },
@@ -144,6 +144,15 @@ return {
                             event = 'notify',
                             find = 'CodeCompanion',
                             warning = true,
+                        },
+                        opts = { skip = true },
+                    },
+                    -- Skip CodeCompanion Edit Tracker warnings shown via :echo
+                    {
+                        filter = {
+                            event = 'msg_show',
+                            kind = 'echo',
+                            find = '%[Edit Tracker%]',
                         },
                         opts = { skip = true },
                     },
