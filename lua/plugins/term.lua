@@ -98,8 +98,10 @@ return {
                 on_open = function(term)
                     -- Install keymaps
                     local function close()
+                        if term.previous_tab then
+                            goto_previous_tab(term.previous_tab)
+                        end
                         vim.api.nvim_win_close(term.window, false)
-                        goto_previous_tab(term.previous_tab)
                     end
                     vim.api.nvim_buf_set_keymap(term.bufnr, 'i', '<C-q>', '', {noremap = true, silent = true, callback = close})
                     vim.api.nvim_buf_set_keymap(term.bufnr, 'n', '<C-q>', '', {noremap = true, silent = true, callback = close})
@@ -114,10 +116,12 @@ return {
                 end,
                 -- function to run on closing the terminal
                 on_close = function(term)
-                    -- Cleanup keymaps
-                    vim.api.nvim_buf_del_keymap(term.bufnr, 'i', '<C-q>')
-                    vim.api.nvim_buf_del_keymap(term.bufnr, 'n', '<C-q>')
-                    vim.api.nvim_buf_del_keymap(term.bufnr, 't', '<C-q>')
+                    if term.bufnr then
+                        -- Cleanup keymaps
+                        pcall(vim.api.nvim_buf_del_keymap, term.bufnr, 'i', '<C-q>')
+                        pcall(vim.api.nvim_buf_del_keymap, term.bufnr, 'n', '<C-q>')
+                        pcall(vim.api.nvim_buf_del_keymap, term.bufnr, 't', '<C-q>')
+                    end
                 end,
             }
 
