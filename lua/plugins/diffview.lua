@@ -15,12 +15,14 @@ return {
             }
 
             -- vim.opt.fillchars:append{ diff = '␥' }  -- alternatives: ␥╱
+            local dv = require'diffview'
             require'which-key'.add{
                 { '<leader>gd', group = 'Git Diffview…' },
-                { '<leader>gdv', '<cmd>DiffviewOpen -uno<cr>', desc = 'Diffview for tracked files' },
-                { '<leader>gdm', '<cmd>DiffviewOpen origin/HEAD...HEAD -uno<cr>', desc = 'Diffview to main branch' },
-                { '<leader>gdh', '<cmd>DiffviewFileHistory %<cr>', desc = 'Current file history' },
-                { '<leader>gdb', '<cmd>DiffviewFileHistory<cr>', desc = 'Current branch history' },
+                { '<leader>gdv', function() dv.open{ '-uno' } end, desc = 'Unstaged changes' },
+                { '<leader>gdm', function() dv.open{ 'origin/HEAD...HEAD', '-uno' } end,
+                    desc = 'Changes since merge-base' },
+                { '<leader>gdh', function() dv.file_history(nil, { '%' }) end, desc = 'Current file history' },
+                { '<leader>gdb', function() dv.file_history(nil, {}) end, desc = 'Current branch history' },
             }
         end,
     }
