@@ -31,8 +31,8 @@ local function setup_metals()
 
         -- We set our metals wrapper script here, which acts as an executable for the databricks JAR file
         useGlobalExecutable = false,
-        metalsBinaryPath = vim.fn.expand('~/.local/bin/metals'),
-        -- metalsBinaryPath = vim.fn.expand('/opt/databricks/experimental-dbmetals'),
+        -- metalsBinaryPath = vim.fn.expand('~/.local/bin/metals'),
+        metalsBinaryPath = vim.fn.expand('/opt/databricks/experimental-dbmetals'),
     }
 
     metals_config.init_options.statusBarProvider = 'off'
