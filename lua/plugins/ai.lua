@@ -205,7 +205,7 @@ return {
                     {
                         name = 'databricks',
                         is_available = function()
-                            local token = vim.env.DATABRICKS_TOKEN
+                            local token = vim.env.DATABRICKS_AI_GATEWAY_TOKEN
                             return token ~= nil and token ~= ''
                         end,
                     },
@@ -260,7 +260,7 @@ return {
                             local openai = require('codecompanion.adapters.http.openai')
                             return require'codecompanion.adapters'.extend('openai_compatible', {
                                 env = {
-                                    api_key = 'DATABRICKS_TOKEN',
+                                    api_key = 'DATABRICKS_AI_GATEWAY_TOKEN',
                                 },
                                 url = DATABRICKS_AI_GATEWAY_URL .. '/mlflow/v1/chat/completions',
                                 headers = {
