@@ -75,8 +75,8 @@ function M.setup()
         mode = { 'v' },
         { '<C-s>', ':sort i<cr>', desc = 'Sort selected lines' },
         { '<C-r>', ':!tac<cr>', desc = 'Revert selected lines' },
-        { '*', ':lua require("utils").search_for_visual_selection(true)<cr>', desc = 'Search for visual selection' },
-        { '?', ':lua require("utils").search_for_visual_selection(false)<cr>', desc = 'Reverse search for visual selection' },
+        { '*', function() Utils.search_for_visual_selection(true) end, desc = 'Search for visual selection' },
+        { '?', function() Utils.search_for_visual_selection(false) end, desc = 'Reverse search for visual selection' },
     }
 
     -- Terminal mode
