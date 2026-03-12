@@ -90,7 +90,8 @@ local function get_host_alias(host, port)
 end
 
 return {
-    { 'glepnir/galaxyline.nvim',
+    {
+        'glepnir/galaxyline.nvim',
         dependencies = {
             'SmiteshP/nvim-navic',
             'nvim-lua/lsp-status.nvim',
@@ -216,11 +217,11 @@ return {
 
             gl._mysection.set_showcmd = function()
                 local enable_showcmd = {
-                    ['NORMAL'] = true,
+                    ['NORMAL'] = false,
                     ['INSERT'] = true,
                     ['COMMAND'] = true,
                     ['TERMINAL'] = true,
-                    ['VISUAL'] = false,
+                    ['VISUAL'] = false,  -- disable in visual mode due to flickering bug
                     ['V-BLOCK'] = false,
                     ['V-LINE'] = false,
                     ['REPLACE'] = true,
