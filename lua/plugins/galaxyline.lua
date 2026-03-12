@@ -284,7 +284,7 @@ return {
                 }},
                 { Cwd = {
                     provider = function()
-                        return Utils.shorten_absolute_path(vim.fn.getcwd() .. ' ', 30)
+                        return '  ' .. Utils.shorten_absolute_path(vim.fn.getcwd() .. ' ', 30)  --    
                     end,
                     highlight = { colors.gray, colors.light_red }
                 }},
