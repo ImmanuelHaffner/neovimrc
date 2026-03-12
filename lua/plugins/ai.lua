@@ -203,6 +203,13 @@ return {
                 --   - is_available: function that returns true if this adapter can be used
                 local adapters = {
                     {
+                        name = 'Databricks Anthropic',
+                        is_available = function()
+                            local key = vim.env.DATABRICKS_ANTHROPIC_API_KEY
+                            return key ~= nil and key ~= ''
+                        end,
+                    },
+                    {
                         name = 'Databricks FMAPI (Anthropic)',
                         is_available = function()
                             local token = vim.env.DATABRICKS_AI_GATEWAY_TOKEN
@@ -251,6 +258,40 @@ return {
                                     model = {
                                         default = 'claude-sonnet-4',
                                     },
+                                },
+                            })
+                        end,
+                        -- Databricks Anthropic adapter (connects directly to Anthropic API)
+                        ['Databricks Anthropic'] = function()
+                            return require'codecompanion.adapters'.extend('anthropic', {
+                                formatted_name = 'Databricks Anthropic',
+                                env = {
+                                    api_key = 'DATABRICKS_ANTHROPIC_API_KEY',
+                                },
+                                headers = {
+                                    -- Enable extended context (1M tokens) via beta header
+                                    ['anthropic-beta'] = 'prompt-caching-2024-07-31,context-1m-2025-08-07',
+                                },
+                                schema = {
+                                    model = {
+                                        default = 'claude-opus-4-6',
+                                        choices = {
+                                            ['claude-sonnet-4-5'] = {
+                                                formatted_name = 'Claude Sonnet 4.5',
+                                                opts = { can_reason = true, has_vision = true },
+                                            },
+                                            ['claude-opus-4-5'] = {
+                                                formatted_name = 'Claude Opus 4.5',
+                                                opts = { can_reason = true, has_vision = true },
+                                            },
+                                            ['claude-opus-4-6'] = {
+                                                formatted_name = 'Claude Opus 4.6',
+                                                opts = { can_reason = true, has_vision = true },
+                                            },
+                                        },
+                                    },
+                                    thinking_budget = { default = 32000 },
+                                    max_tokens = { default = 64000 },
                                 },
                             })
                         end,
