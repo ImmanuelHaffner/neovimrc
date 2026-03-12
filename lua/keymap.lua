@@ -73,6 +73,12 @@ function M.setup()
     -- Visual mode
     wk.add{
         mode = { 'v' },
+        { '<C-h>', function()
+            -- Exit visual mode first so that '< and '> marks are updated to the current selection
+            local esc = vim.api.nvim_replace_termcodes('<Esc>', true, false, true)
+            vim.api.nvim_feedkeys(esc, 'nx', false)
+            vim.cmd('help ' .. Utils.get_visual_selection(true))
+        end, desc = 'Show :help for visual selection' },
         { '<C-s>', ':sort i<cr>', desc = 'Sort selected lines' },
         { '<C-r>', ':!tac<cr>', desc = 'Revert selected lines' },
         { '*', function() Utils.search_for_visual_selection(true) end, desc = 'Search for visual selection' },
