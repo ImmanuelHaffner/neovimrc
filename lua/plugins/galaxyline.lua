@@ -220,7 +220,7 @@ return {
                     ['NORMAL'] = false,
                     ['INSERT'] = true,
                     ['COMMAND'] = true,
-                    ['TERMINAL'] = true,
+                    ['TERMINAL'] = false,  -- don't show terminal mode
                     ['VISUAL'] = false,  -- disable in visual mode due to flickering bug
                     ['V-BLOCK'] = false,
                     ['V-LINE'] = false,
