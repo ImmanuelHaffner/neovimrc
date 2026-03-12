@@ -322,6 +322,11 @@ return {
                                         end,
                                     },
                                 },
+                                body = {
+                                    -- Opt-in to Anthropic's large context window (up to 1M tokens)
+                                    -- Ref: https://docs.anthropic.com/en/docs/build-with-claude/extended-context
+                                    anthropic_beta = { 'context-1m-2025-08-07' },
+                                },
                                 schema = {
                                     model = {
                                         default = 'databricks-claude-opus-4-6',
