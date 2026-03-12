@@ -421,7 +421,7 @@ return {
 
             -- Short status line
             gls.short_line_left = {
-                { ViMode = {
+                { ViModeShort = {
                     provider = function()
                         local color, mode = table.unpack(Utils.get_vim_mode_info())
                         vim.api.nvim_command('hi GalaxyViMode guibg=' .. color)
@@ -432,7 +432,7 @@ return {
                 }},
                 -- Hack the Operator Pending information into Galaxyline.  We must do this as a `separator` to bypass
                 -- escaping.
-                { OperatorPending = {
+                { OperatorPendingShort = {
                     provider = function() return '' end,
                     separator = '%#GalaxyViMode# %S ',  -- the name must match the previous section name
                 }},
@@ -443,7 +443,7 @@ return {
             }
 
             gls.short_line_right = {
-                { MacroRecording = {
+                { MacroRecordingShort = {
                     provider = function()
                         local recording_register = vim.fn.reg_recording()
                         return ' 󰑋 recording @' .. recording_register .. ' ' -- Show recording status
@@ -457,7 +457,7 @@ return {
                     separator_highlight = { colors.dark_red, colors.gray },
                     event = { 'RecordingEnter', 'RecordingLeave'},
                 }},
-                { MacroRecordingEnd = {
+                { MacroRecordingEndShort = {
                     provider = function() return '  ' end,
                     condition = function()
                         local recording_register = vim.fn.reg_recording()
@@ -466,16 +466,16 @@ return {
                     highlight = { colors.dark_red, colors.gray },
                     event = { 'RecordingEnter', 'RecordingLeave'},
                 }},
-                { GitInfo = {
+                { GitInfoShort = {
                     provider = function() return '' end,
                     separator = [[%{%luaeval('require"galaxyline"._mysection.compose_git_info(12)')%}]],
                     separator_highlight = { colors.light_orange, colors.gray },
                 }},
-                { Space = {
+                { SpaceShort = {
                     provider = function() return '' end,
                     highlight = { colors.fg, colors.gray }
                 }},
-                { AsyncRun = {
+                { AsyncRunShort = {
                     provider = function() return vim.g.asyncrun_status .. ' ' end,
                     condition = function() return vim.g['asyncrun_status'] ~= '' end,
                     icon = '  ',
@@ -484,7 +484,7 @@ return {
                     highlight = { colors.gray, colors.red2 },
                     event = { 'AsyncRunPre', 'AsyncRunStart', 'AsyncRunStop' },
                 }},
-                { BufferIcon = {
+                { BufferIconShort = {
                     provider = 'BufferIcon',
                     highlight = {colors.yellow, colors.section_bg},
                     separator = '',
