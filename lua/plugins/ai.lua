@@ -203,7 +203,7 @@ return {
                 --   - is_available: function that returns true if this adapter can be used
                 local adapters = {
                     {
-                        name = 'databricks',
+                        name = 'Databricks FMAPI (Anthropic)',
                         is_available = function()
                             local token = vim.env.DATABRICKS_AI_GATEWAY_TOKEN
                             return token ~= nil and token ~= ''
@@ -254,11 +254,11 @@ return {
                                 },
                             })
                         end,
-                        -- Databricks adapter using OpenAI-compatible MLflow Chat Completions API
-                        -- Best for: GPT models, or when you need OpenAI-style tool calling
-                        databricks = function()
+                        -- Databricks FMAPI adapter for Anthropic models via OpenAI-compatible endpoint
+                        ['Databricks FMAPI (Anthropic)'] = function()
                             local openai = require('codecompanion.adapters.http.openai')
                             return require'codecompanion.adapters'.extend('openai_compatible', {
+                                formatted_name = 'Databricks FMAPI (Anthropic)',
                                 env = {
                                     api_key = 'DATABRICKS_AI_GATEWAY_TOKEN',
                                 },
@@ -326,11 +326,15 @@ return {
                                     model = {
                                         default = 'databricks-claude-opus-4-6',
                                         choices = {
-                                            'databricks-claude-opus-4-5',
-                                            'databricks-claude-opus-4-6',
-                                            'databricks-claude-sonnet-4-5',
-                                            'databricks-gpt-5-2',
-                                            'databricks-gpt-5-1-codex-max',
+                                            ['databricks-claude-opus-4-6'] = {
+                                                formatted_name = 'Claude Opus 4.6',
+                                            },
+                                            ['databricks-claude-opus-4-5'] = {
+                                                formatted_name = 'Claude Opus 4.5',
+                                            },
+                                            ['databricks-claude-sonnet-4-5'] = {
+                                                formatted_name = 'Claude Sonnet 4.5',
+                                            },
                                         },
                                     },
                                 },
