@@ -21,6 +21,7 @@ return {
                     untracked    = { text = '┆' },
                 },
                 signs_staged_enable = true,
+                current_line_blame = true,
                 on_attach = function(bufnr)
                     local gs = require'gitsigns'
                     local wk = require'which-key'
