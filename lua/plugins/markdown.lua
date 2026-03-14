@@ -38,7 +38,7 @@ return {
                 edit_range = { 0, 0 },  -- and don't render the cursor line
                 filetypes = { 'markdown', 'codecompanion', 'mdx', },
                 ignore_buftypes = {},  -- to avoid 'nofile'
-                -- filetypes = { 'markdown' },
+                max_buf_lines = 5000,  -- allow rendering in longer CC chats (default 1000)
             },
         },
     },
