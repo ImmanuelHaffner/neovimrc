@@ -95,9 +95,20 @@ The Makefile detects the OS (Linux/macOS) and runs the appropriate install targe
 - Installs the `nvimdiff` wrapper script to `~/.local/bin/`
 
 ### Development
-- After making changes, run `make install` to deploy updates to `~/.config/nvim`
-- Alternatively, edit files directly in `~/.config/nvim` for quick iteration, then copy changes back
-- Changes to Lua files take effect after restarting Neovim or using `:source %`
+
+> **⚠️ CRITICAL: Always edit files in this repository (the CWD), NOT in `~/.config/nvim/`.**
+>
+> The `~/.config/nvim/` directory is the **deployment target** — it is overwritten entirely by
+> `make install`. Any edits made directly in `~/.config/nvim/` will be **lost** on the next install.
+>
+> The correct workflow is:
+> 1. Edit files in this repo (e.g. `lua/plugins/ai.lua`)
+> 2. Run `make install` to deploy to `~/.config/nvim/`
+> 3. Restart Neovim (or `:source %` for simple changes)
+>
+> When using tools that accept file paths, always use **relative paths** (e.g. `lua/plugins/ai.lua`)
+> to ensure edits land in the repo, not the deployed copy.
+
 - Use `:Lazy` to manage plugins
 - Use `:checkhealth` to diagnose issues
 
@@ -114,7 +125,7 @@ We own the **nvu.nvim** library, a collection of Neovim utilities used by this c
 ```
 
 The library provides:
-- **CodeCompanion extensions**: `editor_context` tool and `#editor` variable (in `lua/codecompanion/_extensions/`)
+- **CodeCompanion extensions**: `neovim_context` tool and `#neovim_context` variable (in `lua/codecompanion/_extensions/`)
 - **Telescope extensions**: Adaptive pickers with path shortening (in `lua/telescope/_extensions/`)
 - **Core utilities**: Editor context, buffer info, path manipulation, highlighting helpers (in `lua/nvu/`)
 
