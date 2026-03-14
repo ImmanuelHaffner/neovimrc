@@ -67,7 +67,11 @@ return {
         },
     },
     {
-        'ravitemer/mcphub.nvim',
+        -- TODO: Switch back to 'ravitemer/mcphub.nvim' once PR #279 is merged:
+        --       https://github.com/ravitemer/mcphub.nvim/pull/279
+        --       This fork adds CodeCompanion v19 compatibility (tool cmd signature,
+        --       variables→editor_context rename, output handler changes, image API).
+        'bahaaza/mcphub.nvim',
         dependencies = {
             'nvim-lua/plenary.nvim',  -- Required for Job and HTTP requests
             'Joakker/lua-json5',
@@ -102,11 +106,12 @@ return {
     },
     {
         'olimorris/codecompanion.nvim',
-        tag = 'v18.7.0',
+        -- Pin to v19.3.0 for now; remove pin once stable
+        tag = 'v19.3.0',
         dependencies = {
             'nvim-lua/plenary.nvim',
             'nvim-treesitter/nvim-treesitter',
-            'ravitemer/mcphub.nvim',
+            'bahaaza/mcphub.nvim',  -- TODO: switch back to 'ravitemer/mcphub.nvim' after PR #279 merged
             'zbirenbaum/copilot.lua',
             -- 'CopilotC-Nvim/CopilotChat.nvim',
             'folke/which-key.nvim',
@@ -389,7 +394,7 @@ return {
                         end
                     }
                 },
-                strategies = {
+                interactions = {
                     chat = {
                         adapter = get_default_adapter(),
                         tools = {
@@ -399,14 +404,14 @@ return {
                                     require_approval_before = false,
                                 },
                             },
-                            -- editor_context tool is registered via the nvu.editor_context extension
+                            -- neovim_context tool is registered via the nvu.editor_context extension
                             opts = {
                                 auto_submit_errors = true, -- Send any errors to the LLM automatically?
                                 auto_submit_success = true, -- Send any successful output to the LLM automatically?
                                 default_tools = {
                                     'memory',
                                     'neovim',  -- all tools from the Neovim MCP server
-                                    'editor_context',  -- provide context on open buffers, cursor pos, active buffer
+                                    'neovim_context',  -- provide context on open buffers, cursor pos, active buffer
                                 },
                             },
                             groups = {
@@ -416,7 +421,7 @@ return {
                                         'read_file',
                                         'file_search',
                                         'grep_search',
-                                        'editor_context',  -- custom tool for editor state
+                                        'neovim_context',  -- custom tool for editor state
                                         'neovim',  -- all tools from the Neovim MCP server
                                     },
                                     opts = {
@@ -456,16 +461,10 @@ return {
                         adapter = get_default_adapter(),
                     }
                 },
-                ui = {
-                    chat_window = {
-                        filetype = 'markdown', -- Set the chat window filetype to Markdown
-                        syntax_highlighting = true, -- Enable syntax highlighting
-                    },
-                },
                 display = {
                     action_palette = {
                         opts = {
-                            show_default_actions = true,
+                            show_preset_actions = true,
                         }
                     },
 
@@ -491,7 +490,7 @@ return {
                     },
                 },
                 extensions = {
-                    -- Editor context extension from nvu library (provides #editor variable and editor_context tool)
+                    -- Neovim context extension from nvu library (provides #neovim_context variable and neovim_context tool)
                     editor_context = {
                         callback = 'codecompanion._extensions.editor_context',
                         opts = {
@@ -589,6 +588,19 @@ return {
                 desc = 'Refresh CodeCompanion prompt library after session load',
             })
 
+            -- When MCPHub finishes registering tools (may happen after chat is already open),
+            -- refresh any open CodeCompanion chats so they pick up the newly registered tools/groups.
+            require('mcphub').on({ 'servers_updated', 'tool_list_changed' }, vim.schedule_wrap(function()
+                for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == 'codecompanion' then
+                        local chat = cc.buf_get_chat(buf)
+                        if chat and chat.tools then
+                            chat.tools:refresh({ adapter = chat.adapter })
+                        end
+                    end
+                end
+            end))
+
             -- Automatically attach current buffer to new chat
             vim.api.nvim_create_autocmd('User', {
                 pattern = 'CodeCompanionChatCreated',
@@ -598,7 +610,7 @@ return {
                     vim.treesitter.start(request.buf, 'markdown')
                     vim.wo.colorcolumn = ''
 
-                    -- Auto-include editor context on chat initialization
+                    -- Auto-include neovim context on chat initialization
                     local chat = cc.buf_get_chat(request.buf)
                     if chat then
                         local ok, ext = pcall(require, 'codecompanion._extensions.editor_context')
@@ -607,7 +619,7 @@ return {
                             if context and context ~= '' then
                                 chat:add_message({
                                     role = 'user',
-                                    content = '<editorContext>\n' .. context .. '\n</editorContext>',
+                                    content = '<neovimContext>\n' .. context .. '\n</neovimContext>',
                                 }, { visible = false })
                             end
                         end
