@@ -568,6 +568,68 @@ return {
 
             local cc_group = vim.api.nvim_create_augroup('CodeCompanionHooks', {})
 
+            --- Disable expensive rendering on CodeCompanion chat buffers.
+            --- Called before LLM streaming starts to avoid per-token treesitter re-parses
+            --- and markview re-renders which cause severe lag in long conversations.
+            --- See: https://github.com/olimorris/codecompanion.nvim/issues/552
+            local function disable_chat_rendering(bufnr)
+                bufnr = bufnr or vim.api.nvim_get_current_buf()
+                -- Stop treesitter highlighting (the full-buffer parse is ~45ms per change)
+                if vim.treesitter.highlighter.active[bufnr] then
+                    vim.treesitter.stop(bufnr)
+                end
+                -- Disable markview rendering
+                local has_markview, markview = pcall(require, 'markview')
+                if has_markview then
+                    markview.clear(bufnr)
+                end
+                -- Disable undo history during streaming to prevent memory bloat
+                vim.bo[bufnr].undolevels = -1
+            end
+
+            --- Re-enable rendering after LLM streaming completes.
+            local function enable_chat_rendering(bufnr)
+                bufnr = bufnr or vim.api.nvim_get_current_buf()
+                vim.schedule(function()
+                    if not vim.api.nvim_buf_is_valid(bufnr) then return end
+                    -- Re-enable undo (restore default)
+                    vim.bo[bufnr].undolevels = vim.api.nvim_get_option_value('undolevels', { scope = 'global' })
+                    -- Re-enable treesitter highlighting
+                    vim.treesitter.start(bufnr, 'markdown')
+                    -- Re-enable markview rendering
+                    local has_markview, markview = pcall(require, 'markview')
+                    if has_markview then
+                        markview.render(bufnr)
+                    end
+                end)
+            end
+
+            -- Disable rendering while LLM is streaming to prevent lag
+            vim.api.nvim_create_autocmd('User', {
+                pattern = { 'CodeCompanionRequestStarted' },
+                group = cc_group,
+                callback = function(args)
+                    local bufnr = args.data and args.data.bufnr
+                    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+                        disable_chat_rendering(bufnr)
+                    end
+                end,
+                desc = 'Disable TS/markview during CodeCompanion streaming',
+            })
+
+            -- Re-enable rendering after streaming completes
+            vim.api.nvim_create_autocmd('User', {
+                pattern = { 'CodeCompanionRequestFinished' },
+                group = cc_group,
+                callback = function(args)
+                    local bufnr = args.data and args.data.bufnr
+                    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+                        enable_chat_rendering(bufnr)
+                    end
+                end,
+                desc = 'Re-enable TS/markview after CodeCompanion streaming',
+            })
+
             --- Refresh the CodeCompanion prompt library cache (silently, in background)
             local function refresh_prompt_library()
                 local context = require('codecompanion.utils.context').get(vim.api.nvim_get_current_buf())
