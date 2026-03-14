@@ -1,5 +1,6 @@
 return {
     { 'nvim-treesitter/nvim-treesitter',
+        branch = 'main',  -- master branch is archived; main has tree-sitter CLI 0.25+ compat
         dependencies = {
             'OXY2DEV/markview.nvim',
         },
@@ -7,6 +8,12 @@ return {
         build = ':TSUpdate',
         config = function()
             local Utils = require'utils'
+
+            -- On the main branch, setup() only accepts { install_dir = ... }.
+            -- Highlighting, indent, etc. are now handled by Neovim builtins (vim.treesitter.start).
+            require'nvim-treesitter'.setup()
+
+            -- Install parsers
             local ensure_installed = {
                 'awk',
                 'bash',
@@ -39,36 +46,13 @@ return {
             }
 
             if Utils.has_tree_sitter_cli() then
-                ensure_installed = {
-                    table.unpack(ensure_installed),
-                    -- List of grammars that require the tree-sitter CLI
-                    'latex'
-                }
+                ensure_installed[#ensure_installed + 1] = 'latex'
             else
                 vim.notify('Tree-sitter CLI is not available. Some grammars will not be installed.')
             end
 
-            require'nvim-treesitter'.setup()
-            ---@diagnostic disable-next-line: missing-fields
-            require'nvim-treesitter.configs'.setup{
-                sync_install = false,
-                auto_install = false,
-                ignore_install = {},
-                highlight = {
-                    enable = true,
-                    disable = function(lang, buf)
-                        local clients = vim.lsp.get_clients({ bufnr = buf })
-                        for _, client in ipairs(clients) do
-                            if client.server_capabilities.semanticTokensProvider then
-                                return true -- Disable Tree-sitter highlighting if LSP provides semantic tokens
-                            end
-                        end
-                    end,
-                },
-                incremental_selection = { enable = false },
-                indent = { enable = false },  -- again, rely on LSP-based formatting
-                ensure_installed = ensure_installed,
-            }
+            -- Install missing parsers asynchronously
+            require'nvim-treesitter'.install(ensure_installed)
         end
     }
 }

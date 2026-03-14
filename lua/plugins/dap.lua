@@ -64,9 +64,9 @@ return {
             local Utils = require'utils'
             require'nvim-dap-repl-highlights'.setup()
             if Utils.has_tree_sitter_cli() then
-                local parsers = require'nvim-treesitter.parsers'
-                if not parsers.has_parser('dap_repl') then
-                    vim.cmd[[TSInstall dap_repl]]
+                local installed = require'nvim-treesitter'.get_installed()
+                if not vim.list_contains(installed, 'dap_repl') then
+                    require'nvim-treesitter'.install('dap_repl')
                 end
             end
         end,
