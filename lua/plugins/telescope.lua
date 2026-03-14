@@ -26,11 +26,11 @@ return {
                     dynamic_preview_title = true,
                     mappings = {
                         n = {
-                            ['<c-x>'] = require('telescope.actions').delete_buffer
+                            ['<C-x>'] = require('telescope.actions').delete_buffer
                         },
                         i = {
                             ['<C-h>'] = 'which_key',
-                            ['<c-x>'] = require('telescope.actions').delete_buffer
+                            ['<C-x>'] = require('telescope.actions').delete_buffer
                         },
                     },
                 },
