@@ -569,8 +569,8 @@ return {
             local cc_group = vim.api.nvim_create_augroup('CodeCompanionHooks', {})
 
             --- Disable expensive rendering on CodeCompanion chat buffers.
-            --- Called before LLM streaming starts to avoid per-token treesitter re-parses
-            --- and markview re-renders which cause severe lag in long conversations.
+            --- Uses markview's actions.disable() to set buffer state to disabled,
+            --- which causes all markview autocmd callbacks to early-return.
             --- See: https://github.com/olimorris/codecompanion.nvim/issues/552
             local function disable_chat_rendering(bufnr)
                 bufnr = bufnr or vim.api.nvim_get_current_buf()
@@ -578,28 +578,24 @@ return {
                 if vim.treesitter.highlighter.active[bufnr] then
                     vim.treesitter.stop(bufnr)
                 end
-                -- Disable markview rendering
-                local has_markview, markview = pcall(require, 'markview')
-                if has_markview then
-                    markview.clear(bufnr)
+                -- Disable markview at the state level so its autocmds early-return
+                local has_actions, mv_actions = pcall(require, 'markview.actions')
+                if has_actions then
+                    mv_actions.disable(bufnr)
                 end
-                -- Disable undo history during streaming to prevent memory bloat
-                vim.bo[bufnr].undolevels = -1
             end
 
-            --- Re-enable rendering after LLM streaming completes.
+            --- Re-enable rendering after LLM streaming or insert mode ends.
             local function enable_chat_rendering(bufnr)
                 bufnr = bufnr or vim.api.nvim_get_current_buf()
                 vim.schedule(function()
                     if not vim.api.nvim_buf_is_valid(bufnr) then return end
-                    -- Re-enable undo (restore default)
-                    vim.bo[bufnr].undolevels = vim.api.nvim_get_option_value('undolevels', { scope = 'global' })
                     -- Re-enable treesitter highlighting
                     vim.treesitter.start(bufnr, 'markdown')
-                    -- Re-enable markview rendering
-                    local has_markview, markview = pcall(require, 'markview')
-                    if has_markview then
-                        markview.render(bufnr)
+                    -- Re-enable markview at the state level and trigger a render
+                    local has_actions, mv_actions = pcall(require, 'markview.actions')
+                    if has_actions then
+                        mv_actions.enable(bufnr)
                     end
                 end)
             end
@@ -611,7 +607,10 @@ return {
                 callback = function(args)
                     local bufnr = args.data and args.data.bufnr
                     if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+                        vim.b[bufnr]._cc_streaming = true
                         disable_chat_rendering(bufnr)
+                        -- Disable undo history during streaming to prevent memory bloat
+                        vim.bo[bufnr].undolevels = -1
                     end
                 end,
                 desc = 'Disable TS/markview during CodeCompanion streaming',
@@ -624,10 +623,39 @@ return {
                 callback = function(args)
                     local bufnr = args.data and args.data.bufnr
                     if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+                        vim.b[bufnr]._cc_streaming = false
+                        -- Re-enable undo (restore default)
+                        vim.bo[bufnr].undolevels = vim.api.nvim_get_option_value('undolevels', { scope = 'global' })
                         enable_chat_rendering(bufnr)
                     end
                 end,
                 desc = 'Re-enable TS/markview after CodeCompanion streaming',
+            })
+
+            -- Disable rendering during insert mode to prevent per-keystroke lag.
+            -- Markview's TextChangedI autocmd fires on every keystroke even when
+            -- modes={'n'}, because it still runs actions.clear(). Using
+            -- actions.disable() sets buffer state so all autocmd callbacks bail out.
+            vim.api.nvim_create_autocmd('InsertEnter', {
+                group = cc_group,
+                pattern = '*',
+                callback = function(args)
+                    if vim.bo[args.buf].filetype ~= 'codecompanion' then return end
+                    disable_chat_rendering(args.buf)
+                end,
+                desc = 'Disable TS/markview on InsertEnter in CodeCompanion chat',
+            })
+
+            vim.api.nvim_create_autocmd('InsertLeave', {
+                group = cc_group,
+                pattern = '*',
+                callback = function(args)
+                    if vim.bo[args.buf].filetype ~= 'codecompanion' then return end
+                    -- Don't re-enable if the LLM is currently streaming
+                    if vim.b[args.buf]._cc_streaming then return end
+                    enable_chat_rendering(args.buf)
+                end,
+                desc = 'Re-enable TS/markview on InsertLeave in CodeCompanion chat',
             })
 
             --- Refresh the CodeCompanion prompt library cache (silently, in background)
