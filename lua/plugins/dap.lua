@@ -40,7 +40,7 @@ return {
             wk.add{
                 { '<leader>d', group = 'DAP…' },
                 { '<leader>dc', function() require'telescope'.extensions.dap.commands() end, desc = 'DAP Commands' },
-                { '<leader>db', function() require'telescope'.extensions.dap.list_breakp() endoints() end, desc = 'DAP Breakpoints' },
+                { '<leader>db', function() require'telescope'.extensions.dap.list_breakpoints() end, desc = 'DAP Breakpoints' },
                 { '<leader>dv', function() require'telescope'.extensions.dap.variables() end, desc = 'DAP Variables' },
                 { '<leader>df', function() require'telescope'.extensions.dap.frames() end, desc = 'DAP Frames' },
             }
