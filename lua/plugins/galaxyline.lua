@@ -424,7 +424,7 @@ return {
                 { ViModeShort = {
                     provider = function()
                         local color, mode = table.unpack(Utils.get_vim_mode_info())
-                        vim.api.nvim_command('hi GalaxyViMode guibg=' .. color)
+                        vim.api.nvim_command('hi GalaxyViModeShort guibg=' .. color)
                         return ' ' .. mode
                     end,
                     highlight = { colors.gray, colors.bg, 'bold' },
@@ -434,7 +434,7 @@ return {
                 -- escaping.
                 { OperatorPendingShort = {
                     provider = function() return '' end,
-                    separator = '%#GalaxyViMode# %S ',  -- the name must match the previous section name
+                    separator = '%#GalaxyViModeShort# %S ',  -- the name must match the previous section name
                 }},
                 { color = {
                     provider = function() return '' end,
