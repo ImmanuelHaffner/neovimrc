@@ -249,17 +249,19 @@ return {
                 return ''
             end
 
-            -- Left side
-            gls.left = {
-                { Remote = {
+            --  ── Section factories ──────────────────────────────────────────────
+            -- Each factory returns a single { Name = { ... } } table suitable for
+            -- inclusion in a galaxyline section list.
+
+            local function make_remote()
+                return { Remote = {
                     provider = function()
                         if not Utils.is_ssh_connection() and not Utils.is_client_server_connection() then
                             return ' '
                         end
                         local host = vim.fn.hostname()
                         local servername = vim.v.servername
-                        local port_num = nil
-                        local port_str = nil
+                        local port = nil
                         if servername ~= nil then
                             local pos = servername:find(':')
                             if pos then
@@ -267,33 +269,48 @@ return {
                             end
                         end
 
-                        -- Check for known alias
-                        local alias = get_host_alias(host, port)
-                        if alias then
-                            return '   ' .. alias .. ' '
+                        -- Connection type suffix
+                        local suffix = ''
+                        if port then
+                            suffix = ':' .. port
+                        elseif Utils.is_ssh_connection() then
+                            suffix = '(SSH)'
                         end
 
-                        -- Fallback to host + connection type
-                        local suffix = ' (SSH)'
-                        if port then
-                            suffix = ':' .. port .. ' (TCP)'
+
+                        -- Check for known alias (alias already encodes host+port)
+                        local alias = get_host_alias(host, port)
+                        -- Alias encodes port; only append suffix for non-port info (e.g. SSH)
+                        local display = alias or host
+                        if not alias or not port then
+                            display = display .. suffix
                         end
-                        return '   ' .. host .. suffix .. ' '
+                        return '   ' .. display .. ' '
                     end,
-                    highlight = { colors.gray, colors.light_red }
-                }},
-                { Cwd = {
+                    highlight = { colors.gray, colors.light_red, 'bold' }
+                }}
+            end
+
+            local function make_cwd()
+                return { Cwd = {
                     provider = function()
                         return '  ' .. Utils.shorten_absolute_path(vim.fn.getcwd(), 30)  --    
                     end,
                     separator = '▐',
                     separator_highlight = { colors.bg, colors.light_red },
-                    highlight = { colors.gray, colors.light_red }
-                }},
-                { ViMode = {
+                    highlight = { colors.gray, colors.light_red, 'bold' }
+                }}
+            end
+
+            --- Build a ViMode section.  The section_name controls the Galaxy highlight
+            --- group (Galaxy<section_name>), so each statusline instance gets its own
+            --- group and they don't interfere with each other.
+            local function make_vimode(section_name)
+                local hl_group = 'Galaxy' .. section_name
+                return { [section_name] = {
                     provider = function()
                         local color, mode = table.unpack(Utils.get_vim_mode_info())
-                        vim.api.nvim_command('hi GalaxyViMode guibg=' .. color)
+                        vim.api.nvim_command('hi ' .. hl_group .. ' guibg=' .. color)
                         local text = ' ' .. mode
                         if vim.b.toggle_number then
                             text = text .. '['
@@ -306,14 +323,23 @@ return {
                     end,
                     highlight = { colors.gray, colors.bg, 'bold' },
                     event = { 'ModeChanged' },
-                }},
-                -- Hack the Operator Pending information into Galaxyline.  We must do this as a `separator` to bypass
-                -- escaping.
-                { OperatorPending = {
+                }}
+            end
+
+            --- Build an OperatorPending section that references the highlight group of
+            --- the given vimode section.  Must be placed directly after the corresponding
+            --- make_vimode() entry so the separator inherits the right background.
+            local function make_operator_pending(vimode_section_name)
+                local hl_group = 'Galaxy' .. vimode_section_name
+                return { OperatorPending = {
                     provider = function() return '' end,
-                    separator = [[%#GalaxyViMode#%{%luaeval('require"galaxyline"._mysection.set_showcmd()')%} ]],  -- the name must match the previous section name
-                }},
-                { MacroRecording = {
+                    separator = '%#' .. hl_group
+                        .. [[#%{%luaeval('require"galaxyline"._mysection.set_showcmd()')%} ]],
+                }}
+            end
+
+            local function make_macro_recording()
+                return { MacroRecording = {
                     provider = function()
                         local recording_register = vim.fn.reg_recording()
                         return '  󰑋 recording @' .. recording_register .. ' ' -- Show recording status
@@ -326,40 +352,66 @@ return {
                     -- separator = '',
                     separator_highlight = { colors.dark_red, colors.gray },
                     event = { 'RecordingEnter', 'RecordingLeave'},
-                }},
-                -- Hack the LSP status as a separator that calls our function.
-                { LSP = {
-                    provider = function() return '' end,
-                    separator = [[%{%luaeval('require"galaxyline"._mysection.compose_lsp_status()')%}]],  -- the name must match the previous section name
-                    separator_highlight = { colors.fg, colors.gray3 },
-                }},
-                { Background = {
+                }}
+            end
+
+            local function make_background()
+                return { Background = {
                     provider = function() return '' end,
                     separator = '',
                     separator_highlight = { colors.gray3, colors.gray },
-                }},
-            }
+                }}
+            end
 
-            -- Right side
-            gls.right = {
-                { GitInfo = {
+            local function make_git_info(min_width)
+                return { GitInfo = {
                     provider = function() return '' end,
-                    separator = [[%{%luaeval('require"galaxyline"._mysection.compose_git_info(25)')%}]],
+                    separator = [[%{%luaeval('require"galaxyline"._mysection.compose_git_info(]]
+                        .. min_width .. [[)')%}]],
                     separator_highlight = { colors.light_orange, colors.gray },
-                }},
-                { Space = {
+                }}
+            end
+
+            local function make_space()
+                return { Space = {
                     provider = function() return '' end,
                     highlight = { colors.fg, colors.gray }
-                }},
-                { AsyncRun = {
-                    provider = function() return vim.g['asyncrun_status'] .. ' ' end,
+                }}
+            end
+
+            local function make_asyncrun()
+                return { AsyncRun = {
+                    provider = function() return vim.g.asyncrun_status .. ' ' end,
                     condition = function() return vim.g['asyncrun_status'] ~= '' end,
                     icon = '  ',
                     separator = '',
                     separator_highlight = { colors.red2, colors.gray },
                     highlight = { colors.gray, colors.red2 },
                     event = { 'AsyncRunPre', 'AsyncRunStart', 'AsyncRunStop' },
+                }}
+            end
+
+            --  ── Left side ──────────────────────────────────────────────────────
+            gls.left = {
+                make_remote(),
+                make_cwd(),
+                make_vimode('ViMode'),
+                make_operator_pending('ViMode'),
+                make_macro_recording(),
+                -- Hack the LSP status as a separator that calls our function.
+                { LSP = {
+                    provider = function() return '' end,
+                    separator = [[%{%luaeval('require"galaxyline"._mysection.compose_lsp_status()')%}]],
+                    separator_highlight = { colors.fg, colors.gray3 },
                 }},
+                make_background(),
+            }
+
+            --  ── Right side ─────────────────────────────────────────────────────
+            gls.right = {
+                make_git_info(25),
+                make_space(),
+                make_asyncrun(),
                 { Search = {
                     provider = function()
                         local search_info = vim.fn.searchcount()
@@ -419,72 +471,22 @@ return {
                 }},
             }
 
-            -- Short status line
+            --  ── Short status line (left) ───────────────────────────────────────
             gls.short_line_left = {
-                { ViModeShort = {
-                    provider = function()
-                        local color, mode = table.unpack(Utils.get_vim_mode_info())
-                        vim.api.nvim_command('hi GalaxyViModeShort guibg=' .. color)
-                        return ' ' .. mode
-                    end,
-                    highlight = { colors.gray, colors.bg, 'bold' },
-                    event = { 'ModeChanged' },
-                }},
-                -- Hack the Operator Pending information into Galaxyline.  We must do this as a `separator` to bypass
-                -- escaping.
-                { OperatorPendingShort = {
-                    provider = function() return '' end,
-                    separator = '%#GalaxyViModeShort# %S ',  -- the name must match the previous section name
-                }},
-                { color = {
-                    provider = function() return '' end,
-                    highlight = { colors.gray3, colors.gray },
-                }},
+                make_remote(),
+                make_cwd(),
+                make_vimode('ViModeShort'),
+                make_operator_pending('ViModeShort'),
+                make_macro_recording(),
+                make_background(),
             }
 
+            --  ── Short status line (right) ──────────────────────────────────────
             gls.short_line_right = {
-                { MacroRecordingShort = {
-                    provider = function()
-                        local recording_register = vim.fn.reg_recording()
-                        return ' 󰑋 recording @' .. recording_register .. ' ' -- Show recording status
-                    end,
-                    condition = function()
-                        local recording_register = vim.fn.reg_recording()
-                        return recording_register ~= nil and recording_register ~= ''
-                    end,
-                    highlight = { colors.fg, colors.dark_red },
-                    separator = '',
-                    separator_highlight = { colors.dark_red, colors.gray },
-                    event = { 'RecordingEnter', 'RecordingLeave'},
-                }},
-                { MacroRecordingEndShort = {
-                    provider = function() return '  ' end,
-                    condition = function()
-                        local recording_register = vim.fn.reg_recording()
-                        return recording_register ~= nil and recording_register ~= ''
-                    end,
-                    highlight = { colors.dark_red, colors.gray },
-                    event = { 'RecordingEnter', 'RecordingLeave'},
-                }},
-                { GitInfoShort = {
-                    provider = function() return '' end,
-                    separator = [[%{%luaeval('require"galaxyline"._mysection.compose_git_info(12)')%}]],
-                    separator_highlight = { colors.light_orange, colors.gray },
-                }},
-                { SpaceShort = {
-                    provider = function() return '' end,
-                    highlight = { colors.fg, colors.gray }
-                }},
-                { AsyncRunShort = {
-                    provider = function() return vim.g.asyncrun_status .. ' ' end,
-                    condition = function() return vim.g['asyncrun_status'] ~= '' end,
-                    icon = '  ',
-                    separator = '',
-                    separator_highlight = { colors.red2, colors.gray },
-                    highlight = { colors.gray, colors.red2 },
-                    event = { 'AsyncRunPre', 'AsyncRunStart', 'AsyncRunStop' },
-                }},
-                { BufferIconShort = {
+                make_git_info(12),
+                make_space(),
+                make_asyncrun(),
+                { BufferIcon = {
                     provider = 'BufferIcon',
                     highlight = {colors.yellow, colors.section_bg},
                     separator = '',
