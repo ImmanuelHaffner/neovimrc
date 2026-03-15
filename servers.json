@@ -1,51 +1,277 @@
 {
   "mcpServers": {
-    "github_personal": {
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "$$$"
-      },
-      "command": "docker",
+    "databricks_confluence": {
       "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"
+        "/home/immanuel.haffner/mcp/servers/confluence_mcp/confluence_mcp_deploy.pex"
       ],
+      "autoApprove": [
+        "get_confluence_spaces",
+        "get_confluence_page_content",
+        "search_confluence_pages",
+        "get_page_children"
+      ],
+      "command": "python3.10",
       "disabled": false
     },
-    "github_databricks": {
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "$$$"
-      },
-      "command": "docker",
+    "databricks_platform": {
       "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"
+        "/home/immanuel.haffner/mcp/servers/databricks_mcp_v2/databricks_mcp_v2_deploy.pex"
       ],
+      "autoApprove": [
+        "ask_genie",
+        "ask_genie_followup",
+        "check_statement_status",
+        "connect_to_workspace",
+        "get_run",
+        "get_dbfs_destination",
+        "databricks_jobs",
+        "list_available_workspaces",
+        "list_dashboard_datasets",
+        "list_dbfs_files",
+        "list_warehouses",
+        "read_dbfs_file_contents",
+        "read_notebook"
+      ],
+      "command": "python3.10",
       "disabled": false
     },
-    "github.com/modelcontextprotocol/servers/tree/main/src/git": {
+    "databricks_devportal": {
+      "args": [
+        "/home/immanuel.haffner/mcp/servers/devportal_mcp/devportal_mcp_deploy.pex"
+      ],
+      "autoApprove": [
+        "get_prs",
+        "get_pr_details",
+        "get_run_group_details",
+        "get_run_details",
+        "get_run_logs",
+        "get_test_results",
+        "list_artifacts"
+      ],
+      "command": "python3.10",
+      "disabled": false
+    },
+    "git": {
       "args": [
         "mcp-server-git"
       ],
+      "autoApprove": [
+        "git_diff",
+        "git_diff_staged",
+        "git_diff_unstaged",
+        "git_log",
+        "git_show",
+        "git_status"
+      ],
       "command": "uvx"
     },
-    {
-        "mcpServers": {
-            "vectorcode-mcp-server": {
-                "command": "vectorcode-mcp-server",
-                "args": []
-            }
-        }
+    "databricks_github": {
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "autoApprove": [
+        "get_commit",
+        "get_file_contents",
+        "get_label",
+        "get_latest_release",
+        "get_me",
+        "get_release_by_tag",
+        "get_tag",
+        "get_team_members",
+        "get_teams",
+        "issue_read",
+        "list_branches",
+        "list_commits",
+        "list_issue_types",
+        "list_issues",
+        "list_pull_requests",
+        "list_releases",
+        "list_tags",
+        "pull_request_read",
+        "request_copilot_review",
+        "search_code",
+        "search_issues",
+        "search_pull_requests",
+        "search_repositories",
+        "search_users"
+      ],
+      "command": "docker",
+      "disabled": false,
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${DATABRICKS_GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "github_personal": {
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "autoApprove": [
+        "assign_copilot_to_issue",
+        "get_commit",
+        "get_file_contents",
+        "get_label",
+        "get_latest_release",
+        "get_me",
+        "get_release_by_tag",
+        "get_tag",
+        "get_team_members",
+        "get_teams",
+        "issue_read",
+        "list_branches",
+        "list_commits",
+        "list_issue_types",
+        "list_issues",
+        "list_pull_requests",
+        "list_releases",
+        "list_tags",
+        "pull_request_read",
+        "request_copilot_review",
+        "search_code",
+        "search_issues",
+        "search_pull_requests",
+        "search_repositories",
+        "search_users"
+      ],
+      "command": "docker",
+      "disabled": false,
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "databricks_glean": {
+      "args": [
+        "/home/immanuel.haffner/mcp/servers/glean_mcp/glean_mcp_deploy.pex"
+      ],
+      "autoApprove": [
+        "resolve_go_link",
+        "search",
+        "get_document_content"
+      ],
+      "command": "python3.10",
+      "disabled": false
+    },
+    "databricks_google": {
+      "args": [
+        "/home/immanuel.haffner/mcp/servers/google_mcp/google_mcp_deploy.pex"
+      ],
+      "autoApprove": [
+        "calendar_calendar_list",
+        "calendar_event_get",
+        "calendar_event_list",
+        "calendar_freebusy_query",
+        "calendar_search",
+        "docs_document_get",
+        "docs_document_inspect_structure",
+        "docs_document_list",
+        "docs_document_search",
+        "drive_comment_get",
+        "drive_comment_list",
+        "drive_comment_reply_get",
+        "drive_comment_reply_list",
+        "drive_file_get",
+        "drive_file_list",
+        "drive_search",
+        "gmail_message_get",
+        "gmail_message_list",
+        "gmail_profile_get",
+        "gmail_search",
+        "sheets_search",
+        "sheets_grid_data_get",
+        "sheets_spreadsheet_get",
+        "sheets_values_get",
+        "sheets_values_batch_get",
+        "docs_document_export_as_markdown",
+        "docs_document_create_from_markdown",
+        "docs_document_batch_update",
+        "docs_document_create"
+      ],
+      "command": "python3.10",
+      "disabled": false
+    },
+    "databricks_jira": {
+      "args": [
+        "/home/immanuel.haffner/mcp/servers/jira_mcp/jira_mcp_deploy.pex"
+      ],
+      "autoApprove": [
+        "jira_get_service_info",
+        "jira_get_api_info",
+        "jira_read_api_call"
+      ],
+      "command": "python3.10",
+      "disabled": false
+    },
+    "databricks_pagerduty": {
+      "args": [
+        "/home/immanuel.haffner/mcp/servers/pagerduty_mcp/pagerduty_mcp_deploy.pex"
+      ],
+      "autoApprove": [
+        "pagerduty_query"
+      ],
+      "command": "python3.10",
+      "disabled": false
+    },
+    "databricks_slack": {
+      "args": [
+        "/home/immanuel.haffner/mcp/servers/slack_mcp/slack_mcp_deploy.pex"
+      ],
+      "autoApprove": [
+        "slack_batch_read_api_call",
+        "slack_get_api_info",
+        "slack_get_service_info",
+        "slack_read_api_call"
+      ],
+      "command": "python3.10",
+      "disabled": false
+    },
+    "databricks_testman": {
+      "args": [
+        "/home/immanuel.haffner/mcp/servers/testman_mcp/testman_mcp_deploy.pex"
+      ],
+      "autoApprove": [
+        "get_investigation",
+        "get_investigation_tags",
+        "get_issue",
+        "get_relevant_investigations",
+        "get_smartrevert",
+        "get_smartrevert_tags",
+        "list_investigations",
+        "list_issues",
+        "list_smartreverts"
+      ],
+      "command": "python3.10",
+      "disabled": false
     }
   },
-  "nativeMCPServers": [
-    
-  ]
+  "nativeMCPServers": {
+    "mcphub": {
+      "autoApprove": [
+        "get_current_servers",
+        "toggle_mcp_server"
+      ]
+    },
+    "neovim": {
+      "autoApprove": [
+        "execute_lua",
+        "execute_command",
+        "list_directory",
+        "read_file"
+      ],
+      "disabled": false,
+      "disabled_resources": [],
+      "disabled_tools": [
+        "find_files",
+        "read_multiple_files"
+      ]
+    }
+  }
 }

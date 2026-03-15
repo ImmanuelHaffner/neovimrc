@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 .PHONY: install
 
 install:
@@ -18,3 +19,6 @@ install:
 	# Install nvimdiff thin wrapper
 	mkdir -p "${HOME}/.local/bin/"
 	install -m 755 nvimdiff "${HOME}/.local/bin/nvimdiff"
+	# Install MCP Hub servers config (envsubst expands token placeholders)
+	mkdir -p "${HOME}/.config/mcphub/"
+	source ${HOME}/.secrets.zshenv && envsubst '$$DATABRICKS_GITHUB_PERSONAL_ACCESS_TOKEN $$GITHUB_PERSONAL_ACCESS_TOKEN' < servers.json > ${HOME}/.config/mcphub/servers.json
