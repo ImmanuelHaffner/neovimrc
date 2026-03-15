@@ -4,12 +4,16 @@ return {
         version = '^2',
         dependencies = {
             'folke/which-key.nvim',
-            'ImmanuelHaffner/dooing-sync.nvim',
+            {
+                'ImmanuelHaffner/dooing-sync.nvim',
+                tag = 'dev',
+            }
         },
         config = function()
             -- Sync setup FIRST: pulls from Google Drive, merges, writes to save_path.
             require'dooing-sync'.setup{
                 gdrive_folder_id = '1D_-7EtHBIk3zuZZXw1wqHBb_lwykDmcv',
+                notify = 'changes',
             }
 
             -- Dooing setup SECOND: loads the now-current JSON.
