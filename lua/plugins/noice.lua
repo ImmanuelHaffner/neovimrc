@@ -149,6 +149,16 @@ return {
                         },
                         opts = { skip = true },
                     },
+                    -- Skip Dooing "Opened global todos" notification (filter by notify title)
+                    {
+                        filter = {
+                            event = 'notify',
+                            cond = function(msg)
+                                return msg.opts and msg.opts.title and msg.opts.title:find('Dooing')
+                            end,
+                        },
+                        opts = { skip = true, history = false },
+                    },
                     -- Skip CodeCompanion Edit Tracker warnings shown via :echo
                     {
                         filter = {
