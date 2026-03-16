@@ -51,7 +51,7 @@ return {
                     view_error = 'messages', -- view for errors
                     view_warn = 'messages', -- view for warnings
                     view_history = 'messages', -- view for :messages
-                    view_search = 'virtualtext', -- view for search count messages. Set to `false` to disable
+                    view_search = false, -- virtualtext view for search count messages. Set to `false` to disable
                 },
                 routes = {
                     -- Route all confirmation dialogs to the confirm view
@@ -83,20 +83,22 @@ return {
                     },
                     -- Don't show a message for the search match count while searching.
                     -- NOTE: Only use this if you *do not* use the Noice built-in `view_search`
-                    -- {
-                    --     filter = {
-                    --         event = 'msg_show',
-                    --         kind = 'search_count',
-                    --     },
-                    --     opts = { skip = true },
-                    -- },
-                    -- {
-                    --     filter = {
-                    --         event = 'msg_show',
-                    --         kind = 'search_cmd',
-                    --     },
-                    --     opts = { skip = true },
-                    -- },
+                    {
+                        filter = {
+                            event = 'msg_show',
+                            kind = 'search_count',
+                        },
+                        opts = { skip = true },
+                    },
+                    {
+                        filter = {
+                            event = 'msg_show',
+                            kind = 'search_cmd',
+                        },
+                        opts = { skip = true, history = false },
+                        -- OR
+                        -- view = 'virtualtext',
+                    },
                     -- Suppress a bunch of errors.
                     --  - Don't show a message when search hits end of file.
                     --  - ltex-ls LSP that we want to silence.
