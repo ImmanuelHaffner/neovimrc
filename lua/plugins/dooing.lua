@@ -1,7 +1,7 @@
 return {
     {
         'atiladefreitas/dooing',
-        version = '^2',
+        commit = 'dc40b23e234f4f727b3f2519eb495b6088f848fb',
         dependencies = {
             'folke/which-key.nvim',
             {
