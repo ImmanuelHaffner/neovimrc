@@ -6,14 +6,16 @@ return {
             'folke/which-key.nvim',
             {
                 'ImmanuelHaffner/dooing-sync.nvim',
-                tag = 'dev',
+                branch = 'dev',
             }
         },
         config = function()
-            -- Sync setup FIRST: pulls from Google Drive, merges, writes to save_path.
             require'dooing-sync'.setup{
                 gdrive_folder_id = '1D_-7EtHBIk3zuZZXw1wqHBb_lwykDmcv',
                 notify = 'changes',
+                sync = {
+                    sync_on_close = false,   -- sync before exiting (VimLeavePre)
+                }
             }
 
             -- Dooing setup SECOND: loads the now-current JSON.
