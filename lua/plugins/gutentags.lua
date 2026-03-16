@@ -1,5 +1,15 @@
+--- Check whether a compatible ctags (Universal or Exuberant) is available.
+local function has_compatible_ctags()
+    local ctags = vim.fn.exepath('ctags')
+    if ctags == '' then return false end
+    local out = vim.fn.system({ ctags, '--version' })
+    return vim.fn.match(out, [[\c\(Universal\|Exuberant\) Ctags]]) >= 0
+end
+
 return {
-    { 'ludovicchabant/vim-gutentags',
+    {
+        'ludovicchabant/vim-gutentags',
+        cond = has_compatible_ctags,
         config = function()
             vim.g.gutentags_cache_dir = os.getenv('HOME') .. '/.cache/nvim/tags'
             vim.g.gutentags_generate_on_new = true
