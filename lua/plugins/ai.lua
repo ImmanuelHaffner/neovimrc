@@ -397,6 +397,25 @@ return {
                 interactions = {
                     chat = {
                         adapter = get_default_adapter(),
+                        keymaps = {
+                            close = {
+                                modes = {
+                                    n = '<C-c>',
+                                    i = '<C-c>',
+                                },
+                                index = 4,
+                                callback = function(chat)
+                                    local choice = vim.fn.confirm('Close this chat?', '&Yes\n&No', 2, 'Question')
+                                    if choice ~= 1 then return end
+                                    chat:close()
+                                    local chats = require('codecompanion').buf_get_chat()
+                                    if vim.tbl_count(chats) == 0 then return end
+                                    local window_opts = chat.ui.window_opts or { default = true }
+                                    chats[1].chat.ui:open({ window_opts = window_opts })
+                                end,
+                                description = '[Chat] Close (with confirmation)',
+                            },
+                        },
                         tools = {
                             -- The `memory` tool needs no approval.
                             ['memory'] = {
