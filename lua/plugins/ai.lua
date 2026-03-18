@@ -522,6 +522,7 @@ return {
                             make_vars = true,
                             make_slash_commands = true,
                             show_result_in_chat = true,
+                            show_server_tools_in_chat = false,  -- Hide individual MCP tools from @ completion; use groups instead
                         }
                     },
                     vectorcode = vim.fn.executable('vectorcode') == 1 and {
@@ -697,9 +698,81 @@ return {
                 desc = 'Refresh CodeCompanion prompt library after session load',
             })
 
+            -- Meta-groups: combine tools from multiple MCP servers by prefix.
+            -- After mcphub registers dynamic tools (e.g. `databricks_slack__slack_read_api_call`),
+            -- we scan the tool registry and build groups that aggregate tools from several servers.
+            local meta_groups = {
+                ['db_all'] = {
+                    description = "All Databricks MCP servers",
+                    servers = {
+                        'databricks_confluence', 'databricks_devportal', 'databricks_github',
+                        'databricks_glean', 'databricks_google', 'databricks_jira',
+                        'databricks_pagerduty', 'databricks_platform', 'databricks_slack',
+                        'databricks_testman',
+                    },
+                },
+                ['db_incidents'] = {
+                    description = "Incident investigation: PagerDuty, Slack, Jira, platform, Confluence",
+                    servers = {
+                        'databricks_pagerduty', 'databricks_slack', 'databricks_jira',
+                        'databricks_platform', 'databricks_confluence',
+                    },
+                },
+                ['db_docs'] = {
+                    description = "Google Docs/Slides work: Google, Confluence, Glean",
+                    servers = { 'databricks_google', 'databricks_confluence', 'databricks_glean' },
+                },
+                ['db_feature_dev'] = {
+                    description = "Feature development: GitHub, Jira, Confluence, DevPortal, platform, TestMan",
+                    servers = {
+                        'databricks_github', 'databricks_jira', 'databricks_confluence',
+                        'databricks_devportal', 'databricks_platform', 'databricks_testman',
+                    },
+                },
+                ['db_data_science'] = {
+                    description = "Data science / statistics: platform, GitHub, Confluence, Glean",
+                    servers = {
+                        'databricks_platform', 'databricks_github',
+                        'databricks_confluence', 'databricks_glean',
+                    },
+                },
+            }
+
+            --- Build meta-groups by scanning CodeCompanion's tool registry for namespaced tools.
+            --- Each MCP tool is registered as `<server>__<tool_name>` by mcphub; we match the prefix.
+            local function build_meta_groups()
+                local cc_config = require('codecompanion.config')
+                local tools_cfg = cc_config.interactions.chat.tools
+                local groups = tools_cfg.groups or {}
+
+                for group_name, spec in pairs(meta_groups) do
+                    local tool_names = {}
+                    for _, server_prefix in ipairs(spec.servers) do
+                        local prefix = server_prefix .. '__'
+                        for tool_key, _ in pairs(tools_cfg) do
+                            if type(tool_key) == 'string' and tool_key:sub(1, #prefix) == prefix then
+                                table.insert(tool_names, tool_key)
+                            end
+                        end
+                    end
+                    table.sort(tool_names)
+
+                    if #tool_names > 0 then
+                        groups[group_name] = {
+                            description = spec.description,
+                            tools = tool_names,
+                            opts = { collapse_tools = true },
+                        }
+                    else
+                        groups[group_name] = nil  -- remove stale group if servers aren't connected
+                    end
+                end
+            end
+
             -- When MCPHub finishes registering tools (may happen after chat is already open),
-            -- refresh any open CodeCompanion chats so they pick up the newly registered tools/groups.
+            -- build meta-groups and refresh any open CodeCompanion chats.
             require('mcphub').on({ 'servers_updated', 'tool_list_changed' }, vim.schedule_wrap(function()
+                build_meta_groups()
                 for _, buf in ipairs(vim.api.nvim_list_bufs()) do
                     if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == 'codecompanion' then
                         local chat = cc.buf_get_chat(buf)
