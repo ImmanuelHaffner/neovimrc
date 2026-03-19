@@ -122,7 +122,6 @@ return {
             local LoadProjectConfig = vim.api.nvim_create_augroup('LoadProjectConfig', { clear = false })
             vim.api.nvim_create_autocmd('SessionLoadPost', {
                 group = LoadProjectConfig,
-                pattern = 'global',
                 callback = utils.load_project_config,
             })
         end
