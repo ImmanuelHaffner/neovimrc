@@ -1,11 +1,13 @@
 return {
     {
-        'atiladefreitas/dooing',
-        commit = 'dc40b23e234f4f727b3f2519eb495b6088f848fb',
+        'ImmanuelHaffner/dooing',
+        dev = true,
+        branch = 'dev',
         dependencies = {
             'folke/which-key.nvim',
             {
                 'ImmanuelHaffner/dooing-sync.nvim',
+                dev = true,
                 branch = 'dev',
             }
         },
@@ -26,7 +28,9 @@ return {
                 },
                 window = {
                     position = 'bottom-right',
+                    border = 'double',
                 },
+                quick_keys = true,
             }
 
             require'which-key'.add{
