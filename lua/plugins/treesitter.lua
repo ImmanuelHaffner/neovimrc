@@ -2,7 +2,7 @@ return {
     { 'nvim-treesitter/nvim-treesitter',
         branch = 'main',  -- master branch is archived; main has tree-sitter CLI 0.25+ compat
         dependencies = {
-            'OXY2DEV/markview.nvim',
+            'ImmanuelHaffner/markview.nvim',
         },
         lazy = false,
         build = ':TSUpdate',

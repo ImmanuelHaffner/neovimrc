@@ -23,7 +23,9 @@ return {
         },
     },
     {
-        'OXY2DEV/markview.nvim',
+        'ImmanuelHaffner/markview.nvim',
+        branch = 'dev',
+        dev = true,
         lazy = false,      -- Recommended
         priority = 49,
         -- ft = 'markdown' -- If you decide to lazy-load anyway
@@ -31,11 +33,27 @@ return {
             'nvim-tree/nvim-web-devicons',
         },
         opts = {
+            markdown = {
+                tables = {
+                    parts = {
+                        top =       { "┌", "─", "┐", "┬" },
+                        header =    { "│", "│", "│" },
+                        separator = { "├", "─", "┤", "┼" },
+                        row =       { "│", "│", "│" },
+                        bottom =    { "└", "─", "┘", "┴" },
+                        overlap =   { "├", "━", "┤", "┿" },
+                        align_left = "╼",
+                        align_right = "╾",
+                        align_center = { "╴", "╶" },
+                    },
+                },
+            },
             preview = {
                 enable_hybrid_mode = true,
                 modes = { 'n' },  -- only render in normal mode
                 hybrid_modes = { 'n' },  -- but in hybrid mode
                 edit_range = { 0, 0 },  -- and don't render the cursor line
+                draw_range = { 200, 200 },  -- render ±200 lines around cursor (default ~vim.o.lines)
                 filetypes = { 'markdown', 'codecompanion', 'mdx', },
                 ignore_buftypes = {},  -- to avoid 'nofile'
                 max_buf_lines = 5000,  -- allow rendering in longer CC chats (default 1000)
