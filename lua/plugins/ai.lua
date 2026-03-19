@@ -72,6 +72,7 @@ return {
         --       This fork adds CodeCompanion v19 compatibility (tool cmd signature,
         --       variables→editor_context rename, output handler changes, image API).
         'bahaaza/mcphub.nvim',
+        commit = 'f94e1c8e1aea68c3f8f6df5cf51c752033584fd0',
         dependencies = {
             'nvim-lua/plenary.nvim',  -- Required for Job and HTTP requests
             'Joakker/lua-json5',
@@ -107,7 +108,7 @@ return {
     {
         'olimorris/codecompanion.nvim',
         -- Pin to v19.3.0 for now; remove pin once stable
-        tag = 'v19.3.0',
+        version = '~v19.4',
         dependencies = {
             'nvim-lua/plenary.nvim',
             'nvim-treesitter/nvim-treesitter',
