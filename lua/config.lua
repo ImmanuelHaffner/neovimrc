@@ -12,7 +12,7 @@ function M.setup()
 
     -- Changes the effect of the |:mksession| command.  It is a comma- separated list of words.  Each word enables
     -- saving and restoring something.
-    vim.g.sessionoptions = 'buffers,folds,sesdir,tabpages,winpos,winsize,help'
+    vim.o.sessionoptions = 'buffers,folds,curdir,tabpages,winpos,winsize,help'
 
     -- When a file has been detected to have been changed outside of Vim and it has not been changed inside of Vim,
     -- automatically read it again.
