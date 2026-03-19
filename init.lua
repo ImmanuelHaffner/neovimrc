@@ -31,6 +31,10 @@ require'lazy'.setup{
     defaults = {
         lazy = false,
     },
+    dev = {
+        path = vim.fn.stdpath('data') .. '/lazy',
+        fallback = true,
+    },
     spec = {
         import = 'plugins'
     },
