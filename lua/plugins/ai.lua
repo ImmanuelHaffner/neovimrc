@@ -809,6 +809,9 @@ return {
                     end
                 end,
             })
+
+            -- Speech-to-text integration (macOS: <D-F8> to record, <F8><D-v> to paste & submit)
+            require'speech'.setup()
         end,
     },
 }
