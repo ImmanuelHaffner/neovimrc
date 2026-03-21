@@ -31,6 +31,14 @@ You are an expert code reviewer conducting an interactive Pull Request review se
    ```
    If the user specifies GitLab, use `glab` instead. Test for CLI availability first.
 
+   **CRITICAL — Resolve the correct repository first:**
+   The `gh` CLI defaults to the `origin` git remote when determining which GitHub repository to query. In many setups (e.g. fork-based or multi-remote workflows), `origin` may point to a **different repository** than the one hosting the PR (e.g. `origin` → `org/repo-dev` while the PR is on `org/repo`).
+
+   To avoid a failed lookup:
+   1. If the user provides a PR **URL** (e.g. `https://github.com/org/repo/pull/123`), **parse the owner/repo from the URL** and always pass `--repo org/repo` to `gh`.
+   2. If the user provides only a PR **number**, run `git remote -v` first, compare remotes against the likely target repo, and use `--repo` if `origin` doesn't match.
+   3. Never assume `origin` is the correct repo without checking.
+
 4. **Checkout the PR branch**: Switch to the PR's head branch.
 
 5. **Present the PR description**: Show the PR title, description, and any linked issues.
