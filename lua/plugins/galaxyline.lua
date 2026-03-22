@@ -391,28 +391,16 @@ return {
                 }}
             end
 
-            --  ── Left side ──────────────────────────────────────────────────────
-            gls.left = {
-                make_remote(),
-                make_cwd(),
-                make_vimode('ViMode'),
-                make_operator_pending('ViMode'),
-                make_macro_recording(),
-                -- Hack the LSP status as a separator that calls our function.
-                { LSP = {
+            local function make_lsp()
+                return { LSP = {
                     provider = function() return '' end,
                     separator = [[%{%luaeval('require"galaxyline"._mysection.compose_lsp_status()')%}]],
                     separator_highlight = { colors.fg, colors.gray3 },
-                }},
-                make_background(),
-            }
+                }}
+            end
 
-            --  ── Right side ─────────────────────────────────────────────────────
-            gls.right = {
-                make_git_info(25),
-                make_space(),
-                make_asyncrun(),
-                { Search = {
+            local function make_search()
+                return { Search = {
                     provider = function()
                         local search_info = vim.fn.searchcount()
                         if search_info.total == 0 then
@@ -440,8 +428,11 @@ return {
                     highlight = { colors.gray, colors.orange },
                     separator = '',
                     separator_highlight = { colors.green, colors.gray },
-                }},
-                { CursorPos = {
+                }}
+            end
+
+            local function make_cursor_pos()
+                return { CursorPos = {
                     provider = function()
                         local _, line, byte, _ = table.unpack(vim.fn.getpos('.'))
                         local col = vim.fn.virtcol('.')  -- get the visible column, not bytes in line
@@ -462,14 +453,53 @@ return {
                         return str
                     end,
                     highlight = { colors.gray, colors.purple3 },
-                }},
-                { PerCent = {
+                }}
+            end
+
+            local function make_percent()
+                return { PerCent = {
                     provider = 'LinePercent',
                     separator = '',
                     separator_highlight = { colors.blue, colors.purple3 },
                     highlight = { colors.gray, colors.blue }
-                }},
+                }}
+            end
+
+            local function make_buffer_icon()
+                return { BufferIcon = {
+                    provider = 'BufferIcon',
+                    highlight = { colors.yellow, colors.section_bg },
+                    separator = '',
+                    separator_highlight = { colors.section_bg, colors.bg }
+                }}
+            end
+
+            --  ── Section composition helpers ────────────────────────────────────
+            local function right_common(min_width)
+                return {
+                    make_git_info(min_width),
+                    make_space(),
+                    make_asyncrun(),
+                    make_search(),
+                }
+            end
+
+            --  ── Left side ──────────────────────────────────────────────────────
+            gls.left = {
+                make_remote(),
+                make_cwd(),
+                make_vimode('ViMode'),
+                make_operator_pending('ViMode'),
+                make_macro_recording(),
+                make_lsp(),
+                make_background(),
             }
+
+            --  ── Right side ─────────────────────────────────────────────────────
+            gls.right = vim.list_extend(right_common(25), {
+                make_cursor_pos(),
+                make_percent(),
+            })
 
             --  ── Short status line (left) ───────────────────────────────────────
             gls.short_line_left = {
@@ -482,17 +512,9 @@ return {
             }
 
             --  ── Short status line (right) ──────────────────────────────────────
-            gls.short_line_right = {
-                make_git_info(12),
-                make_space(),
-                make_asyncrun(),
-                { BufferIcon = {
-                    provider = 'BufferIcon',
-                    highlight = {colors.yellow, colors.section_bg},
-                    separator = '',
-                    separator_highlight = {colors.section_bg, colors.bg}
-                }},
-            }
+            gls.short_line_right = vim.list_extend(right_common(12), {
+                make_buffer_icon(),
+            })
 
             -- Force manual load so that nvim boots with a status line
             gl.load_galaxyline()
