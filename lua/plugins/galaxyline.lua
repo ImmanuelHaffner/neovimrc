@@ -241,10 +241,10 @@ return {
                 if git_branch == '' then return '' end
 
                 if min_width + 3 + git_branch:len() < vim.o.columns then
-                    return '  ' .. git_branch .. ' '
+                    return '  ' .. git_branch
                 end
                 if min_width + 3 < vim.o.columns  then
-                    return '  '
+                    return ' '
                 end
                 return ''
             end
@@ -443,24 +443,31 @@ return {
                             local starts = vim.fn.line'v'
                             local ends = vim.fn.line'.'
                             local lines = starts <= ends and ends - starts + 1 or starts - ends + 1
-                            str = str .. '  󰊄 ' .. tostring(lines) .. 'L,' .. tostring(vim.fn.wordcount().visual_chars) .. 'C'
+                            str = str .. ' 󰊄 ' .. tostring(lines) .. 'L,' .. tostring(vim.fn.wordcount().visual_chars) .. 'C'
                         end
 
-                        str = str .. '   ' .. line .. ',' .. col
+                        str = str .. '  ' .. line .. ',' .. col
                         if col ~= byte then
                             str = str .. ' (B' .. byte .. ')'
                         end
                         return str
                     end,
+                    separator = ' ',
+                    separator_highlight = { colors.purple3, colors.gray },
                     highlight = { colors.gray, colors.purple3 },
                 }}
             end
 
             local function make_percent()
+                -- Two-glyph centered separator: Lower Right + Upper Left block diagonals
+                vim.api.nvim_set_hl(0, 'GalaxyPerCentSepL', { fg = colors.blue, bg = colors.purple3 })
+                vim.api.nvim_set_hl(0, 'GalaxyPerCentSepR', { fg = colors.purple3, bg = colors.blue })
+                local sep = '%#GalaxyPerCentSepL#🮞%#GalaxyPerCentSepR#🮜'
                 return { PerCent = {
-                    provider = 'LinePercent',
-                    separator = '',
-                    separator_highlight = { colors.blue, colors.purple3 },
+                    provider = function()
+                        return require'galaxyline.provider_fileinfo'.current_line_percent():gsub('^%s', '')
+                    end,
+                    separator = sep,
                     highlight = { colors.gray, colors.blue }
                 }}
             end
