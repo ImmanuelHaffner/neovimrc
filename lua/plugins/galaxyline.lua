@@ -241,10 +241,10 @@ return {
                 if git_branch == '' then return '' end
 
                 if min_width + 3 + git_branch:len() < vim.o.columns then
-                    return '  ' .. git_branch
+                    return '  ' .. git_branch .. ' '
                 end
                 if min_width + 3 < vim.o.columns  then
-                    return ' '
+                    return '  '
                 end
                 return ''
             end
@@ -550,8 +550,8 @@ return {
                     -- Single space separator at the front to suppress statusline eating leading space
                     {
                         Sep = {
-                            separator = ' ',
-                            separator_highlight = { colors.light_orange, colors.gray },
+                            provider = function() return '  ' end,
+                            highlight = { colors.light_orange, colors.gray },
                         }
                     },
                     make_git_info(min_width),
