@@ -431,64 +431,67 @@ return {
                 }}
             end
 
-            -- Cache for oddities detection (avoid rescanning on every redraw)
-            gl._mysection._oddities_cache = {}
+            -- Per-buffer oddities cache: { [bufnr] = { tick, trailing_ws, mixed_indent, non_ascii } }
+            gl._mysection._oddities = {}
 
-            --- Scan the current buffer for oddities:
-            ---   trailing whitespace, mixed tab/space indentation, non-ASCII characters.
-            --- Results are cached per buffer changedtick.
-            gl._mysection.detect_oddities = function()
+            --- Scan the current buffer for oddities using vim.fn.search() (C-level, zero-copy).
+            --- Updates the per-buffer cache and redraws the statusline.
+            local function scan_oddities()
                 local bufnr = vim.api.nvim_get_current_buf()
+                -- Skip non-file buffers
+                if vim.bo[bufnr].buftype ~= '' then return end
+
                 local tick = vim.api.nvim_buf_get_changedtick(bufnr)
-                local cache = gl._mysection._oddities_cache
-                if cache.bufnr == bufnr and cache.tick == tick then
-                    return cache.result
-                end
+                local prev = gl._mysection._oddities[bufnr]
+                if prev and prev.tick == tick then return end
 
-                local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-                local trailing_ws = false
-                local mixed_indent = false
-                local non_ascii = false
+                -- search() with 'nw': n = don't move cursor, w = wrap (covers entire buffer)
+                local trailing_ws     = vim.fn.search([[\S\s\+$]],     'nw') ~= 0
+                local has_tab_indent  = vim.fn.search([[^\t]],          'nw') ~= 0
+                local has_space_indent = vim.fn.search([[^ ]],          'nw') ~= 0
+                local non_ascii       = vim.fn.search('[^\\x00-\\x7f]', 'nw') ~= 0
 
-                for _, line in ipairs(lines) do
-                    -- Trailing whitespace (ignore blank lines)
-                    if not trailing_ws and line:match('%S') and line:match('%s+$') then
-                        trailing_ws = true
-                    end
-                    -- Mixed indentation: leading whitespace has both tabs and spaces
-                    if not mixed_indent then
-                        local indent = line:match('^([ \t]+)')
-                        if indent and indent:find('\t') and indent:find(' ') then
-                            mixed_indent = true
-                        end
-                    end
-                    -- Non-ASCII characters (bytes > 127, excluding valid multi-byte UTF-8 sequences
-                    -- that form common symbols — here we just flag any byte > 127 as a simple heuristic)
-                    if not non_ascii and line:match('[\128-\255]') then
-                        non_ascii = true
-                    end
-                    -- Early exit if all three detected
-                    if trailing_ws and mixed_indent and non_ascii then break end
-                end
+                gl._mysection._oddities[bufnr] = {
+                    tick = tick,
+                    trailing_ws = trailing_ws,
+                    mixed_indent = has_tab_indent and has_space_indent,
+                    non_ascii = non_ascii,
+                }
 
-                local result = { trailing_ws = trailing_ws, mixed_indent = mixed_indent, non_ascii = non_ascii }
-                gl._mysection._oddities_cache = { bufnr = bufnr, tick = tick, result = result }
-                return result
+                gl.load_galaxyline()
             end
+
+            --- Read oddities from cache for the current buffer.
+            gl._mysection.get_oddities = function()
+                local bufnr = vim.api.nvim_get_current_buf()
+                return gl._mysection._oddities[bufnr] or {}
+            end
+
+            -- Trigger scan on meaningful events (not during insert)
+            vim.api.nvim_create_autocmd({ 'InsertLeave', 'TextChanged', 'BufEnter', 'BufWritePost' }, {
+                group = vim.api.nvim_create_augroup('GalaxylineOddities', { clear = true }),
+                callback = scan_oddities,
+            })
+
+            -- Clean up cache when buffers are deleted
+            vim.api.nvim_create_autocmd('BufDelete', {
+                group = 'GalaxylineOddities',
+                callback = function(ev) gl._mysection._oddities[ev.buf] = nil end,
+            })
 
             local function make_oddities()
                 return { Oddities = {
                     provider = function()
-                        local odd = gl._mysection.detect_oddities()
+                        local odd = gl._mysection.get_oddities()
                         local parts = {}
                         if odd.trailing_ws  then table.insert(parts, '␣')  end  -- trailing whitespace
                         if odd.mixed_indent then table.insert(parts, '⇥')  end  -- mixed tabs/spaces
                         if odd.non_ascii    then table.insert(parts, '󰗊')  end  -- non-ASCII
                         if #parts == 0 then return '' end
-                        return ' ' .. table.concat(parts, ' ') .. '  '
+                        return '  ' .. table.concat(parts, ' ') .. '  '
                     end,
                     condition = function()
-                        local odd = gl._mysection.detect_oddities()
+                        local odd = gl._mysection.get_oddities()
                         return odd.trailing_ws or odd.mixed_indent or odd.non_ascii
                     end,
                     highlight = { colors.yellow, colors.gray3, 'bold' },
