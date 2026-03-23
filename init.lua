@@ -38,6 +38,9 @@ require'lazy'.setup{
     spec = {
         import = 'plugins'
     },
+    change_detection = {
+        notify = false,
+    },
 }
 
 -- Load our neovim utilities (after loading plugins)
