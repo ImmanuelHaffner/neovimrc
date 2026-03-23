@@ -573,6 +573,22 @@ return {
                 }
             }
 
+            -- Use vertical layout for the action palette so the preview gets more space
+            local ok_tp, telescope_provider = pcall(require, 'codecompanion.providers.actions.telescope')
+            if ok_tp then
+                local original_picker = telescope_provider.picker
+                function telescope_provider:picker(items, opts)
+                    opts = vim.tbl_deep_extend('force', opts or {}, {
+                        layout_strategy = 'vertical',
+                        layout_config = {
+                            width = 0.8,
+                            preview_height = 0.7,
+                        },
+                    })
+                    return original_picker(self, items, opts)
+                end
+            end
+
             local wk = require'which-key'
             wk.add{
                 { '<leader>ac', group = 'CodeCompanion…' },
