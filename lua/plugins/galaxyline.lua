@@ -431,6 +431,70 @@ return {
                 }}
             end
 
+            -- Cache for oddities detection (avoid rescanning on every redraw)
+            gl._mysection._oddities_cache = {}
+
+            --- Scan the current buffer for oddities:
+            ---   trailing whitespace, mixed tab/space indentation, non-ASCII characters.
+            --- Results are cached per buffer changedtick.
+            gl._mysection.detect_oddities = function()
+                local bufnr = vim.api.nvim_get_current_buf()
+                local tick = vim.api.nvim_buf_get_changedtick(bufnr)
+                local cache = gl._mysection._oddities_cache
+                if cache.bufnr == bufnr and cache.tick == tick then
+                    return cache.result
+                end
+
+                local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+                local trailing_ws = false
+                local mixed_indent = false
+                local non_ascii = false
+
+                for _, line in ipairs(lines) do
+                    -- Trailing whitespace (ignore blank lines)
+                    if not trailing_ws and line:match('%S') and line:match('%s+$') then
+                        trailing_ws = true
+                    end
+                    -- Mixed indentation: leading whitespace has both tabs and spaces
+                    if not mixed_indent then
+                        local indent = line:match('^([ \t]+)')
+                        if indent and indent:find('\t') and indent:find(' ') then
+                            mixed_indent = true
+                        end
+                    end
+                    -- Non-ASCII characters (bytes > 127, excluding valid multi-byte UTF-8 sequences
+                    -- that form common symbols — here we just flag any byte > 127 as a simple heuristic)
+                    if not non_ascii and line:match('[\128-\255]') then
+                        non_ascii = true
+                    end
+                    -- Early exit if all three detected
+                    if trailing_ws and mixed_indent and non_ascii then break end
+                end
+
+                local result = { trailing_ws = trailing_ws, mixed_indent = mixed_indent, non_ascii = non_ascii }
+                gl._mysection._oddities_cache = { bufnr = bufnr, tick = tick, result = result }
+                return result
+            end
+
+            local function make_oddities()
+                return { Oddities = {
+                    provider = function()
+                        local odd = gl._mysection.detect_oddities()
+                        local parts = {}
+                        if odd.trailing_ws  then table.insert(parts, '␣')  end  -- trailing whitespace
+                        if odd.mixed_indent then table.insert(parts, '⇥')  end  -- mixed tabs/spaces
+                        if odd.non_ascii    then table.insert(parts, '󰗊')  end  -- non-ASCII
+                        if #parts == 0 then return '' end
+                        return ' ' .. table.concat(parts, ' ') .. '  '
+                    end,
+                    condition = function()
+                        local odd = gl._mysection.detect_oddities()
+                        return odd.trailing_ws or odd.mixed_indent or odd.non_ascii
+                    end,
+                    highlight = { colors.yellow, colors.gray3, 'bold' },
+                }}
+            end
+
             local function make_cursor_pos()
                 return { CursorPos = {
                     provider = function()
@@ -446,13 +510,12 @@ return {
                             str = str .. ' 󰊄 ' .. tostring(lines) .. 'L,' .. tostring(vim.fn.wordcount().visual_chars) .. 'C'
                         end
 
-                        str = str .. '  ' .. line .. ',' .. col
+                        str = str .. '   ' .. line .. ',' .. col
                         if col ~= byte then
                             str = str .. ' (B' .. byte .. ')'
                         end
                         return str
                     end,
-                    separator = ' ',
                     separator_highlight = { colors.purple3, colors.gray },
                     highlight = { colors.gray, colors.purple3 },
                 }}
@@ -484,6 +547,13 @@ return {
             --  ── Section composition helpers ────────────────────────────────────
             local function right_common(min_width)
                 return {
+                    -- Single space separator at the front to suppress statusline eating leading space
+                    {
+                        Sep = {
+                            separator = ' ',
+                            separator_highlight = { colors.light_orange, colors.gray },
+                        }
+                    },
                     make_git_info(min_width),
                     make_space(),
                     make_asyncrun(),
@@ -504,6 +574,7 @@ return {
 
             --  ── Right side ─────────────────────────────────────────────────────
             gls.right = vim.list_extend(right_common(25), {
+                make_oddities(),
                 make_cursor_pos(),
                 make_percent(),
             })
