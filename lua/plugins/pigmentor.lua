@@ -1,6 +1,8 @@
 return {
     {
         'ImmanuelHaffner/pigmentor.nvim',
+        branch = 'dev',
+        dev = true,
         dependencies = {
             'folke/which-key.nvim',
         },
@@ -56,6 +58,7 @@ return {
             local pm = require'pigmentor'
             pm.setup{
                 display = display_styles[current_display_style],
+                ignore_filetypes = { 'codecompanion' },
             }
 
             local wk = require'which-key'
