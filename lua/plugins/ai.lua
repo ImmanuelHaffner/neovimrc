@@ -648,34 +648,53 @@ return {
             local cc_group = vim.api.nvim_create_augroup('CodeCompanionHooks', {})
 
             --- Disable expensive rendering on CodeCompanion chat buffers.
-            --- Uses markview's actions.disable() to set buffer state to disabled,
-            --- which causes all markview autocmd callbacks to early-return.
+            --- Stops treesitter highlighting and the underlying parser, and
+            --- disables markview at the state level.
             --- See: https://github.com/olimorris/codecompanion.nvim/issues/552
+            ---
+            --- Performance context (measured on a 2800-line chat buffer):
+            ---   TS full reparse with injections: ~36ms (scales to ~300ms at 10k lines)
+            ---   Markview enable + render:        ~45ms (scales similarly)
             local function disable_chat_rendering(bufnr)
                 bufnr = bufnr or vim.api.nvim_get_current_buf()
-                -- Stop treesitter highlighting (the full-buffer parse is ~45ms per change)
+                -- Stop treesitter highlighting
                 if vim.treesitter.highlighter.active[bufnr] then
                     vim.treesitter.stop(bufnr)
                 end
+                -- Destroy the TS parser so its on_bytes callback doesn't maintain a
+                -- (growing and ultimately stale) parse tree during long streaming sessions.
+                -- vim.treesitter.start() will recreate it when re-enabling.
+                local ok_parser, parser = pcall(vim.treesitter.get_parser, bufnr)
+                if ok_parser and parser and parser.destroy then
+                    parser:destroy()
+                end
                 -- Disable markview at the state level so its autocmds early-return
-                local has_actions, mv_actions = pcall(require, 'markview.actions')
-                if has_actions then
+                local has_mv, mv_actions = pcall(require, 'markview.actions')
+                if has_mv then
                     mv_actions.disable(bufnr)
                 end
             end
 
             --- Re-enable rendering after LLM streaming or insert mode ends.
+            --- Staggers re-enables: TS highlighting first (lets the highlighter
+            --- lazily parse only the visible range), then markview after a short
+            --- defer so the UI unblocks between the two expensive operations.
             local function enable_chat_rendering(bufnr)
                 bufnr = bufnr or vim.api.nvim_get_current_buf()
                 vim.schedule(function()
                     if not vim.api.nvim_buf_is_valid(bufnr) then return end
-                    -- Re-enable treesitter highlighting
+                    -- Re-enable treesitter highlighting; the highlighter's on_win
+                    -- callback will lazily parse only the visible range.
                     vim.treesitter.start(bufnr, 'markdown')
-                    -- Re-enable markview at the state level and trigger a render
-                    local has_actions, mv_actions = pcall(require, 'markview.actions')
-                    if has_actions then
-                        mv_actions.enable(bufnr)
-                    end
+                    -- Defer markview re-enable so the first redraw (with TS) completes
+                    -- before markview adds its decorations (~45ms at 2800 lines).
+                    vim.defer_fn(function()
+                        if not vim.api.nvim_buf_is_valid(bufnr) then return end
+                        local has_mv, mv_actions = pcall(require, 'markview.actions')
+                        if has_mv then
+                            mv_actions.enable(bufnr)
+                        end
+                    end, 50)
                 end)
             end
 
