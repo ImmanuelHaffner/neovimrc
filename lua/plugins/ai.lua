@@ -609,9 +609,12 @@ return {
                         -- Override to hybrid_mode=false so the CursorLine is fully concealed.
                         markview_attach_preview(self.state.bufnr)
                         -- Telescope sets wrap=false on every preview window; override for markdown.
+                        -- After enabling wrap we must re-render markview so it recalculates
+                        -- virtual text / concealment for the new wrap state.
                         vim.schedule(function()
                             if self.state and self.state.winid and vim.api.nvim_win_is_valid(self.state.winid) then
                                 vim.wo[self.state.winid].wrap = true
+                                markview_attach_preview(self.state.bufnr)
                             end
                         end)
                     end,
