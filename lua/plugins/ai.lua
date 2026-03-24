@@ -739,7 +739,7 @@ return {
                     description = "Google Docs/Slides work: Google, Confluence, Glean",
                     servers = { 'databricks_google', 'databricks_confluence', 'databricks_glean' },
                 },
-                ['db_feature_dev'] = {
+                ['db_dev'] = {
                     description = "Feature development: GitHub, Jira, Confluence, DevPortal, platform, TestMan",
                     servers = {
                         'databricks_github', 'databricks_jira', 'databricks_confluence',
