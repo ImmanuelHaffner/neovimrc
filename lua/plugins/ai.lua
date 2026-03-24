@@ -581,7 +581,7 @@ return {
                     opts = vim.tbl_deep_extend('force', opts or {}, {
                         layout_strategy = 'vertical',
                         layout_config = {
-                            width = 0.8,
+                            width = math.max(80, math.min(200, math.floor(vim.o.columns * 0.7))),
                             preview_height = 0.7,
                         },
                     })
