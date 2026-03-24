@@ -573,9 +573,50 @@ return {
                 }
             }
 
-            -- Use vertical layout for the action palette so the preview gets more space
+            -- Use vertical layout for the action palette so the preview gets more space.
+            -- Supply a custom previewer that:
+            --   1. Attaches markview with hybrid_mode disabled (markview's own OptionSet autocmd
+            --      attaches with the global default hybrid_mode=true; our FileType autocmd in
+            --      markdown.lua can't override it because the buffer isn't in the preview window
+            --      yet when FileType fires — Telescope schedules win_set_buf asynchronously)
+            --   2. Sets wrap=true on the preview window for readable markdown
             local ok_tp, telescope_provider = pcall(require, 'codecompanion.providers.actions.telescope')
             if ok_tp then
+                local previewers = require('telescope.previewers')
+
+                --- Attach markview to a Telescope preview buffer with hybrid_mode disabled.
+                ---@param bufnr integer
+                local function markview_attach_preview(bufnr)
+                    if not vim.api.nvim_buf_is_valid(bufnr) then return end
+                    local has_mv, mv_actions = pcall(require, 'markview.actions')
+                    if not has_mv then return end
+                    local mv_state = require('markview.state')
+                    if mv_state.buf_attached(bufnr) then
+                        mv_state.set_buffer_state(bufnr, { enable = true, hybrid_mode = false })
+                        mv_actions.render(bufnr)
+                    else
+                        mv_actions.attach(bufnr, { enable = true, hybrid_mode = false })
+                    end
+                end
+
+                local action_previewer = previewers.new_buffer_previewer({
+                    define_preview = function(self, entry)
+                        local width = vim.api.nvim_win_get_width(self.state.winid) - 4
+                        entry.preview_command(entry, self.state.bufnr, width)
+                        vim.bo[self.state.bufnr].filetype = 'markdown'
+                        -- Markview's OptionSet autocmd fires synchronously from the filetype
+                        -- assignment above and attaches with the global hybrid_mode=true default.
+                        -- Override to hybrid_mode=false so the CursorLine is fully concealed.
+                        markview_attach_preview(self.state.bufnr)
+                        -- Telescope sets wrap=false on every preview window; override for markdown.
+                        vim.schedule(function()
+                            if self.state and self.state.winid and vim.api.nvim_win_is_valid(self.state.winid) then
+                                vim.wo[self.state.winid].wrap = true
+                            end
+                        end)
+                    end,
+                })
+
                 local original_picker = telescope_provider.picker
                 function telescope_provider:picker(items, opts)
                     opts = vim.tbl_deep_extend('force', opts or {}, {
@@ -584,6 +625,7 @@ return {
                             width = math.max(80, math.min(200, math.floor(vim.o.columns * 0.7))),
                             preview_height = 0.7,
                         },
+                        previewer = action_previewer,
                     })
                     return original_picker(self, items, opts)
                 end
