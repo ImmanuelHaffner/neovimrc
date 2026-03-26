@@ -47,7 +47,7 @@ return {
     },
     {
         'zbirenbaum/copilot.lua',
-        enabled = true,
+        enabled = false,
         cmd = 'Copilot',
         event = 'InsertEnter',
         config = function()
@@ -113,10 +113,10 @@ return {
             'nvim-lua/plenary.nvim',
             'nvim-treesitter/nvim-treesitter',
             'bahaaza/mcphub.nvim',  -- TODO: switch back to 'ravitemer/mcphub.nvim' after PR #279 merged
-            'zbirenbaum/copilot.lua',
+            -- 'zbirenbaum/copilot.lua',
             -- 'CopilotC-Nvim/CopilotChat.nvim',
             'folke/which-key.nvim',
-            'Davidyz/VectorCode',
+            -- 'Davidyz/VectorCode',
         },
         config = function()
             -- Databricks AI Gateway URL (used by both OpenAI-compatible and Anthropic adapters)
