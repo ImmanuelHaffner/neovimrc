@@ -9,6 +9,7 @@ end
 return {
     {
         'ludovicchabant/vim-gutentags',
+        enabled = false,
         cond = has_compatible_ctags,
         config = function()
             vim.g.gutentags_cache_dir = os.getenv('HOME') .. '/.cache/nvim/tags'
