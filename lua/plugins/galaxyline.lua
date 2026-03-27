@@ -174,18 +174,47 @@ return {
                 end,
             })
 
+            -- Async git branch with throttle (at most once per 5s) and mutex to prevent concurrent spawns.
+            local _cached_git_branch = ''
+            local _git_branch_inflight = false
+            local _git_branch_timer = assert(vim.uv.new_timer())
+
+            local function do_refresh_git_branch()
+                if _git_branch_inflight then return end
+                _git_branch_inflight = true
+                vim.system({ 'git', 'symbolic-ref', '--short', '-q', 'HEAD' }, { text = true }, function(result)
+                    if result ~= nil and result.signal == 0 and result.code == 0 then
+                        _cached_git_branch = result.stdout:sub(1, -2)
+                        _git_branch_inflight = false
+                        return
+                    end
+                    vim.system({ 'git', 'rev-parse', '--short', 'HEAD' }, { text = true }, function(result2)
+                        if result2 ~= nil and result2.signal == 0 and result2.code == 0 then
+                            _cached_git_branch = 'HEAD detached at ' .. result2.stdout:sub(1, -2)
+                        else
+                            _cached_git_branch = ''
+                        end
+                        _git_branch_inflight = false
+                    end)
+                end)
+            end
+
+            local function refresh_git_branch()
+                -- Throttle: restart a 5s one-shot timer on each call; fires only after 5s of quiet.
+                -- The first call goes through immediately.
+                if not _git_branch_timer:is_active() then
+                    do_refresh_git_branch()
+                end
+                _git_branch_timer:start(5000, 0, vim.schedule_wrap(do_refresh_git_branch))
+            end
+
+            refresh_git_branch()
+            vim.api.nvim_create_autocmd({ 'FocusGained', 'DirChanged', 'SessionLoadPost' }, {
+                callback = refresh_git_branch,
+            })
+
             local function get_git_branch()
-                local result = vim.system({ 'git', 'symbolic-ref', '--short', '-q', 'HEAD' }, { text = true }):wait()
-                if result ~= nil and result.signal == 0 and result.code == 0 then
-                    return result.stdout:sub(1, -2)
-                end
-
-                result = vim.system({ 'git', 'rev-parse', '--short', 'HEAD' }, { text = true }):wait()
-                if result ~= nil and result.signal == 0 and result.code == 0 then
-                    return 'HEAD detached at ' .. result.stdout:sub(1, -2)
-                end
-
-                return ''
+                return _cached_git_branch
             end
 
             gl._mysection.compose_lsp_status = function()
