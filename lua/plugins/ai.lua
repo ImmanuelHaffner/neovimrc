@@ -850,19 +850,30 @@ return {
                 end
             end
 
-            -- When MCPHub finishes registering tools (may happen after chat is already open),
-            -- build meta-groups and refresh any open CodeCompanion chats.
-            require('mcphub').on({ 'servers_updated', 'tool_list_changed' }, vim.schedule_wrap(function()
-                build_meta_groups()
-                for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-                    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == 'codecompanion' then
-                        local chat = cc.buf_get_chat(buf)
-                        if chat and chat.tools then
-                            chat.tools:refresh({ adapter = chat.adapter })
+            -- When MCPHub finishes registering tools/resources (may happen after chat is already open),
+            -- rebuild meta-groups and refresh tools + editor_context (variables) on all open chats.
+            -- The mcphub CC extension's initial vim.schedule(M.register) often runs before the hub
+            -- is ready, so the first `servers_updated` event is the earliest reliable point where
+            -- MCP tools and variables become available.
+            require('mcphub').on({ 'servers_updated', 'tool_list_changed', 'resource_list_changed' },
+                vim.schedule_wrap(function()
+                    build_meta_groups()
+                    local EditorContext = require('codecompanion.interactions.shared.editor_context')
+                    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                        if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == 'codecompanion' then
+                            local chat = cc.buf_get_chat(buf)
+                            if chat then
+                                -- Refresh tools (schema, groups, etc.)
+                                if chat.tools then
+                                    chat.tools:refresh({ adapter = chat.adapter })
+                                end
+                                -- Refresh editor_context so MCP variables (#mcp:…) are available
+                                chat.editor_context = EditorContext.new('chat')
+                            end
                         end
                     end
-                end
-            end))
+                end)
+            )
 
             -- Automatically attach current buffer to new chat
             vim.api.nvim_create_autocmd('User', {
