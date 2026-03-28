@@ -1,6 +1,7 @@
 return {
     { 'hedyhli/outline.nvim',
-        lazy = false,
+        -- Lazy-load: only needed when toggled; avoids BufEnter overhead.
+        cmd = { 'Outline', 'OutlineOpen', 'OutlineClose' },
         keys = {
             { '<leader>lo', '<cmd>Outline<CR>', desc = 'Toggle outline' },
         },
