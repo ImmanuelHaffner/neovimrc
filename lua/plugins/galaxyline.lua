@@ -626,8 +626,22 @@ return {
                 make_buffer_icon(),
             })
 
-            -- Force manual load so that nvim boots with a status line
-            gl.load_galaxyline()
+            -- Debounce load_galaxyline: galaxyline fires on BufEnter, WinEnter,
+            -- FileType, etc., causing 3+ redundant reloads per window switch.
+            -- Collapse them into a single call per event loop tick.
+            local _gl_load_pending = false
+            local _gl_original_load = gl.load_galaxyline
+            gl.load_galaxyline = function()
+                if _gl_load_pending then return end
+                _gl_load_pending = true
+                vim.schedule(function()
+                    _gl_load_pending = false
+                    _gl_original_load()
+                end)
+            end
+
+            -- Force manual load so that nvim boots with a status line.
+            _gl_original_load()
         end,
     },
 }
