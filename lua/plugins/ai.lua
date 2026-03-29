@@ -408,6 +408,8 @@ return {
                                 callback = function(chat)
                                     local choice = vim.fn.confirm('Close this chat?', '&Yes\n&No', 2, 'Question')
                                     if choice ~= 1 then return end
+                                    -- Signal to BufUnload guard that this is a legitimate close
+                                    vim.b[chat.bufnr]._cc_closing = true
                                     chat:close()
                                     local chats = require('codecompanion').buf_get_chat()
                                     if vim.tbl_count(chats) == 0 then return end
@@ -882,6 +884,77 @@ return {
                     end
                 end)
             )
+
+            -- Protect chat buffers from accidental deletion (`:bdel`, `:bw`).
+            --
+            -- Layer 1 – switch buftype to `acwrite` and keep `modified=true`.
+            --   `nofile` buffers silently ignore the modified flag, so `:bdel`
+            --   always succeeds.  `acwrite` respects it, making `:bdel` fail
+            --   with "No write since last change" while still behaving like a
+            --   non-file buffer in every other regard.
+            --
+            -- Layer 2 – `BufUnload` autocmd catches forced deletion (`:bdel!`)
+            --   and properly deregisters the chat so no ghost entry remains in
+            --   the "Open chats…" picker.
+            vim.api.nvim_create_autocmd('User', {
+                pattern = 'CodeCompanionChatCreated',
+                group = cc_group,
+                callback = function(request)
+                    local bufnr = request.buf
+
+                    -- Layer 1: make buffer protected via acwrite + modified
+                    vim.bo[bufnr].buftype = 'acwrite'
+                    vim.bo[bufnr].modified = true
+
+                    -- No-op BufWriteCmd so `:w` doesn't error; re-arm modified flag.
+                    vim.api.nvim_create_autocmd('BufWriteCmd', {
+                        buffer = bufnr,
+                        group = cc_group,
+                        callback = function()
+                            vim.bo[bufnr].modified = true
+                        end,
+                        desc = 'No-op write for protected CodeCompanion chat buffer',
+                    })
+
+                    -- Keep modified=true after content changes (LLM streaming
+                    -- uses nvim_buf_set_lines which resets it).
+                    vim.api.nvim_create_autocmd({ 'TextChanged', 'TextChangedI' }, {
+                        buffer = bufnr,
+                        group = cc_group,
+                        callback = function()
+                            if not vim.bo[bufnr].modified then
+                                vim.bo[bufnr].modified = true
+                            end
+                        end,
+                        desc = 'Keep CodeCompanion chat buffer marked as modified',
+                    })
+
+                    -- Layer 2: catch forced deletion (`:bdel!`) and clean up
+                    -- the chat properly so no ghost entry lingers in the registry.
+                    vim.api.nvim_create_autocmd('BufUnload', {
+                        buffer = bufnr,
+                        group = cc_group,
+                        once = true,
+                        callback = function()
+                            -- When chat:close() deletes the buffer it already
+                            -- cleans up the registry.  Detect that case via a
+                            -- per-buffer flag so we don't double-close.
+                            if vim.b[bufnr] and vim.b[bufnr]._cc_closing then
+                                return
+                            end
+                            -- Forced deletion from outside – clean up the chat.
+                            vim.schedule(function()
+                                local chat = cc.buf_get_chat(bufnr)
+                                if chat then
+                                    chat:close()
+                                end
+                            end)
+                        end,
+                        desc = 'Clean up CodeCompanion chat on forced buffer deletion',
+                    })
+                end,
+                desc = 'Protect CodeCompanion chat buffers from accidental deletion',
+            })
 
             -- Automatically attach current buffer to new chat
             vim.api.nvim_create_autocmd('User', {
