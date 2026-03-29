@@ -630,7 +630,15 @@ return {
                         },
                         previewer = action_previewer,
                     })
-                    return original_picker(self, items, opts)
+                    -- Defer picker creation so that any in-flight Telescope cleanup
+                    -- (e.g. scheduled prompt buffer deletion from a parent picker's
+                    -- unmount) completes before the new picker opens.  Without this,
+                    -- the deferred buf_delete of the first picker can reset the mode
+                    -- after the second picker's feedkeys('A') has already run.
+                    local provider = self
+                    vim.schedule(function()
+                        original_picker(provider, items, opts)
+                    end)
                 end
             end
 
