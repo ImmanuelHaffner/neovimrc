@@ -777,6 +777,46 @@ return {
                 desc = 'Re-enable TS/markview on InsertLeave in CodeCompanion chat',
             })
 
+            -- Exit insert mode after a prompt-library slash command is completed.
+            -- Two hooks needed: CompleteDone for the built-in <C-_> completion,
+            -- and cmp's confirm_done for nvim-cmp (<C-n>/<C-p>).
+            local function stopinsert_deferred()
+                vim.defer_fn(function()
+                    if vim.api.nvim_get_mode().mode:sub(1, 1) == 'i' then
+                        vim.cmd.stopinsert()
+                    end
+                end, 50)
+            end
+
+            -- Hook 1: built-in completion via <C-_> (vim.fn.complete)
+            vim.api.nvim_create_autocmd('CompleteDone', {
+                group = cc_group,
+                callback = function(args)
+                    if vim.bo[args.buf].filetype ~= 'codecompanion' then return end
+                    local item = vim.v.completed_item
+                    if item.user_data and type(item.user_data) == 'table' and item.user_data.from_prompt_library then
+                        stopinsert_deferred()
+                    end
+                end,
+                desc = 'Exit insert mode after prompt-library slash command (built-in completion)',
+            })
+
+            -- Hook 2: nvim-cmp completion via <C-n>/<C-p>
+            do
+                local cmp_ok, cmp = pcall(require, 'cmp')
+                if cmp_ok then
+                    cmp.event:on('confirm_done', function(evt)
+                        if vim.bo.filetype ~= 'codecompanion' then return end
+                        local entry = evt.entry
+                        if entry.source.name ~= 'codecompanion_slash_commands' then return end
+                        local item = entry:get_completion_item()
+                        if item.from_prompt_library then
+                            stopinsert_deferred()
+                        end
+                    end)
+                end
+            end
+
             --- Refresh the CodeCompanion prompt library cache (silently, in background)
             local function refresh_prompt_library()
                 local context = require('codecompanion.utils.context').get(vim.api.nvim_get_current_buf())
