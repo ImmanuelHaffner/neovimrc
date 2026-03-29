@@ -481,7 +481,15 @@ return {
                     },
                     cmd = {
                         adapter = get_default_adapter(),
-                    }
+                    },
+                    background = {
+                        adapter = get_default_adapter(),
+                        chat = {
+                            opts = {
+                                enabled = true,  -- enable background chat actions (e.g. auto-title generation)
+                            },
+                        },
+                    },
                 },
                 display = {
                     action_palette = {
@@ -884,6 +892,25 @@ return {
                     end
                 end)
             )
+
+            -- Patch Chat:set_title to update registry `name` (shown in the
+            -- Telescope picker list) WITHOUT clobbering `description`.
+            --
+            -- The stock set_title writes `description = title`, which replaces
+            -- the "[No messages]" sentinel.  The Telescope preview_command
+            -- checks for that sentinel to decide whether to show the live
+            -- buffer content; once it's gone the preview just shows the title
+            -- string.  We therefore skip the description update entirely and
+            -- only touch `name` + the fields that don't affect the preview.
+            local Chat = require('codecompanion.interactions.chat')
+            local registry = require('codecompanion.interactions.shared.registry')
+            function Chat:set_title(title)
+                assert(type(title) == 'string', 'title must be a string')
+                self.title = title
+                self.ui.title = title
+                registry.update(self.bufnr, { name = title })
+                pcall(vim.api.nvim_buf_set_name, self.bufnr, title)
+            end
 
             -- Protect chat buffers from accidental deletion (`:bdel`, `:bw`).
             --
