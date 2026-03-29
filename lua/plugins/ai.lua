@@ -106,9 +106,9 @@ return {
         end
     },
     {
-        'olimorris/codecompanion.nvim',
-        -- Pin to v19.3.0 for now; remove pin once stable
-        version = '~v19.4',
+        'ImmanuelHaffner/codecompanion.nvim',
+        dev = true,
+        branch = 'dev',
         dependencies = {
             'nvim-lua/plenary.nvim',
             'nvim-treesitter/nvim-treesitter',
