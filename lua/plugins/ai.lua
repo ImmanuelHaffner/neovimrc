@@ -668,6 +668,46 @@ return {
 
             local cc_group = vim.api.nvim_create_augroup('CodeCompanionHooks', {})
 
+            -- Strip expensive nvim-cmp sources from CodeCompanion chat buffers.
+            -- cmp-buffer's on_lines watcher re-indexes the full buffer on every
+            -- text change → extreme lag during LLM streaming in large (10k+
+            -- line) chats.  CC's cmp provider registers a FileType autocmd
+            -- (cmp/setup.lua) that calls cmp.setup.filetype('codecompanion', ...)
+            -- with all global sources appended.  We counter this with our own
+            -- deferred FileType autocmd that strips everything except CC's own
+            -- sources (the `/`, `@`, `#` trigger-character sources still work).
+            do
+                local cmp_ok, cmp = pcall(require, 'cmp')
+                if cmp_ok then
+                    -- Hardcode the CC-native source names so we never depend on
+                    -- reading back a filetype config that another autocmd may not
+                    -- have populated yet (race during session restore, lazy load,
+                    -- or when CC's one-shot FileType autocmd has already self-removed).
+                    local cc_only_sources = {
+                        { name = 'codecompanion_acp_commands' },
+                        { name = 'codecompanion_editor_context' },
+                        { name = 'codecompanion_models' },
+                        { name = 'codecompanion_slash_commands' },
+                        { name = 'codecompanion_tools' },
+                    }
+                    vim.api.nvim_create_autocmd('FileType', {
+                        group = cc_group,
+                        pattern = 'codecompanion',
+                        callback = function()
+                            -- Defer so CC's own FileType autocmd (which appends
+                            -- global sources like buffer/lsp) runs first; we then
+                            -- overwrite with only the CC-native sources.
+                            vim.schedule(function()
+                                cmp.setup.filetype('codecompanion', {
+                                    sources = cc_only_sources,
+                                })
+                            end)
+                        end,
+                        desc = 'Strip expensive cmp sources from CodeCompanion chat buffers',
+                    })
+                end
+            end
+
             --- Disable expensive rendering on CodeCompanion chat buffers.
             --- Stops treesitter highlighting and the underlying parser, and
             --- disables markview at the state level.
