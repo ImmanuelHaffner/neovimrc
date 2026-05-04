@@ -76,7 +76,7 @@ function M.setup()
     lsp_status.register_progress()
 
     -- Only log errors by default to avoid log file growing too quickly.
-    vim.lsp.set_log_level'error'
+    vim.lsp.log.set_level'error'
 
     -- Global LSP configuration (applied to all servers)
     vim.lsp.config('*', {
