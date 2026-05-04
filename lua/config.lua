@@ -51,6 +51,9 @@ function M.setup()
     -- The minimal number of screen columns to keep to the left and to the right of the cursor if 'nowrap' is set.
     vim.opt.sidescrolloff = 15
 
+    -- Border style for floating windows (hover, diagnostics, etc.)
+    vim.o.winborder = 'rounded'
+
     -- Determine how text with the "conceal" syntax attribute |:syn-conceal| is shown:  Concealed text is completely
     -- hidden unless it has a custom replacement character defined (see |:syn-cchar|).
     vim.opt.conceallevel = 2
