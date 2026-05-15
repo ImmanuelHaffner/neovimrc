@@ -7,32 +7,16 @@ local function setup_metals()
     local metals_config = metals.bare_config()
     metals_config.settings = {
         defaultBspToBuildTool = true,
-
-        -- Repositories
-        javaHome = '/usr/lib/jvm/java-17-openjdk-amd64',
-
+        javaHome = '/usr/lib/jvm/temurin-25-jdk-amd64',
         showImplicitArguments = true,
         fallbackScalaVersion = '2.13.16',
-        -- serverProperties = {
-        --     '-Dmetals.verbose=true',
-        --     '-Dmetals.askToReconnect=false',
-        --     '-Dmetals.loglevel=debug',
-        --     '-Dmetals.build-server-ping-interval=10h',
-        --     '-Dmetals.inlayHints.hintsXRayMode=true',
-        --     '-XX:+UseG1GC',
-        --     '-XX:+UseStringDeduplication',
-        --     '-Xss4m',
-        --     '-Xms2g',
-        --     '-Xmx8g',
-        -- },
 
         -- Databricks custom version
         serverVersion = "9.9.9-DATABRICKS-LAUNCHER-1",
 
         -- We set our metals wrapper script here, which acts as an executable for the databricks JAR file
         useGlobalExecutable = false,
-        -- metalsBinaryPath = vim.fn.expand('~/.local/bin/metals'),
-        metalsBinaryPath = vim.fn.expand('/opt/databricks/experimental-dbmetals'),
+        metalsBinaryPath = vim.fn.expand('~/.local/bin/dbmetals'),
     }
 
     metals_config.init_options.statusBarProvider = 'off'
