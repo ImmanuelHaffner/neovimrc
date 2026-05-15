@@ -858,7 +858,7 @@ return {
             --- Refresh the CodeCompanion prompt library cache (silently, in background)
             local function refresh_prompt_library()
                 local context = require('codecompanion.utils.context').get(vim.api.nvim_get_current_buf())
-                require('codecompanion.actions').refresh_cache(context)
+                require('codecompanion.action_palette').refresh_cache(context)
             end
 
             -- Refresh prompt library on CWD change
