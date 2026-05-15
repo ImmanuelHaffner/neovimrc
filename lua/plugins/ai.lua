@@ -581,6 +581,16 @@ return {
                 }
             }
 
+            -- Extend (don't override) the built-in `default` rules preset with global
+            -- instruction files from the home directory. This MUST run *after* `cc.setup{}`
+            -- because setup rebuilds `M.config` from `vim.deepcopy(defaults)` (see
+            -- codecompanion/config.lua:1348), wiping out any pre-setup mutations.
+            do
+                local rules_files = require'codecompanion.config'.config.rules.default.files
+                table.insert(rules_files, '~/AGENTS.md')
+                table.insert(rules_files, { path = '~/CLAUDE.md', parser = 'claude' })
+            end
+
             -- Use vertical layout for the action palette so the preview gets more space.
             -- Supply a custom previewer that:
             --   1. Attaches markview with hybrid_mode disabled (markview's own OptionSet autocmd
