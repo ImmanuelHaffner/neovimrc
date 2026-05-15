@@ -275,30 +275,28 @@ return {
                                 env = {
                                     api_key = 'DATABRICKS_ANTHROPIC_API_KEY',
                                 },
-                                headers = {
-                                    -- Enable extended context (1M tokens) via beta header
-                                    ['anthropic-beta'] = 'prompt-caching-2024-07-31,context-1m-2025-08-07',
-                                },
                                 schema = {
                                     model = {
-                                        default = 'claude-opus-4-6',
+                                        default = 'claude-opus-4-7',
                                         choices = {
                                             ['claude-sonnet-4-5'] = {
                                                 formatted_name = 'Claude Sonnet 4.5',
-                                                opts = { can_reason = true, has_vision = true },
+                                                opts = { can_reason = true, has_vision = true, legacy_reasoning = true },
                                             },
                                             ['claude-opus-4-5'] = {
                                                 formatted_name = 'Claude Opus 4.5',
-                                                opts = { can_reason = true, has_vision = true },
+                                                opts = { can_reason = true, has_vision = true, legacy_reasoning = true },
                                             },
                                             ['claude-opus-4-6'] = {
                                                 formatted_name = 'Claude Opus 4.6',
-                                                opts = { can_reason = true, has_vision = true },
+                                                opts = { can_reason = true, can_manage_context = true, has_vision = true },
+                                            },
+                                            ['claude-opus-4-7'] = {
+                                                formatted_name = 'Claude Opus 4.7',
+                                                opts = { can_manage_context = true, has_vision = true },
                                             },
                                         },
                                     },
-                                    thinking_budget = { default = 32000 },
-                                    max_tokens = { default = 64000 },
                                 },
                             })
                         end,
