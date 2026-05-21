@@ -17,6 +17,5 @@ install:
 	find prompts/ -type f -exec install -D {} ${HOME}/.config/nvim/{} \;
 	# Install nvimdiff thin wrapper
 	install -D -m 755 nvimdiff ${HOME}/.local/bin/nvimdiff
-	# Install MCP Hub servers config (envsubst expands token placeholders)
-	install -d ${HOME}/.config/mcphub
-	source ${HOME}/.secrets.zshenv && envsubst '$$DATABRICKS_GITHUB_PERSONAL_ACCESS_TOKEN $$GITHUB_PERSONAL_ACCESS_TOKEN' < servers.json > ${HOME}/.config/mcphub/servers.json
+	# Install MCP Hub servers config (tokens are resolved at runtime via ${cmd: ...})
+	install -D servers.json ${HOME}/.config/mcphub/servers.json
