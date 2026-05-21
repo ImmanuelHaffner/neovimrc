@@ -111,6 +111,50 @@ rg 'QuercusPlanner' ~/universe/
 If a timeout fires, treat it as a signal to narrow the scope rather than
 just raising the budget.
 
+### Interactive Git (commit messages, rebase, merge)
+
+This Neovim's config sets `GIT_EDITOR`, `GIT_SEQUENCE_EDITOR`, `EDITOR`, and
+`VISUAL` to an `nvr` (neovim-remote) invocation pinned to this session's
+`v:servername`. Effect: any time `git` (or another `$EDITOR`-respecting
+tool) wants to open an editor, the buffer pops up **as a new tab in this
+very Neovim**, and the shell command blocks until that tab is closed.
+
+What this means for you:
+- It is safe to run interactive git commands via `neovim__execute_command`:
+  - `git commit` (no `-m`) — opens `COMMIT_EDITMSG`.
+  - `git commit --amend` — opens it pre-filled with the previous message.
+  - `git rebase -i <ref>` — opens `git-rebase-todo`, then later opens each
+    `reword`/`edit` commit message in turn.
+  - `git merge` (no `--no-edit`) — opens `MERGE_MSG` on non-fast-forward.
+  - `git tag -a` — opens `TAG_EDITMSG`.
+- The user edits the buffer in the new tab. A plain `:q` / `:wq` /
+  `<C-w>q` / `:tabclose` releases the editor — the buffer is set to
+  `bufhidden=wipe`, so closing the last window also wipes the buffer and
+  `nvr` returns. **No `:bdelete` required.**
+- The CodeCompanion chat window is **not** touched — the editor always
+  opens in a fresh tab.
+- The git command's stdout (including the resulting commit hash and
+  message) is returned in the tool output, so you can confirm what
+  happened.
+
+How to use this well:
+- **Prefer letting the user write the commit message**: run `git commit`
+  *without* `-m`. The user edits the message in their own Neovim, with
+  full filetype support (spellcheck, `gitcommit` ftplugin, etc.) and
+  total control over wording. This is much better than you guessing at a
+  message and the user having to amend afterwards.
+- If the user has clearly authored the message themselves and asked you
+  to just commit, then `-m "<message>"` is fine.
+- For `rebase -i`: just invoke it. The user drives the rebase tab-by-tab.
+- These commands **will block** for as long as the user takes to edit.
+  That is expected and not a failure. Do not bump timeouts to "fix" it.
+  If a session is genuinely stuck, the user will tell you.
+
+If `nvr` is not installed or `v:servername` is empty, the editor
+variables are not set and git falls back to its default behaviour
+(typically `vi`), which **will** hang a non-interactive shell. In that
+case, fall back to `-m`-style commits.
+
 ### Neovim-Specific Guidelines
 
 When working with Neovim configuration or plugins:

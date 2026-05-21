@@ -180,6 +180,36 @@ function M.setup()
 
     -- Set Python 3 host program for provider support
     vim.g.python3_host_prog = '/usr/bin/python3'
+
+    ----- Route external editors back into THIS Neovim via nvr {{{------------------------------------------------------
+    -- When child processes (git, hg, $VISUAL users, ...) want to open an editor, route them back into the running
+    -- Neovim session using `nvr` (neovim-remote). This way:
+    --   * `git commit`         opens COMMIT_EDITMSG in this Neovim; saving the buffer finalises the commit.
+    --   * `git rebase -i`      opens git-rebase-todo here; closing it advances the rebase.
+    --   * AI agents running shell commands on our behalf can interact with the rebase/commit UI.
+    --
+    -- We pin `--servername` to this session's address so that, if another nvim is running on the host, nvr does not
+    -- accidentally route the edit there. `v:servername` is set at startup and stable for the session's lifetime.
+    --
+    -- Editor flags explained:
+    --   --remote-tab-wait-silent  : open the file in a NEW TAB and block until its buffer is deleted. New tab avoids
+    --                               clobbering the current window layout (notably, the CodeCompanion chat window).
+    --   -c "setlocal bufhidden=wipe"
+    --                             : after the buffer is loaded, mark it so that closing its last window also wipes
+    --                               the buffer. This means a plain `:q` / `<C-w>q` / `:tabclose` is enough to release
+    --                               the editor — no need for an explicit `:bdelete`.
+    local nvr = vim.fn.exepath('nvr')
+    if nvr ~= '' and vim.v.servername and vim.v.servername ~= '' then
+        local editor = ('%s --servername %s --remote-tab-wait-silent -c "setlocal bufhidden=wipe"')
+            :format(nvr, vim.v.servername)
+        -- Generic editors (respected by most CLI tools).
+        vim.env.VISUAL = editor
+        vim.env.EDITOR = editor
+        -- Git-specific editors. GIT_SEQUENCE_EDITOR is what edits the `git-rebase-todo` during `rebase -i`.
+        vim.env.GIT_EDITOR = editor
+        vim.env.GIT_SEQUENCE_EDITOR = editor
+    end
+    --}}}---------------------------------------------------------------------------------------------------------------
 end
 
 return M
