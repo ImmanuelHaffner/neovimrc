@@ -24,19 +24,92 @@ vim.cmd('helpclose')
 print(table.concat(lines, '\n'))
 ```
 
-To prompt the user for a simple choice, use `vim.fn.confirm()`:
-```lua
-local choice = vim.fn.confirm("Your question?", "&Yes\n&No\n&Cancel", 1, "Question")
--- Returns: 1=Yes, 2=No, 3=Cancel, 0=Esc
-print(choice)
+### Asking the User Questions
+
+When you need clarification, a decision, or feedback from the user, **ask
+directly in the chat window** and wait for the user's next message. Do **not**
+use blocking prompts like `vim.fn.confirm()`, `vim.fn.input()`, or
+`vim.ui.select()` — these steal focus, freeze the editor until resolved, and
+break the natural conversational flow of the chat.
+
+Guidelines:
+- Phrase the question clearly and, when helpful, offer a short list of
+  options (e.g. "A) …, B) …, C) …") so the user can reply with a single
+  letter or word.
+- Ask **one** question at a time unless the questions are tightly related.
+- After asking, stop and yield the turn. Do not speculate an answer or
+  proceed with the task until the user responds.
+
+When the user **rejects** an edit, do not immediately retry. Ask in the chat
+why it was rejected (e.g. wrong approach, incomplete, style issue, something
+else) and wait for the response before attempting another edit.
+
+### File Operations via MCP
+
+This Neovim instance is exposed as an **MCP server** via `mcphub.nvim`. File
+operations — reading, writing, editing, renaming, deleting, listing
+directories, etc. — **must** go through the Neovim MCP tools (e.g.
+`neovim__edit_file`, `neovim__write_file`, `neovim__read_file`,
+`neovim__move_item`, `neovim__delete_items`, `neovim__list_directory`).
+
+Do **not** perform file operations by shelling out (e.g. `rm`, `mv`, `cp`,
+`sed -i`, `cat >`, `mkdir`, `echo >>`, etc.) via `neovim__execute_command` or
+similar. Reasons:
+- MCP edits show up as interactive diffs the user can review and reject.
+- Edits go through Neovim's buffer/LSP/formatter pipeline, keeping state
+  consistent.
+- Shell side-effects bypass that pipeline and leave Neovim's view of the
+  workspace stale.
+
+Shell commands remain appropriate for non-filesystem-mutating work: running
+builds, tests, linters, `git status`/`git diff`, searches (`rg`, `find`),
+etc.
+
+### Running Shell Commands Safely
+
+Shell commands run synchronously and can block the session. Some repos in
+this environment are enormous (e.g. `~/universe`, `~/runtime`) — an
+unscoped `rg` or `find` there can easily run for an hour. Follow these
+rules to keep the session responsive:
+
+- **Always wrap potentially expensive commands in `timeout`** with a sane
+  budget. Reasonable defaults:
+  - Searches (`rg`, `grep`, `fdfind`/`fd`, `find`): `timeout 60s …`
+  - Builds / test runs: pick a budget that fits the task; if unsure, ask
+    the user.
+- **Start with a moderate, well-scoped query**, then iterate:
+  - On **no matches**: widen the scope (drop a path filter, loosen the
+    regex, remove a `--type` constraint).
+  - On **too many matches**: narrow the scope (add a path, restrict by
+    filetype, tighten the regex, add `--max-count`).
+- **Always constrain the search space** when possible:
+  - Limit to a subdirectory rather than the repo root.
+  - Use `rg --type <lang>` / `--type-not`, or `--glob '<pattern>'` to
+    filter by filetype.
+  - Prefer `rg` over `grep -r` for **content** search (it respects
+    `.gitignore` and is much faster).
+  - Prefer `fdfind` (a.k.a. `fd`, installed as `/usr/bin/fdfind` on this
+    machine) over `find` for **filename** search — it's parallel, respects
+    `.gitignore`, and has a friendlier syntax (e.g.
+    `fdfind -e scala QuercusPlanner ~/worktrees/universe/quercus/`).
+  - For huge repos, consider `git grep` / `git ls-files` (only searches
+    tracked files).
+- **Cap output** with `--max-count`, `head`, or similar when you only need
+  a sample of hits.
+
+Example — searching for a symbol in the Quercus area of Universe:
+
+```bash
+# Good: scoped path, filetype filter, output cap, timeout
+timeout 60s rg --type scala --max-count 50 'class QuercusPlanner' \
+  ~/worktrees/universe/quercus/sql/
+
+# Bad: unscoped search across the entire monorepo, no timeout, no cap
+rg 'QuercusPlanner' ~/universe/
 ```
 
-When the user **rejects** an edit, do NOT immediately retry. Instead, ask for the reason:
-```lua
-local reason = vim.fn.confirm("Why was the edit rejected?", "&Wrong approach\n&Incomplete\n&Style issue\n&Other", 1, "Question")
-print(reason)
-```
-Then adjust your approach based on the feedback before attempting another edit.
+If a timeout fires, treat it as a signal to narrow the scope rather than
+just raising the budget.
 
 ### Neovim-Specific Guidelines
 
