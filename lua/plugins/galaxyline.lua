@@ -428,10 +428,22 @@ return {
                 }}
             end
 
+            -- Safely call vim.fn.searchcount(): while the user is typing an incomplete
+            -- pattern at the `/` prompt (e.g. `\(`), searchcount() raises errors like
+            -- E54/E55/E383. Swallow them and return an empty result so the statusline
+            -- just hides the search section until the pattern is valid again.
+            local function safe_searchcount()
+                local ok, info = pcall(vim.fn.searchcount, { recompute = 1, maxcount = 0 })
+                if not ok or type(info) ~= 'table' or vim.tbl_isempty(info) then
+                    return { current = 0, total = 0, incomplete = 0 }
+                end
+                return info
+            end
+
             local function make_search()
                 return { Search = {
                     provider = function()
-                        local search_info = vim.fn.searchcount()
+                        local search_info = safe_searchcount()
                         if search_info.total == 0 then
                             return ''
                         end
@@ -450,7 +462,7 @@ return {
                         return text
                     end,
                     condition = function()
-                        local search_info = vim.fn.searchcount()
+                        local search_info = safe_searchcount()
                         -- Show if we have an active search with matches
                         return gl._mysection.search_active and search_info.total > 0
                     end,
@@ -631,6 +643,7 @@ return {
             -- Collapse them into a single call per event loop tick.
             local _gl_load_pending = false
             local _gl_original_load = gl.load_galaxyline
+            ---@diagnostic disable-next-line: duplicate-set-field
             gl.load_galaxyline = function()
                 if _gl_load_pending then return end
                 _gl_load_pending = true
