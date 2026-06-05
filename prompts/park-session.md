@@ -35,6 +35,26 @@ If you cannot confidently infer a slug from the conversation (e.g. it's too shor
 
 First, check if `/memories/parked-sessions/` exists. If not, create it by writing the first file into it.
 
+Determine the working directory state. Use `neovim__execute_lua` to capture
+Neovim's current working directory:
+
+```lua
+print(vim.fn.getcwd())
+```
+
+Then identify any **other directories relevant to this session** that the
+resuming agent will need to know about. Common examples:
+
+- Sibling worktrees (e.g. `~/worktrees/universe/quercus/` when working in
+  `~/worktrees/runtime/quercus/`)
+- Read-only reference checkouts (`~/universe/`, `~/runtime/`) consulted during
+  the session
+- Notes directories under `~/Documents/databricks/<topic>/`
+- External repos or vendored dependencies that were inspected or edited
+
+Only list directories that actually came up in the conversation or were
+clearly in use — do not speculate. If unsure, ask the user.
+
 Write to `/memories/parked-sessions/<slug>.md` with this format:
 
 ```markdown
@@ -43,6 +63,14 @@ Write to `/memories/parked-sessions/<slug>.md` with this format:
 **Slug**: <slug>
 **Parked at**: <current date/time>
 **Project**: <working directory basename>
+
+## Working Directory
+- **CWD at park time**: `<absolute path from vim.fn.getcwd()>`
+- **Primary work happens in**: `<absolute path>` — <why, if different from CWD>
+
+## Related Directories
+- `<absolute path>` — <role: e.g. "sibling runtime worktree", "design notes", "read-only reference">
+<!-- omit this section entirely if there are no other relevant directories -->
 
 ## Task
 <2-3 sentence description of what the user is working on>
@@ -89,11 +117,19 @@ You are resuming a previously parked work session.
 
 **Task**: <one-line task summary>
 
+**Working directory when parked**: `<absolute cwd>`
+**Primary work directory**: `<absolute path>` <!-- only include if different from CWD -->
+
 Before doing anything else:
 
 1. Read the parked session state from memory at `/memories/parked-sessions/<slug>.md`
-2. Summarize what was done and what remains
-3. Ask the user if they want to continue as planned or adjust the approach
+2. Verify the current working directory matches (or is compatible with) the
+   parked CWD. If it differs, surface this to the user before acting — they
+   may need to `:cd` or open a different worktree.
+3. Note the related directories listed in the parked state so you know where
+   to look for cross-references.
+4. Summarize what was done and what remains
+5. Ask the user if they want to continue as planned or adjust the approach
 
 Key context from when the session was parked:
 
