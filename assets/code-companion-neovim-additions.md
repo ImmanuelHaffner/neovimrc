@@ -121,7 +121,10 @@ very Neovim**, and the shell command blocks until that tab is closed.
 
 What this means for you:
 - It is safe to run interactive git commands via `neovim__execute_command`:
-  - `git commit` (no `-m`) — opens `COMMIT_EDITMSG`.
+  - `git commit` (no `-m`) — opens `COMMIT_EDITMSG` with the bare stub.
+  - `git commit -m "<draft>" -e` — opens `COMMIT_EDITMSG` **prefilled with
+    `<draft>`**, for the user to review/edit before saving. This is the
+    preferred way to commit on the user's behalf (see below).
   - `git commit --amend` — opens it pre-filled with the previous message.
   - `git rebase -i <ref>` — opens `git-rebase-todo`, then later opens each
     `reword`/`edit` commit message in turn.
@@ -138,13 +141,30 @@ What this means for you:
   happened.
 
 How to use this well:
-- **Prefer letting the user write the commit message**: run `git commit`
-  *without* `-m`. The user edits the message in their own Neovim, with
-  full filetype support (spellcheck, `gitcommit` ftplugin, etc.) and
-  total control over wording. This is much better than you guessing at a
-  message and the user having to amend afterwards.
-- If the user has clearly authored the message themselves and asked you
-  to just commit, then `-m "<message>"` is fine.
+- **Default workflow: draft a message, then let the user edit it.** When
+  the user asks you to commit, run:
+
+      git commit -m "<your drafted message>" -e
+
+  The `-m` supplies your draft inline (multi-line strings and repeated
+  `-m` flags both work — repeated `-m` becomes separate paragraphs). The
+  `-e` forces git to open the editor *even though* `-m` was given, so the
+  `nvr` tab opens **prefilled with your draft**. The user reviews, edits
+  (possibly handing off to another agent), saves and quits, and git
+  commits with the final edited content.
+  - To abort, the user clears the buffer and saves an empty message — git
+    refuses the commit. Treat a non-zero exit with "empty commit message"
+    as an intentional abort, not an error.
+  - Do **not** stage the draft via `neovim__write_file` or a temp file
+    just to pass it through `-F`: that would require a separate user
+    approval and defeats the point. Inline `-m` needs no approval.
+- This is strictly better than plain `-m "<message>"` (no `-e`): the user
+  always gets a chance to review, the message benefits from the
+  `gitcommit` ftplugin (spellcheck, ruler at col 50/72, etc.), and
+  there's no need for a follow-up `--amend`.
+- Only fall back to `git commit -m "<message>"` (without `-e`) when the
+  user has clearly authored the message themselves and explicitly asked
+  you to commit as-is, **or** when `nvr` is unavailable (see below).
 - For `rebase -i`: just invoke it. The user drives the rebase tab-by-tab.
 - These commands **will block** for as long as the user takes to edit.
   That is expected and not a failure. Do not bump timeouts to "fix" it.
