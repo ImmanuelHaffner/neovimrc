@@ -28,7 +28,8 @@ You drive the workflow turn by turn, asking the user for confirmation at decisio
   - `make install` — deploys the repo (incl. `lazy-lock.json`) to `~/.config/nvim/`. **Destructive**: starts with `rm -rf ~/.config/nvim`.
   - `make sync-lock` — copies `~/.config/nvim/lazy-lock.json` back into the repo (use this after `:Lazy update` to bring the repo in sync).
 - **Conventional Commits** and **semantic-newline Markdown** are mandatory across this repo. See `AGENTS.md` § Conventions for the canonical rules; plugin updates use the `chore(lazy):` scope, breaking-change phases that touch user code use the appropriate scope (`feat`, `fix`, `refactor`).
-- **In-flight planning artefacts** (`lazy-update-plan.md`, `lazy-updates-check.txt`) are **not committed**. They live at repo root as working notes throughout the workflow and serve as canonical inputs (especially the `:Lazy check` dump). Optionally delete during wrap-up if the user prefers a clean tree.
+- **In-flight planning artefact** — `lazy-update-plan.md` — is **not committed**. It lives at repo root as the working state throughout the workflow: the canonical record of phases planned, phases completed, smoke findings, etc. Optionally deleted during wrap-up.
+- **No more pasted `:Lazy check` output.** The pending-update list comes from `nvu.lazy.pending_updates()` (a programmatic equivalent of `:Lazy check`) shipped in our `nvu.nvim` library at `~/.local/share/nvim/lazy/nvu.nvim/`. See Phase 1.
 
 ### Constraints you must respect
 
@@ -78,6 +79,21 @@ print('new code has the method?', type(mod.LazySourceCollection.get_state_file))
 
 If the diagnostic snippet shows the new code is **missing** the symbol (not just a stale instance), it's a real bug — pause, report, and consider rolling back.
 
+### Workflow — Orient (resume vs. fresh invocation)
+
+This is a **pre-flight check, not a numbered phase** — it runs once at the start of every `/lazyup` invocation to decide where to enter the workflow. Either you start at Phase 0 (fresh), or you skip ahead to wherever the previous session left off (resume).
+
+**Before Phase 0**, determine whether this is a fresh invocation or a resume of an earlier session.
+
+The chat session can end mid-campaign for any number of reasons: a Neovim restart (Phase 5 of the workflow literally requires one), context-window compaction, the user stepping away, an agent terminating itself by violating chat-safety rules (it happens). The plan file is designed to survive all of these — it's the canonical state.
+
+**Check whether `lazy-update-plan.md` exists at the repo root:**
+
+- **If yes — this is a resume.** Read it end-to-end before doing anything else. The plan's `✅ Committed:` lines are the ground truth for what's already done; unticked checkboxes are pending; `[⚠️]` markers are open findings from earlier smoke sweeps. Cross-check against `git log --oneline origin/<branch>..HEAD` to confirm the plan and the commit history agree (rebase/squash may have changed SHAs; subject lines stay durable). Skip Phase 0 and Phase 1 unless the plan explicitly leaves them undone; resume at the first unticked phase. Briefly summarise the resumed state to the user before proceeding.
+- **If no — this is a fresh invocation.** Proceed with Phase 0.
+
+If the agent runtime supports persistent memory across sessions (e.g. a `/memories/parked-sessions/` directory), also check there for a parked-session note keyed on this campaign — it's a richer secondary source than the plan file (narrative context, gotchas, decisions). The plan file is authoritative for *what's done*; the parked memory is helpful for *what to be careful about*.
+
 ### Workflow — Phase 0: lockfile reconciliation
 
 Before doing anything else, establish a clean baseline lockfile that both the repo and the running Neovim agree on.
@@ -117,32 +133,49 @@ chore(lazy): pin plugins via lazy-lock.json
 
 ### Workflow — Phase 1: gather pending updates
 
-Get the list of available updates **without applying** them.
+Get the list of available updates **without applying** them, as structured data the agent can consume directly.
 
-**Preferred path**: ask the user to run `:Lazy check`, then paste the Lazy UI output into a file at repo root (e.g. `lazy-updates-check.txt`) and share it with you. This is the canonical source — it includes the full commit log per plugin, which is what you need to detect breaking changes.
-
-**Optional convenience path**: the structured update info can sometimes be dumped programmatically:
+**Primary path: `nvu.lazy.pending_updates()`.** Our `nvu.nvim` library ships a programmatic equivalent of `:Lazy check`. Execute via the Neovim Lua tool:
 
 ```lua
-local Plugin = require'lazy.core.plugin'
-Plugin.update_state()  -- populates plugin._.updates from prior fetch
-local out = {}
-for _, p in ipairs(require'lazy.core.config'.plugins) do
-  if p._.updates then
-    table.insert(out, {
-      name = p.name,
-      from = p._.updates.from.commit:sub(1,7),
-      to = p._.updates.to.commit:sub(1,7),
-      commits = #(p._.updates.log or {}),
-    })
-  end
-end
-vim.print(out)
+local lazy_utils = require'nvu.lazy'
+
+-- Trust mode: compare local HEAD against origin/<branch> using whatever refs
+-- the most recent `git fetch` left behind. Fast (~500ms). Stale if no recent
+-- fetch — check `data.stale` and ask the user to refresh if so.
+local data = lazy_utils.pending_updates()
+
+-- Fetch mode: refresh remote refs first via bounded-concurrent `git fetch`
+-- (default 8 parallel jobs, ~20-30s for an ~80-plugin config). Use when
+-- trust-mode reports `stale = true`, or up front when you want a fresh
+-- snapshot without involving the user.
+local data = lazy_utils.pending_updates({ fetch = true })
+
+print(lazy_utils.format_pending_updates(data))
 ```
 
-> Caveats: `update_state()` requires a recent `git fetch` (i.e. `:Lazy check` must have been run since the last Neovim start), AND `require'lazy.core.config'.plugins` may be empty when called from an embedded Lua context (e.g. some CodeCompanion tool contexts). If the snippet returns nothing, fall back to the pasted text file — don't waste time debugging the snippet.
+The returned data structure carries everything Phase 4 (per-plugin overview) and the breakage/adoption audits need: short and full SHAs, branch, commit count, per-commit subject log, and a `direction` field classifying the change as `forward` / `backward` / `diverged` (see `nvu.lazy` README for the full schema).
 
-Either way, you now have a list of plugins with available updates and — critically — the **commit messages** for each.
+**Three directions, three actions:**
+
+- **`forward`** — upstream has commits we don't have. The routine "update available" case; this is what the campaign is for.
+- **`backward`** — local HEAD is ahead of the target (typically unpushed local work, or `:Lazy restore` to an older pin). **`:Lazy update` here would rewind local HEAD** — almost never the intent. Surface to the user as a warning; do not include in the upgrade plan unless the user explicitly opts in.
+- **`diverged`** — neither side is ancestor of the other (rebase/force-push upstream, or parallel work). **Needs human resolution.** Surface to the user; do not include in the upgrade plan.
+
+The plan from Phase 2 onwards covers `forward` plugins only.
+
+**Freshness gate.** If `data.stale == true`, the comparison is based on `origin/<branch>` refs older than the freshness threshold (default 1 hour). Either:
+
+1. Ask the user to run `:Lazy check` to refresh the refs (then re-call `pending_updates()` in trust mode), OR
+2. Call `pending_updates({ fetch = true })` to do the refresh programmatically.
+
+Both are equivalent; pick whichever wastes less of the user's time. The user-driven `:Lazy check` is better when they're going to want to look at the output themselves; the programmatic fetch is better when the agent is driving and the user is otherwise idle.
+
+**Fetch errors.** When `fetch = true`, individual fetch failures (timeout, network, missing branch) are recorded in `data.fetch_errors = { [name] = reason }` instead of throwing. Surface them to the user — they often indicate a moved/renamed/abandoned upstream that the user should remove from their config.
+
+**Manual fallback.** If `nvu.lazy` is unavailable for some reason (different machine, plugin disabled, version skew), fall back to asking the user to run `:Lazy check` and paste the resulting UI output into a file at the repo root. Then parse the `● <plugin>` 4-space-indented bullets manually. This is **strictly fallback** — every reasonable workflow path goes through `nvu.lazy`.
+
+You now have the list of plugins with available updates (forward direction only) and — critically — the **per-commit subject log** for each.
 Skim them for breaking markers: `feat!:`, `fix!:`, `refactor!:`, `BREAKING CHANGE`, or notes about dropped compat / required Neovim version bumps.
 
 ### Workflow — Phase 2: produce the plan
@@ -223,10 +256,16 @@ Present the plan to the user and ask for sign-off before starting Phase 1.
 
 For each phase:
 
-1. **Per-plugin overview** (mandatory for breaking-change phases, recommended for medium-risk): summarise each plugin's pending changes from the `:Lazy check` dump so the user can make an informed go/no-go call. Group commits by theme; call out anything that looks behaviourally significant. The `:Lazy check` dump uses 4-space-indented `● <plugin>` bullets — extract one plugin's commit window with:
+1. **Per-plugin overview** (mandatory for breaking-change phases, recommended for medium-risk): summarise each plugin's pending changes so the user can make an informed go/no-go call. Group commits by theme; call out anything that looks behaviourally significant. Re-call `nvu.lazy.pending_updates()` (or filter the cached Phase 1 result) and extract the entry for the target plugin:
 
-   ```bash
-   awk '/● <plugin>/{flag=1; print; next} flag && /^    ● /{exit} flag' lazy-updates-check.txt
+   ```lua
+   local data = require'nvu.lazy'.pending_updates()
+   for _, u in ipairs(data.updates) do
+     if u.name == '<plugin>' then
+       vim.print(u)  -- name, from/to SHAs, count, direction, log
+       break
+     end
+   end
    ```
 
 2. **Two-pronged audit** (mandatory for Phase 4+ breaking-change plugins; optional but recommended for any plugin with >10 commits in the update window). Run both audits independently — they have different goals and different blockers:
@@ -424,7 +463,7 @@ After Phase 5 completes:
 - [ ] All smoke items resolved (regressions fixed, latent bugs addressed or deferred with explicit `[⚠️]` notes, env issues annotated).
 - [ ] All follow-up fix commits from the smoke sweep are in the unpushed window.
 - [ ] `git push origin <branch>` — publish the full unpushed window in one go (lockfile bumps + adoptions + smoke-sweep fixes).
-- [ ] Delete `lazy-update-plan.md` and any `lazy-updates-check.txt` from the working tree (these were never committed).
+- [ ] Delete `lazy-update-plan.md` from the working tree (it was never committed).
 - [ ] Final summary message: list all commits made, plugins moved, breaking changes resolved, smoke findings addressed.
 
 If a Phase 5 item turns out to be a true regression that you can't fix cheaply: roll back the offending phase via `:Lazy restore` (which restores to whatever's in the **deployed** `~/.config/nvim/lazy-lock.json` — if you'd already overwritten that, copy the repo's lockfile back first with `cp ./lazy-lock.json ~/.config/nvim/lazy-lock.json` or rerun `make install`), then revert the commit and re-plan the offending phase.
