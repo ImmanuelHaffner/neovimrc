@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: install
+.PHONY: install sync-lock
 
 install:
 	@echo "Installing on MacOS"
@@ -8,6 +8,7 @@ install:
 	# Install configuration files
 	mkdir -p "${HOME}/.config/nvim/"
 	cp -f init.lua "${HOME}/.config/nvim/init.lua"
+	cp -f lazy-lock.json "${HOME}/.config/nvim/lazy-lock.json"
 	cp -Rf lua/ "${HOME}/.config/nvim/lua"
 	cp -Rf after/ "${HOME}/.config/nvim/after"
 	cp -Rf ftdetect/ "${HOME}/.config/nvim/ftdetect"
@@ -22,3 +23,9 @@ install:
 	# Install MCP Hub servers config (tokens are resolved at runtime via ${cmd: ...})
 	mkdir -p "${HOME}/.config/mcphub/"
 	cp -f servers.json "${HOME}/.config/mcphub/servers.json"
+
+# Sync lazy.nvim lockfile from the deployed copy back into this repo.
+# Run after `:Lazy update` / `:Lazy sync` so the repo reflects the new pins.
+sync-lock:
+	@echo "Syncing lazy-lock.json from ${HOME}/.config/nvim/ into repo"
+	cp -f "${HOME}/.config/nvim/lazy-lock.json" ./lazy-lock.json
