@@ -113,6 +113,40 @@ Common plugin help topics:
 
 Use `:help <plugin>-configuration` or `:help <plugin>-setup` for setup options.
 
+### Inspecting Plugin Runtime State
+
+When verifying that a plugin's `setup(opts)` took effect — particularly after adopting new options — be aware of a common pattern that traps naive inspection.
+
+Many plugins structure their setup like this:
+
+```lua
+-- plugin/config.lua
+local M = { config = { <defaults> } }
+return M
+
+-- plugin/setup.lua  (or plugin/init.lua)
+local M = {}
+M.config = require('plugin.config').config            -- reference to the defaults
+M.setup = function(opts)
+    M.config = vim.tbl_deep_extend('force', M.config, opts or {})  -- NEW table
+end
+return M
+```
+
+`vim.tbl_deep_extend` returns a **new** table and reassigns `M.config` in the setup module.
+The defaults module's `config` reference is now stale — it still points to the un-mutated original.
+If you inspect `require('plugin.config').config` you will see only the un-modified defaults and may falsely conclude that `setup(opts)` did nothing.
+
+Diagnostic recipe when an adopted option appears not to have taken effect:
+
+1. List the keys of the candidate config module: `vim.tbl_keys(require('plugin.config'))`.
+   If you only see `{'config'}` and the nested table matches the documented defaults exactly, you're looking at the wrong module.
+2. Try the setup module instead: `require('plugin.setup').config` or `require('plugin').config` (entry point varies).
+3. Last resort: grep the plugin source for `M.config = vim.tbl_deep_extend` — wherever it lives, *that* `M` is the module to require.
+
+Hit during the lazy-upgrade campaign while verifying the dap-view adoption commit (`db9c2cc`): `require('dap-view.config').config` showed only defaults; the live config was in `require('dap-view.setup').config`.
+The adoption *had* taken effect; the inspection was looking at the wrong table.
+
 ### CodeCompanion
 - Configuration file: `lua/plugins/ai.lua`
 - In-editor help: `:help codecompanion`

@@ -12,6 +12,91 @@ The chat interface runs inside a Neovim buffer with `filetype=codecompanion`. Th
 
 When using tools that manipulate windows or buffers, ensure the CodeCompanion chat buffer remains in its window. Use `vim.api.nvim_set_current_win()` to switch to the appropriate non-chat window before making changes.
 
+**Forbidden during probes and smoke tests** — these commands have all displaced or destroyed chat sessions in practice:
+
+- `:edit <file>` / `:e <file>` — replaces the buffer in the **current window**. If focus is in the chat window (which can happen accidentally after a failed tab-switch), the chat is silently displaced.
+- `:tabnew <file>` — opens a new tab with `<file>`, but the loading sequence can land the file in the chat window depending on event order.
+- `:bdelete` / `:bwipeout` / `:%bd` on buffer lists that haven't been filtered to exclude `filetype == 'codecompanion'`.
+- `:tabclose` / `:tabonly` without first verifying the target tab does **not** host the chat window.
+- `:qa` / `:qa!` — there is no "clean exit" for a CodeCompanion session.
+
+**Safe pattern: snapshot chat state before any multi-step probe.** Every probe that opens buffers, switches windows, or runs Telescope/Neo-tree/checkhealth must start with this preamble so you can verify the chat invariant afterwards and recover if violated:
+
+```lua
+local chat_buf, chat_win
+for _, b in ipairs(vim.api.nvim_list_bufs()) do
+  if vim.bo[b].filetype == 'codecompanion' and vim.api.nvim_buf_is_loaded(b) then
+    chat_buf = b
+    for _, w in ipairs(vim.api.nvim_list_wins()) do
+      if vim.api.nvim_win_get_buf(w) == b then chat_win = w; break end
+    end
+    break
+  end
+end
+```
+
+**Safe pattern: load files without affecting any window** — the only correct way to inspect a file from a probe. Never use `:edit` or `:tabnew <file>` for this:
+
+```lua
+local buf = vim.fn.bufadd('/abs/path/to/file')
+vim.fn.bufload(buf)
+vim.bo[buf].filetype = 'lua'  -- defensive; usually inferred from extension
+vim.api.nvim_exec_autocmds('BufReadPost', { buffer = buf, modeline = false })
+vim.api.nvim_exec_autocmds('FileType',    { buffer = buf, modeline = false })
+-- Now read content, query LSP, check treesitter parser, etc.
+-- No window was touched. The chat is safe.
+```
+
+If a probe needs the buffer to be **visible** (e.g. for plugin attach autocmds gated on `BufWinEnter`, or to sample window-local options like `foldmethod`), open a fresh tab and load the buffer with `nvim_win_set_buf`, never `:edit`:
+
+```lua
+vim.cmd('tabnew')  -- creates a tab with an empty window
+local scratch_tab = vim.api.nvim_get_current_tabpage()
+local scratch_win = vim.api.nvim_get_current_win()
+vim.api.nvim_win_set_buf(scratch_win, buf)
+-- ... sample window-local state ...
+-- Verify the scratch tab does NOT host the chat before closing.
+local hosts_chat = false
+for _, w in ipairs(vim.api.nvim_tabpage_list_wins(scratch_tab)) do
+  if vim.api.nvim_win_get_buf(w) == chat_buf then hosts_chat = true end
+end
+if not hosts_chat then vim.cmd('tabclose') end
+```
+
+**Safe pattern: filter chat from buffer cleanup.** When wiping scratch buffers, always exclude `codecompanion` filetype:
+
+```lua
+for _, b in ipairs(vim.api.nvim_list_bufs()) do
+  if vim.api.nvim_buf_is_valid(b)
+     and vim.bo[b].filetype ~= 'codecompanion'
+     and vim.api.nvim_buf_get_name(b):match('<scratch_pattern>')
+  then
+    vim.api.nvim_buf_delete(b, { force = true })
+  end
+end
+```
+
+**Invariant check after every probe**:
+
+```lua
+assert(vim.api.nvim_win_get_buf(chat_win) == chat_buf,
+       'chat displaced — recover before proceeding')
+```
+
+**Recovery pattern** when the chat *is* displaced (symptom: the window that used to show the chat now shows a different buffer, or the chat buffer exists in `nvim_list_bufs()` but in no window):
+
+```lua
+-- Restore chat to its original window. If that window is gone, open a split.
+if chat_buf and vim.api.nvim_win_is_valid(chat_win) then
+  vim.api.nvim_win_set_buf(chat_win, chat_buf)
+else
+  vim.cmd('vsplit')
+  vim.api.nvim_win_set_buf(vim.api.nvim_get_current_win(), chat_buf)
+end
+```
+
+Recover **before yielding the turn** — never hand back to the user with a hidden chat window.
+
 You are embedded inside a live Neovim session. You can execute Lua code directly in this Neovim instance using the `neovim__execute_lua` tool — use it to inspect state, run commands, or manipulate buffers in real-time.
 
 To look up Neovim documentation, use `neovim__execute_lua` with this pattern:
@@ -174,6 +259,29 @@ If `nvr` is not installed or `v:servername` is empty, the editor
 variables are not set and git falls back to its default behaviour
 (typically `vi`), which **will** hang a non-interactive shell. In that
 case, fall back to `-m`-style commits.
+
+**GPG signing cache expiry.** This user's commits are GPG-signed via
+`gpg-agent`. The agent's passphrase cache is per-tty and expires after a
+TTL; in long sessions (or sessions that resume across context-window
+compactions) you will eventually hit:
+
+    error: gpg failed to sign the data
+    fatal: failed to write commit object
+    gpg: cannot open '/dev/tty': No such device or address
+
+When this happens:
+
+- Ask the user to refresh the cache in any terminal:
+  `echo test | gpg --clearsign > /dev/null` (this prompts once, then the
+  agent caches the passphrase again).
+- Once the user confirms, retry the **same** `git commit` command.
+- **Do not** "fix" this by passing `--no-gpg-sign`, by setting
+  `commit.gpgsign=false` for one commit, or by dropping the signing key
+  config. An unsigned commit landing alongside signed ones breaks the
+  user's signing audit trail and is hard to spot later.
+- This applies to every signed git operation (`commit`, `commit --amend`,
+  `merge`, `tag -s`, `rebase` when it produces new commits), not just
+  the initial commit.
 
 ### Neovim-Specific Guidelines
 
