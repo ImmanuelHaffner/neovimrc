@@ -80,7 +80,7 @@
   "vim-grepper": { "branch": "master", "commit": "acaaf32edaa11d82fb972d2af36b949ec3042928" },
   "vim-medieval": { "branch": "master", "commit": "3bcb574c2050c88743b8f8e512bf4d290eb5ca1d" },
   "vim-yaml-folds": { "branch": "master", "commit": "890ccd8e5370808d569e96dbb06cbeca2cf5993a" },
-  "vimtex": { "branch": "master", "commit": "82d2305ff71dfb3bd91602534cc9bb9a195bcb38" },
+  "vimtex": { "branch": "master", "commit": "24e229914182ff301496a3e2c4214b28c4928d3f" },
   "which-key.nvim": { "branch": "main", "commit": "fcbf4eea17cb299c02557d576f0d568878e354a4" },
   "window-picker": { "branch": "main", "commit": "6382540b2ae5de6c793d4aa2e3fe6dbb518505ec" },
   "xmledit": { "branch": "master", "commit": "6db863497f956ece4b0795fe19cb16d6c57f6543" }
