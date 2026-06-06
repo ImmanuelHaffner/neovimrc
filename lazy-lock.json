@@ -60,7 +60,7 @@
   "nvim-web-devicons": { "branch": "master", "commit": "dfbfaa967a6f7ec50789bead7ef87e336c1fa63c" },
   "nvim-window": { "branch": "main", "commit": "48e44d492d2adaf9aac72a0f4ff21d6caae1b6a2" },
   "nvim_json_graph_view": { "branch": "main", "commit": "a7c8094429ab99b1e0eab1830dbaf43192ef5b96" },
-  "nvu.nvim": { "branch": "dev", "commit": "fea37b877eb281c5216ff53c189a8324284ff92a" },
+  "nvu.nvim": { "branch": "dev", "commit": "e7f44b9bd639df32ba2c2928e83d717313a338e1" },
   "outline.nvim": { "branch": "main", "commit": "2a132953b944561d45b52e4541ebfff71934a742" },
   "pigmentor.nvim": { "branch": "dev", "commit": "6aa7daa38de9ac49f552b025e6c208d7e9baa100" },
   "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
