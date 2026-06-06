@@ -50,7 +50,18 @@ return {
         'igorlfs/nvim-dap-view',
         ---@module 'dap-view'
         ---@type dapview.Config
-        opts = {},
+        opts = {
+            -- Auto open when a debug session starts; auto close when all sessions end.
+            auto_toggle = true,
+            -- Inline virtual-text variable values at their declaration sites during a session.
+            -- (Requires Nvim 0.12+, which we are on.)
+            virtual_text = { enabled = true },
+            -- Small, transient floats follow the repo convention of `'rounded'`
+            -- (cf. lsp_signature, vim.o.winborder). Dominant floats use `'double'`
+            -- (cf. dooing, terminal floats), but these dap-view floats are small.
+            hover = { border = 'rounded' },
+            help = { border = 'rounded' },
+        },
         keys = {
             { '<leader>do', '<cmd>DapViewOpen<CR>', desc = 'Open DAP view' },
         },
