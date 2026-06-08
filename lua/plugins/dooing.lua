@@ -1,8 +1,11 @@
 return {
     {
-        'ImmanuelHaffner/dooing',
-        dev = true,
-        branch = 'dev',
+        'atiladefreitas/dooing',
+        -- Our patches (PRs #81, #82, #83) were merged upstream.  Switched back
+        -- to upstream; flip these three lines back when you want to resume patching.
+        -- 'ImmanuelHaffner/dooing',
+        -- dev = true,
+        -- branch = 'dev',
         dependencies = {
             'folke/which-key.nvim',
             {
