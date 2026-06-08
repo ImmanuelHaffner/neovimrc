@@ -66,14 +66,7 @@
       "command": "uvx"
     },
     "databricks_github": {
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"
-      ],
+      "args": ["repo", "run", "mcp", "start-single", "github"],
       "autoApprove": [
         "get_commit",
         "get_file_contents",
@@ -100,11 +93,8 @@
         "search_repositories",
         "search_users"
       ],
-      "command": "docker",
-      "disabled": false,
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${cmd: zsh -c 'source ~/.secrets.zshenv && echo -n $DATABRICKS_GITHUB_PERSONAL_ACCESS_TOKEN'}"
-      }
+      "command": "dbexec",
+      "disabled": false
     },
     "github_personal": {
       "args": [
