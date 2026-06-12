@@ -525,6 +525,17 @@ return {
                             require_approval_before = false,  -- This is a read-only tool, no approval needed
                         },
                     },
+                    -- MCP tool output size guard: spills oversized tool responses to disk and replaces
+                    -- the inline payload with a short summary + path + usage hints (rg/jq/head).
+                    -- Catches every MCP server uniformly via the single mcphub output handler.
+                    -- Defaults: 20k tokens / 96 KB / 2000 lines (whichever trips first).
+                    mcp_size_guard = {
+                        callback = 'codecompanion._extensions.mcp_size_guard',
+                        opts = {
+                            -- Use the defaults; override here if a tool's full output should pass through:
+                            -- skip = { 'memory', 'neovim_context' },
+                        },
+                    },
                     mcphub = {
                         callback = 'mcphub.extensions.codecompanion',
                         opts = {
