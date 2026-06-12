@@ -71,6 +71,8 @@ return {
         --       https://github.com/ravitemer/mcphub.nvim/pull/279
         --       This fork adds CodeCompanion v19 compatibility (tool cmd signature,
         --       variables→editor_context rename, output handler changes, image API).
+        --       Upstream looks dormant (last commit 2026-01-18); alternative PR #287
+        --       was closed unmerged on 2026-06-01. Don't expect quick resolution.
         'bahaaza/mcphub.nvim',
         commit = 'f94e1c8e1aea68c3f8f6df5cf51c752033584fd0',
         dependencies = {
