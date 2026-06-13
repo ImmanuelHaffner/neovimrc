@@ -76,10 +76,8 @@ end
 local function get_host_alias(host, port)
     if is_arca_devbox(host) then
         if port then
-            if port == 42137 then
-                return 'Arca[1]'
-            elseif port == 42138 then
-                return 'Arca[2]'
+            if port >= 42137 and port < 42200 then
+                return 'Arca[' .. (port - 42136) .. ']'
             else
                 return 'Arca:' .. port
             end
