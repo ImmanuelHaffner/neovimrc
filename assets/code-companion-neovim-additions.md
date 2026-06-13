@@ -150,6 +150,63 @@ Shell commands remain appropriate for non-filesystem-mutating work: running
 builds, tests, linters, `git status`/`git diff`, searches (`rg`, `find`),
 etc.
 
+### Working Directory Awareness
+
+Neovim has **three independent scopes for the current working directory**, each shadowing the previous:
+
+| Scope | Command | Affects |
+|-------|---------|---------|
+| Global | `:cd <path>` | The whole session — every window and tab without a local cwd. |
+| Tab | `:tcd <path>` | The current tab; inherited by its windows unless they have their own `lcd`. |
+| Window | `:lcd <path>` | Only the current window. |
+
+Resolution order when computing a window's effective cwd: **window-local → tab-local → global**. Inspect with `vim.fn.getcwd({win}, {tab})` — `getcwd(0, 0)` for the current window, `getcwd(-1, N)` for tab N, `getcwd(-1, -1)` for the global cwd.
+
+**Why this matters for you.**
+A session often starts in a notes directory (e.g. `~/Documents/...`) and then opens a source file from a project worktree (e.g. `~/worktrees/universe/quercus/`). Until the cwd catches up:
+
+- Relative paths the user mentions ("look at `sql/...`") resolve against the wrong root.
+- Shell commands run via `neovim__execute_command` inherit the **session's** cwd, not the file's project root, unless you pass `cwd` explicitly.
+- LSP, `:find`, `:grep`, `gf`, and Telescope all use the effective cwd as their base.
+
+**When to offer a `cd`.** If the active buffer lives outside the active window's effective cwd, and the next likely action is filesystem-relative (running tests, `git`, search, build, opening sibling files), **offer** to change directory. Phrase it as one short question, e.g. *"The active buffer is in `~/worktrees/universe/quercus/` but this window's cwd is `~/Documents/databricks/quercus/`. Want me to `:lcd` this window into the project root?"* Then wait for the user.
+
+**Which scope to use.**
+
+- **Default: `:lcd` (window).** Cheapest and most local — affects only the current window, leaves the chat window's cwd and other splits untouched. Reversible by closing the window or issuing another `lcd`.
+- **`:tcd` (tab)** when the user has clearly dedicated a tab to one project (multiple splits, all in the same tree). Affects every window in the tab that doesn't have its own `lcd`.
+- **`:cd` (global)** only when the user explicitly asks. It surprises every other window and persists for the rest of the session.
+
+**Never `cd` the chat window.** The CodeCompanion chat buffer has no meaningful "project" — keep its window's cwd alone. Always switch focus to a non-chat window first (see the chat-window safety rules above), then apply `lcd` there.
+
+**How to detect a project root.** Walk up from the buffer's directory looking for a marker; stop at the first hit:
+
+```lua
+local markers = { '.git', '.nvim.lua', 'build.sbt', 'BUILD', 'WORKSPACE',
+                  'MODULE.bazel', 'Cargo.toml', 'pyproject.toml', 'package.json' }
+local buf_path = vim.api.nvim_buf_get_name(0)
+local root = vim.fs.root(buf_path, markers)  -- nil if no marker found
+```
+
+If `vim.fs.root` returns `nil`, fall back to the buffer's directory (`vim.fs.dirname(buf_path)`) or ask the user.
+
+**How to apply.** Switch to the target window first, then `lcd` there:
+
+```lua
+vim.api.nvim_set_current_win(target_win)        -- never the chat window
+vim.cmd('lcd ' .. vim.fn.fnameescape(root))
+-- Confirm:
+print('window cwd is now ' .. vim.fn.getcwd())
+```
+
+**Shell commands and `cwd`.** When invoking `neovim__execute_command`, set its `cwd` parameter to the effective cwd of the window the user is working in — not the chat window's, and not a guess. If you've just `lcd`'d the work window into the project root, pass that root as `cwd`. Surface the choice in your reply when it isn't obvious ("running from `<root>`").
+
+**Don't `cd` silently when:**
+
+- The mismatch is intentional (e.g. the user is reading notes while the buffer happens to be from a worktree — no commands pending).
+- Multiple plausible roots are detected (e.g. nested `.git` from a submodule). Ask which one.
+- The user has explicitly set a cwd this session — don't override without confirmation.
+
 ### Running Shell Commands Safely
 
 Shell commands run synchronously and can block the session. Some repos in
