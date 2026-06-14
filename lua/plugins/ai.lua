@@ -907,7 +907,7 @@ return {
                     servers = {
                         'databricks_confluence', 'databricks_devportal', 'databricks_github',
                         'databricks_glean', 'databricks_google', 'databricks_jira',
-                        'databricks_pagerduty', 'databricks_platform', 'databricks_slack',
+                        'databricks_pagerduty', 'databricks_client_v2', 'databricks_slack',
                         'databricks_testman',
                     },
                 },
@@ -915,7 +915,7 @@ return {
                     description = "Incident investigation: PagerDuty, Slack, Jira, platform, Confluence",
                     servers = {
                         'databricks_pagerduty', 'databricks_slack', 'databricks_jira',
-                        'databricks_platform', 'databricks_confluence',
+                        'databricks_client_v2', 'databricks_confluence',
                     },
                 },
                 ['db_docs'] = {
@@ -926,13 +926,13 @@ return {
                     description = "Feature development: GitHub, Jira, Confluence, DevPortal, platform, TestMan",
                     servers = {
                         'databricks_github', 'databricks_jira', 'databricks_confluence',
-                        'databricks_devportal', 'databricks_platform', 'databricks_testman',
+                        'databricks_devportal', 'databricks_client_v2', 'databricks_testman',
                     },
                 },
                 ['db_data_science'] = {
                     description = "Data science / statistics: platform, GitHub, Confluence, Glean",
                     servers = {
-                        'databricks_platform', 'databricks_github',
+                        'databricks_client_v2', 'databricks_github',
                         'databricks_confluence', 'databricks_glean',
                     },
                 },
