@@ -547,8 +547,21 @@ return {
                     mcp_size_guard = {
                         callback = 'codecompanion._extensions.mcp_size_guard',
                         opts = {
-                            -- Use the defaults; override here if a tool's full output should pass through:
-                            -- skip = { 'memory', 'neovim_context' },
+                            -- Bypass the size guard for tools whose contract is to deliver content
+                            -- or perform structured edits — spilling those is counter-productive
+                            -- (a `read_with_fingerprint` whose payload is spilled defeats the whole
+                            -- point of getting the content into the LLM's working set).
+                            -- Execution tools (execute_command, execute_lua) stay guarded: their
+                            -- output is opaque and often huge (rg dumps, vim.inspect of big tables).
+                            skip = {
+                                'neovim__apply_edit',
+                                'neovim__delete_items',
+                                'neovim__edit_file',
+                                'neovim__list_directory',
+                                'neovim__move_item',
+                                'neovim__read_with_fingerprint',
+                                'neovim__write_file',
+                            },
                         },
                     },
                     mcphub = {
