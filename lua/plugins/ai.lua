@@ -84,6 +84,19 @@ return {
         build = "cd ~/.local && npm install mcp-hub@latest",
         config = function()
             require("mcphub").setup()
+            -- Register nvu.nvim's structured-edit tool (`neovim__apply_edit`)
+            -- as a sibling of mcphub's built-in `neovim__edit_file`. Loaded
+            -- after setup{} so the native `neovim` server already exists.
+            -- Guarded with pcall so a missing/broken nvu.nvim checkout doesn't
+            -- break the whole mcphub config (and CodeCompanion startup).
+            local ok, err = pcall(require, 'mcphub._native.edit')
+            if not ok then
+                vim.notify(
+                    'mcphub._native.edit failed to load: ' .. tostring(err),
+                    vim.log.levels.WARN,
+                    { title = 'nvu.edit' }
+                )
+            end
         end
     },
     {
