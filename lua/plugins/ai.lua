@@ -84,9 +84,13 @@ return {
         build = "cd ~/.local && npm install mcp-hub@latest",
         config = function()
             require("mcphub").setup()
-            -- Register nvu.nvim's structured-edit tool (`neovim__apply_edit`)
-            -- as a sibling of mcphub's built-in `neovim__edit_file`. Loaded
+            -- Register nvu.nvim's structured-edit tools
+            -- (`neovim__apply_edit`, `neovim__read_with_fingerprint`) as
+            -- siblings of mcphub's built-in `neovim__edit_file`. Loaded
             -- after setup{} so the native `neovim` server already exists.
+            -- The adapter self-fires `tool_list_changed` on the mcphub
+            -- State bus so the CodeCompanion bridge re-scans and exposes
+            -- the new tools in chat — no extra nudge needed here.
             -- Guarded with pcall so a missing/broken nvu.nvim checkout doesn't
             -- break the whole mcphub config (and CodeCompanion startup).
             local ok, err = pcall(require, 'mcphub._native.edit')
