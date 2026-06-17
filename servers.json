@@ -312,13 +312,16 @@
         "execute_lua",
         "execute_command",
         "list_directory",
-        "read_file"
+        "read_file",
+        "read_with_fingerprint",
+        "apply_edit"
       ],
       "disabled": false,
       "disabled_resources": [],
       "disabled_tools": [
         "find_files",
-        "read_multiple_files"
+        "read_multiple_files",
+        "edit_file"
       ]
     }
   }
