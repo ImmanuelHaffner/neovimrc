@@ -325,7 +325,9 @@
       "disabled_tools": [
         "find_files",
         "read_multiple_files",
-        "edit_file"
+        "edit_file",
+        "read_file",
+        "write_file"
       ]
     }
   }
