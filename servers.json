@@ -52,6 +52,18 @@
       "command": "dbexec",
       "disabled": false
     },
+    "databricks_debug_copilot": {
+      "args": [
+        "repo",
+        "run",
+        "mcp",
+        "start-single",
+        "debug-copilot"
+      ],
+      "autoApprove": [],
+      "command": "dbexec",
+      "disabled": false
+    },
     "databricks_devportal": {
       "args": [
         "repo",
@@ -207,6 +219,18 @@
       "command": "dbexec",
       "disabled": false
     },
+    "databricks_safe": {
+      "args": [
+        "repo",
+        "run",
+        "mcp",
+        "start-single",
+        "safe"
+      ],
+      "autoApprove": [],
+      "command": "dbexec",
+      "disabled": false
+    },
     "databricks_slack": {
       "args": [
         "repo",
@@ -221,6 +245,18 @@
         "slack_get_service_info",
         "slack_read_api_call"
       ],
+      "command": "dbexec",
+      "disabled": false
+    },
+    "databricks_storage_console": {
+      "args": [
+        "repo",
+        "run",
+        "mcp",
+        "start-single",
+        "storage-console"
+      ],
+      "autoApprove": [],
       "command": "dbexec",
       "disabled": false
     },
