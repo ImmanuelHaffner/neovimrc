@@ -126,7 +126,11 @@
       "autoApprove": [
         "resolve_go_link",
         "search",
-        "get_document_content"
+        "get_document_content",
+        "get_person",
+        "glean_chat",
+        "list_entities",
+        "summarize_document"
       ],
       "command": "dbexec",
       "disabled": false
