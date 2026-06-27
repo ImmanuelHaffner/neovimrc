@@ -44,7 +44,23 @@ return {
                         case_mode = 'smart_case',        -- or "ignore_case" or "respect_case"
                     },
                     ['ui-select'] = {
-                        require'telescope.themes'.get_dropdown{}
+                        require'telescope.themes'.get_dropdown{
+                            -- Adaptive sizing: 60% of the editor, clamped to sane
+                            -- bounds. get_dropdown still shrinks to fit when the
+                            -- contents are smaller than this ceiling.
+                            layout_config = {
+                                width = function(_, cols, _)
+                                    return require'nvu.layout'.adaptive_extent{
+                                        frac = 0.8, extent = cols, min = 60, max = 124, margin = 4,
+                                    }
+                                end,
+                                height = function(_, _, lines)
+                                    return require'nvu.layout'.adaptive_extent{
+                                        frac = 0.8, extent = lines, min = 20, margin = 4,
+                                    }
+                                end,
+                            },
+                        }
                     },
                 }
             }
