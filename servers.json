@@ -362,8 +362,7 @@
         "find_files",
         "read_multiple_files",
         "edit_file",
-        "read_file",
-        "write_file"
+        "read_file"
       ]
     }
   }
