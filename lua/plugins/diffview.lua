@@ -8,7 +8,9 @@ return {
                 file_panel = {
                     win_config = function()
                         return {
-                            width = vim.o.columns and math.floor(0.2 * vim.o.columns) or 60,  -- 20% of total width
+                            width = require'nvu.layout'.adaptive_extent{
+                                frac = 0.2, extent = vim.o.columns, min = 60,  -- 20% of width, at least 60 cols
+                            },
                         }
                     end,
                 },

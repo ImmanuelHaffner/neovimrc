@@ -6,12 +6,11 @@ return {
             { '<leader>lo', '<cmd>Outline<CR>', desc = 'Toggle outline' },
         },
         config = function()
-            local pct = 0.25   -- target: 20% of screen width
-            local min_w = 30   -- absolute minimum columns
-            local max_w = 80   -- absolute maximum columns
-
             local function compute_width()
-                return math.max(min_w, math.min(max_w, math.floor(vim.o.columns * pct)))
+                -- 25% of screen width, clamped to [30, 80] columns.
+                return require'nvu.layout'.adaptive_extent{
+                    frac = 0.25, extent = vim.o.columns, min = 30, max = 80,
+                }
             end
 
             local outline = require'outline'

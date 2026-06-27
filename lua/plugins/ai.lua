@@ -693,7 +693,9 @@ return {
                     opts = vim.tbl_deep_extend('force', opts or {}, {
                         layout_strategy = 'vertical',
                         layout_config = {
-                            width = math.max(80, math.min(200, math.floor(vim.o.columns * 0.7))),
+                            width = require'nvu.layout'.adaptive_extent{
+                                frac = 0.7, extent = vim.o.columns, min = 80, max = 200,
+                            },
                             preview_height = 0.7,
                         },
                         previewer = action_previewer,
