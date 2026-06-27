@@ -551,6 +551,14 @@ return {
                             require_approval_before = false,  -- This is a read-only tool, no approval needed
                         },
                     },
+                    -- Event bus from nvu library: turns silent editor state changes (e.g. a manual
+                    -- :cd/:lcd/:tcd) into a system message injected into every live chat's stack, so
+                    -- the LLM is told when the cwd moves under it instead of reasoning against a stale
+                    -- root (registers a sink that fans out via Chat:add_message).
+                    event_bus = {
+                        callback = 'codecompanion._extensions.event_bus',
+                        opts = {},
+                    },
                     -- MCP tool output size guard: spills oversized tool responses to disk and replaces
                     -- the inline payload with a short summary + path + usage hints (rg/jq/head).
                     -- Catches every MCP server uniformly via the single mcphub output handler.
