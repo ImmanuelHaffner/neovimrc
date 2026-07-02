@@ -308,6 +308,11 @@ return {
                                                 meta = { context_window = 1000000, max_tokens = 128000 },
                                                 opts = { can_manage_context = true, has_vision = true },
                                             },
+                                            ['claude-sonnet-5'] = {
+                                                formatted_name = 'Claude Sonnet 5',
+                                                meta = { context_window = 1000000, max_tokens = 128000 },
+                                                opts = { can_manage_context = true, has_vision = true },
+                                            },
                                             ['claude-haiku-4-5-20251001-1m'] = {
                                                 formatted_name = 'Claude Haiku 4.5 (1M)',
                                                 meta = { context_window = 1000000, max_tokens = 64000 },
@@ -456,6 +461,7 @@ return {
                                 auto_submit_success = true, -- Send any successful output to the LLM automatically?
                                 default_tools = {
                                     'memory',
+                                    'kgmemory',
                                     'neovim',  -- all tools from the Neovim MCP server
                                     'neovim_context',  -- provide context on open buffers, cursor pos, active buffer
                                 },
