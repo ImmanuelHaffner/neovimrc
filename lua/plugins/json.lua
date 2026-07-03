@@ -8,8 +8,8 @@ return {
         },
         opts = {
             editor_type = 'floating',  -- 'split|floating'
-            round_units = false,
-            keymap_desc_deliminator = '꞊',
+            box_style = 'sharp',       -- square connective lines (was round_units = false)
+            line_style = 'sharp',      -- square cell borders (was round_units = false)
         },
     },
 }
