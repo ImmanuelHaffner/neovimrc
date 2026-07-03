@@ -338,6 +338,32 @@
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${cmd: sh -c '. ~/.secrets.zshenv && printf %s \"$GITHUB_PERSONAL_ACCESS_TOKEN\"'}"
       }
+    },
+    "kgmemory": {
+      "args": [
+        "run",
+        "-i",
+        "-v",
+        "claude-memory:/app/dist",
+        "--rm",
+        "mcp/memory"
+      ],
+      "autoApprove": [
+        "create_entities",
+        "create_relations",
+        "add_observations",
+        "delete_entities",
+        "delete_observations",
+        "delete_relations",
+        "read_graph",
+        "search_nodes",
+        "open_nodes"
+      ],
+      "command": "docker",
+      "custom_instructions": {
+        "text": "This server is a Knowledge Graph Memory store: a persistent, structured, GLOBAL memory shared across every session and working directory (backed by a host-wide Docker named volume, not tied to any project or CWD).\n\nData model: **entities** (a `name`, an `entityType`, and a list of freeform string `observations`), **relations** (directed edges `from` -> `to` with a `relationType`, phrased in active voice), and the observations attached to entities. Together they form a queryable, traversable graph.\n\nGood for: durable, structured facts worth recalling across sessions and projects — people, systems, projects, conventions, decisions, and the relationships between them; anything you want to look up by name or reach by traversing a relation. Keep observations atomic (one fact each) so they can be added and pruned independently.\n\nPoor fit: long freeform prose or narrative notes; transient scratch state; large blobs (logs, file contents, diffs). Store those elsewhere and, if useful, record a short entity/observation here that points to where they live."
+      },
+      "disabled": false
     }
   },
   "nativeMCPServers": {

@@ -150,6 +150,55 @@ Shell commands remain appropriate for non-filesystem-mutating work: running
 builds, tests, linters, `git status`/`git diff`, searches (`rg`, `find`),
 etc.
 
+### Persistent Memory
+
+You have **two complementary memory tools**, both always available. They serve
+different kinds of knowledge; choose deliberately and keep them cross-linked.
+
+- **`kgmemory`** — a Knowledge Graph Memory MCP server: persistent, structured,
+  **global** memory (shared across every session and working directory). Use it
+  for durable, structured facts worth recalling long-term and across projects —
+  people, systems, projects, conventions, decisions, and the **relationships**
+  between them. Reach for it whenever something is best looked up by name or
+  found by traversing a relation. Its intrinsic purpose and data model are
+  documented on the server itself; do not restate them here.
+- **The `/memories` file tool** — a freeform file store under `/memories`. Use it
+  for narrative and unstructured content: session summaries, parked-session
+  snapshots, working notes, drafts, and anything that reads as prose rather than
+  as discrete facts.
+
+**Routing — which to use:**
+
+- Prefer **`kgmemory`** when the knowledge is a *fact or relationship* you will
+  want to query or traverse later, and when it should outlive this session or
+  this project. Keep each observation self-contained (one fact, pitfall, or
+  pointer per observation) so they can be added and pruned independently — but a
+  single observation can be substantial (a few KB is fine): a documentation URL,
+  a worked example, a common pitfall, or a "prefer X over Y" note attached to a
+  named entity is graph-shaped, not narrative, and belongs here.
+- Prefer **`/memories`** when the knowledge is a *narrative* — multi-paragraph
+  context, a chronological log, or a snapshot of in-progress work — or when it is
+  transient scratch state or a large blob (logs, file contents, diffs) that does
+  not belong in a graph.
+- When in doubt, route on **structure, not length**: if the content attaches to
+  a named thing as a discrete fact, pointer, or relationship ("X is-a Y", "A
+  depends-on B", "tool Z's docs are at …", "gotcha: …"), it is a `kgmemory`
+  entity/observation/relation even if it runs to several paragraphs. If it reads
+  as flowing prose or a chronological account that would lose its meaning when
+  chopped into standalone facts, it is a `/memories` note.
+
+**Cross-linking — keep the two in sync:**
+
+- When a `/memories` note captures durable facts, also record them as
+  `kgmemory` entities/relations so they are queryable; conversely, when a graph
+  entity refers to a detailed narrative, add an observation pointing to the
+  `/memories` file path (e.g. `notes: /memories/parked-sessions/foo.md`).
+- Treat the graph as the index and `/memories` as the long-form body: the graph
+  says *what exists and how things relate*; the file says *the full story*.
+- When you update one side in a way that invalidates the other (a decision
+  reversed, a project renamed), update or prune the counterpart in the same turn
+  so they never drift.
+
 ### Working Directory Awareness
 
 Neovim has **three independent scopes for the current working directory**, each shadowing the previous:
