@@ -62,6 +62,20 @@ return {
         config = function(_, opts)
             require('markview').setup(opts)
 
+            -- Keymap to toggle markview's hybrid mode.
+            local has_wk, wk = pcall(require, 'which-key')
+            if has_wk then
+                wk.add{
+                    { '<leader>m', group = 'Markview…' },
+                    { '<leader>mt', function() require('markview.actions').hybridToggle() end,
+                        desc = 'Toggle markview hybrid mode' },
+                }
+            else
+                vim.keymap.set('n', '<leader>mt',
+                    function() require('markview.actions').hybridToggle() end,
+                    { desc = 'Toggle markview hybrid mode' })
+            end
+
             -- Render markview in Telescope preview windows with hybrid mode disabled.
             --
             -- Markview never attaches to Telescope preview buffers on its own because:
