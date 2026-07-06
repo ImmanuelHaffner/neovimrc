@@ -87,6 +87,23 @@
       "command": "dbexec",
       "disabled": false
     },
+    "databricks_genie": {
+      "args": [
+        "repo",
+        "run",
+        "mcp",
+        "start-single",
+        "genie"
+      ],
+      "autoApprove": [
+        "connect_to_workspace",
+        "genie_ask",
+        "genie_poll_response",
+        "list_available_workspaces"
+      ],
+      "command": "dbexec",
+      "disabled": false
+    },
     "databricks_github": {
       "args": [
         "repo",
@@ -125,7 +142,7 @@
         "github_read_api_call"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": true
     },
     "databricks_glean": {
       "args": [
