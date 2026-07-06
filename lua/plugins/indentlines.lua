@@ -41,6 +41,31 @@ return {
                     },
                 },
             }
+
+            -- Disable indent guides wherever markview is rendering (markdown, codecompanion,
+            -- mdx, Telescope previews, …). We hook markview's own attach/detach events so the
+            -- set of affected buffers always matches markview's, regardless of filetype.
+            local group = vim.api.nvim_create_augroup('ibl_markview', { clear = true })
+            vim.api.nvim_create_autocmd('User', {
+                pattern = 'MarkviewAttach',
+                group = group,
+                callback = function(args)
+                    local bufnr = args.data and args.data.buffer
+                    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+                        ibl.setup_buffer(bufnr, { enabled = false })
+                    end
+                end,
+            })
+            vim.api.nvim_create_autocmd('User', {
+                pattern = 'MarkviewDetach',
+                group = group,
+                callback = function(args)
+                    local bufnr = args.data and args.data.buffer
+                    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+                        ibl.setup_buffer(bufnr, { enabled = true })
+                    end
+                end,
+            })
         end,
     },
 }
