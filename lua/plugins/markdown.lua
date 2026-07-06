@@ -34,6 +34,9 @@ return {
         },
         opts = {
             markdown = {
+                code_blocks = {
+                    block_on_wrap = true,
+                },
                 tables = {
                     parts = {
                         top =       { "┌", "─", "┐", "┬" },
