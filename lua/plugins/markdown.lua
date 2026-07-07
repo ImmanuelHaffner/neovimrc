@@ -35,7 +35,7 @@ return {
         opts = {
             markdown = {
                 code_blocks = {
-                    block_on_wrap = true,
+                    block_on_wrap = 'adaptive',
                 },
                 tables = {
                     parts = {
