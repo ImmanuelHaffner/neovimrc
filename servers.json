@@ -299,6 +299,16 @@
       "command": "dbexec",
       "disabled": false
     },
+    "fff": {
+      "args": [],
+      "autoApprove": [
+        "find_files",
+        "grep",
+        "multi_grep"
+      ],
+      "command": "fff-mcp",
+      "disabled": false
+    },
     "git": {
       "args": [
         "mcp-server-git"

@@ -1,9 +1,23 @@
 return {
     {
         'dmtrKovalenko/fff.nvim',
-        build = function()
-            -- Downloads a prebuilt binary, falls back to `cargo build`.
+        build = function(plugin)
+            -- Downloads the picker binary the Lua plugin loads (or `cargo build`).
             require'fff.download'.download_or_build_binary()
+            -- Also install the standalone `fff-mcp` server binary consumed by
+            -- MCPHub (registered in servers.json). We invoke the plugin's own
+            -- bundled installer so the MCP version is pinned to the plugin
+            -- revision locked in lazy-lock.json -- one version-controlled pin,
+            -- no second SHA table to hand-bump.
+            local installer = plugin.dir .. '/install-mcp.sh'
+            if vim.uv.fs_stat(installer) then
+                local out = vim.system({ 'bash', installer }, { text = true }):wait()
+                if out.code ~= 0 then
+                    vim.notify('fff-mcp install failed:\n' .. (out.stderr or ''), vim.log.levels.WARN)
+                end
+            else
+                vim.notify('fff-mcp installer not found at ' .. installer, vim.log.levels.WARN)
+            end
         end,
         dependencies = { 'folke/which-key.nvim' },
         lazy = false,  -- the plugin lazy-initialises its index itself
