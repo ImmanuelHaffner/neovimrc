@@ -53,10 +53,10 @@ return {
             },
             preview = {
                 enable_hybrid_mode = true,
+                debounce = 300,  -- ms after cursor stops before re-rendering
                 modes = { 'n' },  -- only render in normal mode
                 hybrid_modes = { 'n' },  -- but in hybrid mode
                 edit_range = { 0, 0 },  -- and don't render the cursor line
-                draw_range = { 200, 200 },  -- render ±200 lines around cursor (default ~vim.o.lines)
                 filetypes = { 'markdown', 'codecompanion', 'mdx', },
                 ignore_buftypes = {},  -- to avoid 'nofile'
                 max_buf_lines = 5000,  -- allow rendering in longer CC chats (default 1000)
