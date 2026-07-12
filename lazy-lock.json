@@ -36,7 +36,7 @@
   "lsp_signature.nvim": { "branch": "master", "commit": "b7ace9ddb1640ce266012a45a672dfdaedfa5ec6" },
   "ltex_extra.nvim": { "branch": "master", "commit": "49ea83c231139d98b7c9668c99e7b4591421b056" },
   "lua-json5": { "branch": "master", "commit": "713407f19e6155579a6594d56e6cfe616fddb39c" },
-  "markview.nvim": { "branch": "dev", "commit": "1ee265330b8aa04006f5b9acc81110b6b2fbe60c" },
+  "markview.nvim": { "branch": "dev", "commit": "70df6ca3211aadbf2fd05e578e6aa9d5b5a7c068" },
   "mason-lspconfig.nvim": { "branch": "main", "commit": "47059d71b42d74b0a1e9f61c1d99d301039c3b5b" },
   "mason.nvim": { "branch": "main", "commit": "2a6940af80375532e5e9e7c1f2fc6319a1b7a69d" },
   "mcphub.nvim": { "branch": "main", "commit": "f94e1c8e1aea68c3f8f6df5cf51c752033584fd0" },

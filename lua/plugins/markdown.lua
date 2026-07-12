@@ -25,8 +25,7 @@ return {
     {
         'ImmanuelHaffner/markview.nvim',
         branch = 'dev',
-        dev = true,
-        lazy = false,      -- Recommended
+        lazy = false,
         priority = 49,
         -- ft = 'markdown' -- If you decide to lazy-load anyway
         dependencies = {
