@@ -126,7 +126,6 @@ return {
     },
     {
         'ImmanuelHaffner/codecompanion.nvim',
-        dev = true,
         branch = 'dev',
         dependencies = {
             'nvim-lua/plenary.nvim',
