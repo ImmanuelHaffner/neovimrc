@@ -517,6 +517,15 @@ return {
                         end,
                     },
                 },
+                rules = {
+                    opts = {
+                        chat = {
+                            -- Load the autoload rule groups (e.g. `default`) into the prompt library so
+                            -- prompts that name no rules still pick up the autoload groups.
+                            autoload_groups_in_prompt_library = true,
+                        },
+                    },
+                },
                 prompt_library = {
                     markdown = {
                         dirs = {
