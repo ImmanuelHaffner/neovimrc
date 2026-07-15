@@ -295,37 +295,14 @@ return {
                                 },
                                 schema = {
                                     model = {
+                                        -- No static `choices` here: inherit the base `anthropic`
+                                        -- adapter's `choices` function, which auto-detects the
+                                        -- live model catalogue from GET https://api.anthropic.com/v1/models
+                                        -- (our DATABRICKS_ANTHROPIC_API_KEY is accepted there).
+                                        -- Each model's meta (context window, max tokens) and opts
+                                        -- (vision, reasoning, context management) are derived from
+                                        -- the API response, so no hand-maintained list is needed.
                                         default = 'claude-opus-4-8',
-                                        choices = {
-                                            -- Newer models not yet shipped by the upstream `anthropic`
-                                            -- adapter. All other current/legacy Claude models
-                                            -- (opus-4-7, sonnet-4-6, haiku-4-5, opus-4-6/4-5/4-1/4-0,
-                                            -- sonnet-4-5/4-0) are inherited from the base adapter via
-                                            -- `extend()` and need not be re-declared here.
-                                            ['claude-opus-4-8'] = {
-                                                formatted_name = 'Claude Opus 4.8',
-                                                meta = { context_window = 1000000, max_tokens = 128000 },
-                                                opts = { can_manage_context = true, has_vision = true },
-                                            },
-                                            ['claude-sonnet-5'] = {
-                                                formatted_name = 'Claude Sonnet 5',
-                                                meta = { context_window = 1000000, max_tokens = 128000 },
-                                                opts = { can_manage_context = true, has_vision = true },
-                                            },
-                                            ['claude-haiku-4-5-20251001-1m'] = {
-                                                formatted_name = 'Claude Haiku 4.5 (1M)',
-                                                meta = { context_window = 1000000, max_tokens = 64000 },
-                                                opts = { has_vision = true },
-                                            },
-                                        },
-                                    },
-                                    -- Anthropic's 4.7+ models reject `temperature` outright
-                                    -- (`invalid_request_error: 'temperature' is deprecated for this
-                                    -- model.`). Upstream only gates the field for `opus-4-7` specifically,
-                                    -- so `opus-4-8` (and any future 4.7+ model) leaks a `temperature = 0`
-                                    -- into the payload. Disable it unconditionally; we don't use it.
-                                    temperature = {
-                                        enabled = function() return false end,
                                     },
                                 },
                             })
