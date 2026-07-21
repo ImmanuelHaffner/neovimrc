@@ -304,6 +304,27 @@ return {
                                         -- the API response, so no hand-maintained list is needed.
                                         default = 'claude-opus-4-8',
                                     },
+                                    -- Pin the output token budget explicitly. The base adapter's
+                                    -- `max_tokens` default derives from the async model catalogue
+                                    -- (`meta.max_tokens`), but on a cold cache that fetch hasn't
+                                    -- completed when the first chat's settings render, so it falls
+                                    -- back to a tiny 4096. Setting it here makes the ceiling
+                                    -- deterministic (128k = Opus 4.8's API-reported max).
+                                    max_tokens = {
+                                        default = 128000,
+                                    },
+                                    -- Pin the reasoning effort. Like `max_tokens`, the base
+                                    -- adapter's `effort` default is derived from the async model
+                                    -- catalogue. But `effort` is also *gated* by an `enabled`
+                                    -- function that checks the same catalogue for reasoning
+                                    -- support; on a cold cache that returns false and the key is
+                                    -- dropped from the settings block entirely (so `default` never
+                                    -- applies). Override `enabled` to always-true since every
+                                    -- Opus/Sonnet model we use supports effort, and pin the default.
+                                    effort = {
+                                        default = 'xhigh',
+                                        enabled = function() return true end,
+                                    },
                                 },
                             })
                         end,
