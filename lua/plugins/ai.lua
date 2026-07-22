@@ -461,6 +461,11 @@ return {
                                     'kgmemory',
                                     'neovim',  -- all tools from the Neovim MCP server
                                     'neovim_context',  -- provide context on open buffers, cursor pos, active buffer
+                                    -- Self-gating: resolves to the `fff` MCP tool group iff it is
+                                    -- currently registered (i.e. the workspace hub for this CWD has
+                                    -- fff connected); a harmless no-op otherwise. See the fff-mcp
+                                    -- per-project enrollment convention (/fffenroll).
+                                    'fff',
                                 },
                             },
                             groups = {
