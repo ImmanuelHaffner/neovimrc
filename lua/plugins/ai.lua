@@ -137,7 +137,8 @@ return {
             -- 'Davidyz/VectorCode',
         },
         config = function()
-            -- Databricks AI Gateway URL (used by both OpenAI-compatible and Anthropic adapters)
+            -- Databricks workspace host. Serves both the AI Gateway
+            -- (/ai-gateway/...) and the serving-endpoints REST API (/api/2.0/...).
             local DATABRICKS_AI_GATEWAY_URL = 'https://dbc-a5d4177a-49dc.cloud.databricks.com'
 
             -- Databricks model-serving OAuth token, kept fresh by the managed
@@ -161,6 +162,120 @@ return {
                     return nil
                 end
                 return data.access_token
+            end
+
+            -- Per-model output-token ceilings. Neither the serving-endpoints API
+            -- nor the /v1/models list reports max_tokens (both omit it or return
+            -- 0); the only API-truth source is the validation error you get by
+            -- overshooting. These values were read off those errors on
+            -- 2026-07-23. Anything not listed falls back to DEFAULT_MAX_TOKENS.
+            local DEFAULT_MAX_TOKENS = 128000
+            local MODEL_MAX_TOKENS = {
+                ['databricks-claude-haiku-4-5'] = 200000,
+            }
+
+            -- Effort levels the gateway accepts for adaptive thinking
+            -- (output_config.effort). The serving-endpoints capabilities block
+            -- reports anthropic_reasoning=false for every Claude model, which is
+            -- wrong: the native /v1/messages path does return thinking content
+            -- for these efforts (verified 2026-07-23). So the support list is
+            -- hardcoded rather than derived from the (lying) capabilities API.
+            local SUPPORTED_EFFORTS = { 'low', 'medium', 'high', 'xhigh', 'max' }
+
+            -- Static fallback catalogue, used when the serving-endpoints fetch
+            -- fails (no token, offline, request error). Mirrors the ModelChoice
+            -- shape the base `anthropic` adapter consumes.
+            local FALLBACK_MODELS = {
+                ['databricks-claude-opus-4-8'] = {
+                    formatted_name = 'Claude Opus 4.8',
+                    meta = { max_tokens = DEFAULT_MAX_TOKENS },
+                    opts = { has_vision = true, can_reason = true, reasoning = { supported = SUPPORTED_EFFORTS } },
+                },
+                ['databricks-claude-sonnet-4-6'] = {
+                    formatted_name = 'Claude Sonnet 4.6',
+                    meta = { max_tokens = DEFAULT_MAX_TOKENS },
+                    opts = { has_vision = true, can_reason = true, reasoning = { supported = SUPPORTED_EFFORTS } },
+                },
+            }
+
+            -- Module-local cache for the fetched model catalogue.
+            local model_cache = { models = nil, expires = 0 }
+            local MODEL_CACHE_TTL = 300  -- seconds
+
+            --- Fetch the Claude chat models from the Databricks serving-endpoints API.
+            --- Returns a ModelChoice map (id -> { formatted_name, meta, opts }) or nil on failure.
+            --- @return table<string, table>|nil
+            local function fetch_gateway_models()
+                local token = read_model_serving_token()
+                if not token or token == '' then
+                    return nil
+                end
+
+                local ok, Curl = pcall(require, 'plenary.curl')
+                if not ok then
+                    return nil
+                end
+
+                local response = Curl.get(DATABRICKS_AI_GATEWAY_URL .. '/api/2.0/serving-endpoints', {
+                    headers = { ['Authorization'] = 'Bearer ' .. token },
+                    timeout = 5000,
+                })
+                if not response or response.status ~= 200 then
+                    return nil
+                end
+
+                local decoded_ok, data = pcall(vim.json.decode, response.body)
+                if not decoded_ok or type(data) ~= 'table' or type(data.endpoints) ~= 'table' then
+                    return nil
+                end
+
+                local models = {}
+                for _, endpoint in ipairs(data.endpoints) do
+                    local entity = endpoint.config
+                        and endpoint.config.served_entities
+                        and endpoint.config.served_entities[1]
+                    local fm = entity and entity.foundation_model
+                    local caps = endpoint.capabilities or {}
+                    -- Keep only Anthropic chat models reachable via /v1/messages.
+                    if fm
+                        and fm.model_class == 'claude'
+                        and endpoint.task == 'llm/v1/chat'
+                        and vim.tbl_contains(fm.api_types or {}, 'anthropic/v1/messages')
+                    then
+                        models[endpoint.name] = {
+                            formatted_name = fm.display_name or endpoint.name,
+                            meta = { max_tokens = MODEL_MAX_TOKENS[endpoint.name] or DEFAULT_MAX_TOKENS },
+                            opts = {
+                                has_vision = caps.image_input or false,
+                                -- Reasoning support is hardcoded (see SUPPORTED_EFFORTS);
+                                -- the capabilities block under-reports it.
+                                can_reason = true,
+                                reasoning = { supported = SUPPORTED_EFFORTS },
+                            },
+                        }
+                    end
+                end
+
+                if vim.tbl_isempty(models) then
+                    return nil
+                end
+                return models
+            end
+
+            --- Return the Claude model catalogue, cached with a short TTL and
+            --- falling back to the static list when discovery is unavailable.
+            --- @return table<string, table>
+            local function get_gateway_models()
+                if model_cache.models and model_cache.expires > os.time() then
+                    return model_cache.models
+                end
+                local fetched = fetch_gateway_models()
+                if fetched then
+                    model_cache.models = fetched
+                    model_cache.expires = os.time() + MODEL_CACHE_TTL
+                    return fetched
+                end
+                return FALLBACK_MODELS
             end
 
             --- Validate and fix JSON arguments for tool calls.
@@ -360,10 +475,14 @@ return {
                                 },
                             })
                         end,
-                        -- Databricks AI Gateway adapter for Anthropic models via OpenAI-compatible endpoint
+                        -- Databricks AI Gateway adapter, extending the base `anthropic`
+                        -- adapter over the gateway's native /v1/messages endpoint.
+                        -- The native path (unlike the mlflow OpenAI-compatible one) both
+                        -- authenticates with a Bearer token and returns thinking content,
+                        -- so the base adapter's reasoning/effort handling works unchanged.
                         ['Databricks AI Gateway (Anthropic)'] = function()
-                            local openai = require('codecompanion.adapters.http.openai')
-                            return require'codecompanion.adapters'.extend('openai_compatible', {
+                            local anthropic = require('codecompanion.adapters.http.anthropic')
+                            return require'codecompanion.adapters'.extend('anthropic', {
                                 formatted_name = 'Databricks AI Gateway (Anthropic)',
                                 env = {
                                     -- Resolve the bearer token from the model-serving token file
@@ -372,82 +491,53 @@ return {
                                         return read_model_serving_token()
                                     end,
                                 },
-                                url = DATABRICKS_AI_GATEWAY_URL .. '/ai-gateway/mlflow/v1/chat/completions',
+                                url = DATABRICKS_AI_GATEWAY_URL .. '/ai-gateway/anthropic/v1/messages',
                                 headers = {
-                                    ['Content-Type'] = 'application/json',
+                                    ['content-type'] = 'application/json',
+                                    -- Gateway authenticates with a Bearer token. The base adapter's
+                                    -- x-api-key header is still sent (tbl_deep_extend can't drop a
+                                    -- key) but the gateway ignores it when Authorization is present.
                                     ['Authorization'] = 'Bearer ${api_key}',
+                                    ['anthropic-version'] = '2023-06-01',
                                 },
                                 handlers = {
-                                    -- Override form_messages to ensure tool_calls have valid function.name
-                                    -- and valid JSON arguments.
-                                    -- Databricks API strictly validates that:
-                                    -- 1. Every tool_calls[].function.name field is present
-                                    -- 2. Every tool_calls[].function.arguments is a valid JSON string
+                                    -- Repair truncated tool-call argument JSON before the base
+                                    -- adapter's form_messages runs: it decodes each tool_use's
+                                    -- `arguments` string and silently discards the whole call on a
+                                    -- parse failure (common when a stream is cut off by max_tokens).
+                                    -- ensure_valid_json_args completes the truncated JSON so the
+                                    -- call survives.
                                     form_messages = function(self, messages)
-                                        -- Call the base OpenAI form_messages first
-                                        local result = openai.handlers.form_messages(self, messages)
-
-                                        -- Ensure all tool_calls have function.name and valid arguments
-                                        if result and result.messages then
-                                            for _, msg in ipairs(result.messages) do
-                                                if msg.tool_calls then
-                                                    for _, tool_call in ipairs(msg.tool_calls) do
-                                                        if tool_call['function'] then
-                                                            -- Ensure name is present (use id as fallback if missing)
-                                                            if not tool_call['function']['name'] or tool_call['function']['name'] == '' then
-                                                                tool_call['function']['name'] = tool_call.id or 'unknown_tool'
-                                                            end
-                                                            -- Ensure arguments is valid JSON
-                                                            tool_call['function']['arguments'] = ensure_valid_json_args(
-                                                                tool_call['function']['arguments']
-                                                            )
-                                                        end
+                                        for _, message in ipairs(messages) do
+                                            if message.tools and message.tools.calls then
+                                                for _, call in ipairs(message.tools.calls) do
+                                                    if call['function'] then
+                                                        call['function'].arguments = ensure_valid_json_args(
+                                                            call['function'].arguments
+                                                        )
                                                     end
                                                 end
                                             end
                                         end
-
-                                        return result
+                                        return anthropic.handlers.form_messages(self, messages)
                                     end,
-                                    tools = {
-                                        -- Override format_tool_calls to fix empty/invalid arguments issue for Databricks API.
-                                        -- Databricks requires `arguments` to be a valid JSON string.
-                                        format_tool_calls = function(self, tools)
-                                            for _, tool in ipairs(tools) do
-                                                if tool['function'] then
-                                                    -- Ensure name is present
-                                                    if not tool['function']['name'] or tool['function']['name'] == '' then
-                                                        tool['function']['name'] = tool.id or 'unknown_tool'
-                                                    end
-                                                    -- Ensure arguments is valid JSON
-                                                    tool['function']['arguments'] = ensure_valid_json_args(
-                                                        tool['function']['arguments']
-                                                    )
-                                                end
-                                            end
-                                            return tools
-                                        end,
-                                        output_response = function(self, tool_call, output)
-                                            return openai.handlers.tools.output_response(self, tool_call, output)
-                                        end,
-                                    },
-                                },
-                                body = {
-                                    -- Opt-in to Anthropic's large context window (up to 1M tokens)
-                                    -- Ref: https://docs.anthropic.com/en/docs/build-with-claude/extended-context
-                                    anthropic_beta = { 'context-1m-2025-08-07' },
                                 },
                                 schema = {
                                     model = {
-                                        default = 'system.ai.claude-opus-4-8',
-                                        choices = {
-                                            ['system.ai.claude-opus-4-8'] = {
-                                                formatted_name = 'Claude Opus 4.8',
-                                            },
-                                            ['system.ai.claude-sonnet-4-6'] = {
-                                                formatted_name = 'Claude Sonnet 4.6',
-                                            },
-                                        },
+                                        default = 'databricks-claude-opus-4-8',
+                                        -- Discover the live Claude catalogue from the Databricks
+                                        -- serving-endpoints API, with a static fallback. Provides
+                                        -- formatted_name, per-model max_tokens, vision, and the
+                                        -- (hardcoded) supported reasoning efforts.
+                                        choices = function()
+                                            return get_gateway_models()
+                                        end,
+                                    },
+                                    -- Default the reasoning effort to xhigh. The base adapter
+                                    -- gates `effort` on the model catalogue's reasoning.supported
+                                    -- list, which get_gateway_models() populates for every model.
+                                    effort = {
+                                        default = 'xhigh',
                                     },
                                 },
                             })
