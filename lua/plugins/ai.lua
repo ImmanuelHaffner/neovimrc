@@ -138,7 +138,30 @@ return {
         },
         config = function()
             -- Databricks AI Gateway URL (used by both OpenAI-compatible and Anthropic adapters)
-            local DATABRICKS_AI_GATEWAY_URL = 'https://6051921418418893.ai-gateway.staging.cloud.databricks.com'
+            local DATABRICKS_AI_GATEWAY_URL = 'https://dbc-a5d4177a-49dc.cloud.databricks.com'
+
+            -- Databricks model-serving OAuth token, kept fresh by the managed
+            -- refresh_model_serving_token.sh hook (~/.config/llm-cli/hooks). The
+            -- token is short-lived and rotated, so it is read fresh on every
+            -- request rather than pulled once from the environment.
+            local MODEL_SERVING_TOKEN_PATH = vim.fn.expand('~/.databricks/model-serving-token.json')
+
+            --- Read the current bearer token from the model-serving token file.
+            --- @return string|nil token The OAuth access token, or nil if unavailable.
+            local function read_model_serving_token()
+                if vim.fn.filereadable(MODEL_SERVING_TOKEN_PATH) == 0 then
+                    return nil
+                end
+                local ok, content = pcall(vim.fn.readfile, MODEL_SERVING_TOKEN_PATH)
+                if not ok or not content or #content == 0 then
+                    return nil
+                end
+                local decoded_ok, data = pcall(vim.json.decode, table.concat(content, '\n'))
+                if not decoded_ok or type(data) ~= 'table' then
+                    return nil
+                end
+                return data.access_token
+            end
 
             --- Validate and fix JSON arguments for tool calls.
             --- Databricks API strictly validates that tool_calls[].function.arguments is valid JSON.
@@ -228,17 +251,17 @@ return {
                 --   - is_available: function that returns true if this adapter can be used
                 local adapters = {
                     {
+                        name = 'Databricks AI Gateway (Anthropic)',
+                        is_available = function()
+                            local token = read_model_serving_token()
+                            return token ~= nil and token ~= ''
+                        end,
+                    },
+                    {
                         name = 'Databricks Anthropic',
                         is_available = function()
                             local key = vim.env.DATABRICKS_ANTHROPIC_API_KEY
                             return key ~= nil and key ~= ''
-                        end,
-                    },
-                    {
-                        name = 'Databricks FMAPI (Anthropic)',
-                        is_available = function()
-                            local token = vim.env.DATABRICKS_AI_GATEWAY_TOKEN
-                            return token ~= nil and token ~= ''
                         end,
                     },
                     -- Future adapters can be added here, e.g.:
@@ -295,14 +318,23 @@ return {
                                 },
                                 schema = {
                                     model = {
-                                        -- No static `choices` here: inherit the base `anthropic`
-                                        -- adapter's `choices` function, which auto-detects the
-                                        -- live model catalogue from GET https://api.anthropic.com/v1/models
-                                        -- (our DATABRICKS_ANTHROPIC_API_KEY is accepted there).
-                                        -- Each model's meta (context window, max tokens) and opts
-                                        -- (vision, reasoning, context management) are derived from
-                                        -- the API response, so no hand-maintained list is needed.
+                                        -- Static `choices` (rather than inheriting the base
+                                        -- `anthropic` adapter's function, which fetches GET
+                                        -- https://api.anthropic.com/v1/models). Our
+                                        -- DATABRICKS_ANTHROPIC_API_KEY is only accepted by the
+                                        -- Databricks gateway, not by api.anthropic.com directly,
+                                        -- so that fetch 401s ("API key is invalid") and spams the
+                                        -- log. A static list keeps this adapter inert unless a
+                                        -- genuinely direct Anthropic key is configured.
                                         default = 'claude-opus-4-8',
+                                        choices = {
+                                            ['claude-opus-4-8'] = {
+                                                formatted_name = 'Claude Opus 4.8',
+                                            },
+                                            ['claude-sonnet-4-6'] = {
+                                                formatted_name = 'Claude Sonnet 4.6',
+                                            },
+                                        },
                                     },
                                     -- Pin the output token budget explicitly. The base adapter's
                                     -- `max_tokens` default derives from the async model catalogue
@@ -328,15 +360,19 @@ return {
                                 },
                             })
                         end,
-                        -- Databricks FMAPI adapter for Anthropic models via OpenAI-compatible endpoint
-                        ['Databricks FMAPI (Anthropic)'] = function()
+                        -- Databricks AI Gateway adapter for Anthropic models via OpenAI-compatible endpoint
+                        ['Databricks AI Gateway (Anthropic)'] = function()
                             local openai = require('codecompanion.adapters.http.openai')
                             return require'codecompanion.adapters'.extend('openai_compatible', {
-                                formatted_name = 'Databricks FMAPI (Anthropic)',
+                                formatted_name = 'Databricks AI Gateway (Anthropic)',
                                 env = {
-                                    api_key = 'DATABRICKS_AI_GATEWAY_TOKEN',
+                                    -- Resolve the bearer token from the model-serving token file
+                                    -- on every request so a rotated token is always picked up.
+                                    api_key = function()
+                                        return read_model_serving_token()
+                                    end,
                                 },
-                                url = DATABRICKS_AI_GATEWAY_URL .. '/mlflow/v1/chat/completions',
+                                url = DATABRICKS_AI_GATEWAY_URL .. '/ai-gateway/mlflow/v1/chat/completions',
                                 headers = {
                                     ['Content-Type'] = 'application/json',
                                     ['Authorization'] = 'Bearer ${api_key}',
@@ -403,16 +439,13 @@ return {
                                 },
                                 schema = {
                                     model = {
-                                        default = 'databricks-claude-opus-4-6',
+                                        default = 'system.ai.claude-opus-4-8',
                                         choices = {
-                                            ['databricks-claude-opus-4-6'] = {
-                                                formatted_name = 'Claude Opus 4.6',
+                                            ['system.ai.claude-opus-4-8'] = {
+                                                formatted_name = 'Claude Opus 4.8',
                                             },
-                                            ['databricks-claude-opus-4-5'] = {
-                                                formatted_name = 'Claude Opus 4.5',
-                                            },
-                                            ['databricks-claude-sonnet-4-5'] = {
-                                                formatted_name = 'Claude Sonnet 4.5',
+                                            ['system.ai.claude-sonnet-4-6'] = {
+                                                formatted_name = 'Claude Sonnet 4.6',
                                             },
                                         },
                                     },
