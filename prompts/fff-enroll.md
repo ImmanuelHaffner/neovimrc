@@ -99,7 +99,7 @@ Follow these steps in order. Prefer Neovim MCP file tools for all file operation
 
 - Everyday use does not need step 5: opening Neovim in (or `:cd`-ing into) a project that already has the marker triggers detection automatically. This prompt exists for the *first* enrollment, when the marker is created while already sitting in the project.
 - MCPHub's own guidance is to use `:cd` (not a shell `cd`) so `DirChanged` fires; workspace switching also requires `reload_on_dir_changed = true` (the default).
-- If the project is a worktree under `~/worktrees/**`, the marker is in-scope to write. Do **not** write markers into read-only checkouts (e.g. `~/universe`, `~/runtime`) — enroll the corresponding worktree instead.
+- Enrolling any project is fine, including the read-only checkouts `~/universe` and `~/runtime`: the read-only rule covers only *committed source*, and `.mcphub/servers.json` is a local, untracked config file, not committed source. Just keep the marker untracked (e.g. via a local ignore) rather than committing it into these checkouts. Worktrees under `~/worktrees/**` are of course fine too.
 - Commit the new `.mcphub/servers.json` with the project's own commit conventions if the user wants it tracked; otherwise leave it untracked.
 
 ### Report
