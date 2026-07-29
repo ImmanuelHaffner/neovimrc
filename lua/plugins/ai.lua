@@ -400,9 +400,6 @@ return {
                 return 'copilot'
             end
 
-            -- Capture the default system prompt BEFORE setup (to avoid infinite recursion)
-            local default_system_prompt_fn = require('codecompanion.config').config.interactions.chat.opts.system_prompt
-
             -- Load Neovim-specific additions from file
             local plugin_root = vim.fn.fnamemodify(debug.getinfo(1, 'S').source:sub(2), ':p:h:h:h')
             local additions_path = plugin_root .. '/assets/code-companion-neovim-additions.md'
@@ -579,6 +576,32 @@ return {
                             opts = {
                                 auto_submit_errors = true, -- Send any errors to the LLM automatically?
                                 auto_submit_success = true, -- Send any successful output to the LLM automatically?
+                                -- Replace CodeCompanion's built-in tools system prompt. The stock
+                                -- one (config.lua) instructs the model to edit via an
+                                -- `insert_edit_into_file` tool that does not exist in this setup
+                                -- (we edit through the `neovim__*` MCP tools) and to otherwise
+                                -- "print out a code block" — both of which conflict with our real
+                                -- editing contract and were a source of tool-naming confusion.
+                                -- This version keeps the useful agentic guidance (gather context,
+                                -- prefer parallel calls, don't narrate tool names) and adds an
+                                -- explicit "only call tools that exist" rule.
+                                system_prompt = {
+                                    enabled = true,
+                                    replace_main_system_prompt = false,
+                                    ---@param _ { ctx: CodeCompanion.SystemPrompt.Context, tools: string[] }
+                                    ---@return string
+                                    prompt = function(_)
+                                        return [[<toolUseInstructions>
+You have a set of tools for retrieving context and performing actions. Use them to answer the user's question or complete the task.
+Only ever call a tool that actually appears in your available tool list. Never invent a tool name, and never write out a JSON code block of tool inputs instead of issuing a real tool call.
+Gather context before acting: don't assume the state of the code or the workspace — read the relevant files first. You don't need to re-read a file that is already provided in context.
+Call tools repeatedly, and in parallel when the calls are independent, until you have done everything you can to complete the request. Don't give up unless the task genuinely can't be done with the tools you have.
+When a tool takes a file path, use the exact path the user or a previous tool gave you.
+Follow each tool's JSON schema exactly and include all required properties.
+Don't announce tool names to the user (say "I'll edit the file", not "I'll use the X tool"), and don't repeat yourself after a tool call — pick up where you left off.
+</toolUseInstructions>]]
+                                    end,
+                                },
                                 default_tools = {
                                     'memory',
                                     'kgmemory',
@@ -608,14 +631,38 @@ return {
                             },
                         },
                         opts = {
-                            ---Extend the default system prompt with Neovim-specific additions
-                            ---@param opts table Options passed by CodeCompanion (contains language, etc.)
+                            ---Replace CodeCompanion's built-in (Copilot-derived) system prompt
+                            ---entirely with a lean, harness-specific one.
+                            ---
+                            ---Why replace rather than extend: the stock prompt carries generic
+                            ---assistant filler that Opus 4.8 auto-calibrates around anyway, plus a
+                            ---code-EDIT convention (```` {path} … `...existing code...` blocks) that
+                            ---directly conflicts with our MCP `neovim__*` edit flow. Combined with
+                            ---the tools prompt's reference to a non-existent `insert_edit_into_file`
+                            ---tool, that produced three competing edit instructions — a literal
+                            ---source of tool-naming confusion. We drop all of it and keep only what
+                            ---the model genuinely can't infer: this chat buffer's Markdown rendering
+                            ---constraints, and the dynamic environment context. The real editing
+                            ---contract (`neovim__*` tools) lives in `neovim_additions`, appended last.
+                            ---@param ctx CodeCompanion.SystemPrompt.Context language, cwd, date, nvim_version, os, project_root
                             ---@return string
-                            system_prompt = function(opts)
-                                -- Use the captured default prompt (avoids infinite recursion)
-                                local base_prompt = type(default_system_prompt_fn) == 'function'
-                                    and default_system_prompt_fn(opts)
-                                    or (default_system_prompt_fn or '')
+                            system_prompt = function(ctx)
+                                local base_prompt = table.concat({
+                                    'You are an AI programming assistant working inside the Neovim text editor.',
+                                    '',
+                                    'Your responses render in a Markdown buffer with live markview rendering, so:',
+                                    '- Do not use H1 or H2 headers.',
+                                    '- Wrap filenames, paths, and code symbols in backticks.',
+                                    '- Use four-backtick code fences with a correct language ID (e.g. ````lua).',
+                                    '- Do not wrap your whole response in a code fence.',
+                                    '',
+                                    'Additional context:',
+                                    string.format('- All non-code prose must be written in the %s language.', ctx.language),
+                                    string.format('- The current working directory is %s.', ctx.cwd),
+                                    string.format('- The current date is %s.', ctx.date),
+                                    string.format('- The Neovim version is %s.', ctx.nvim_version),
+                                    string.format('- The user is on a %s machine; prefer system-appropriate commands.', ctx.os),
+                                }, '\n')
 
                                 return base_prompt .. '\n' .. neovim_additions
                             end,
