@@ -34,6 +34,10 @@ return {
         opts = {
             markdown = {
                 code_blocks = {
+                    -- Pin style so `block_on_wrap` is honored under `wrap`; upstream v28.3.0's
+                    -- default `style` function returns 'simple' whenever wrap is on, which
+                    -- short-circuits the `block_on_wrap` logic in the code_blocks renderer.
+                    style = 'block',
                     block_on_wrap = 'adaptive',
                 },
                 tables = {
