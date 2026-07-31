@@ -211,6 +211,16 @@ timeout 60s rg --type scala --max-count 50 'class QuercusPlanner' \
   ~/worktrees/universe/quercus/sql/
 ```
 
+### Running Bazel via Pesto
+
+When a task needs Bazel in this session (builds, tests, `query`), drive it
+through the `pesto.nvim` plugin's `:Pesto` command instead of a raw `bazel` call
+in `neovim__execute_command`: `:Pesto` runs Bazel asynchronously in a terminal
+buffer and parses failed-action logs into the quickfix list. Being async, its
+results surface in that build terminal buffer and the quickfix list — not in a
+tool result. Self-educate on subcommands and flags from `:help pesto` (start at
+`|pesto.commands|`) via the help-scratch-read recipe above.
+
 ### Interactive Git (commit messages, rebase, merge)
 
 This Neovim sets `GIT_EDITOR`/`GIT_SEQUENCE_EDITOR`/`EDITOR`/`VISUAL` to an `nvr`
