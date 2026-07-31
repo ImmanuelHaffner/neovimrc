@@ -24,14 +24,14 @@ The fix is MCPHub's **workspace** feature. When a project root contains a marker
 
 ### The marker file to write
 
-Write `<project-root>/.mcphub/servers.json` with exactly this content (the `${CWD}` placeholder is expanded by MCPHub to the workspace hub's cwd — i.e. the project root — and passed to `fff-mcp` as its explicit base-path argument, belt-and-suspenders against any inherited cwd):
+Write `<project-root>/.mcphub/servers.json` with exactly this content (the `${workspaceFolder}` placeholder is expanded by MCPHub to the workspace hub's cwd — i.e. the project root — and passed to `fff-mcp` as its explicit base-path argument, belt-and-suspenders against any inherited cwd):
 
 ```json
 {
   "mcpServers": {
     "fff": {
       "command": "fff-mcp",
-      "args": ["${CWD}"],
+      "args": ["${workspaceFolder}"],
       "autoApprove": ["find_files", "grep", "multi_grep"]
     }
   }
