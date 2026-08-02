@@ -83,7 +83,14 @@ return {
         --cmd = 'MCPHub',  -- lazy load
         build = "cd ~/.local && npm install mcp-hub@latest",
         config = function()
-            require("mcphub").setup()
+            -- Pin an explicit port below the Linux ephemeral range (32768+)
+            -- so the Arca SSH companion — which mirrors arbitrary remote
+            -- devbox ports onto localhost — can never collide with the local
+            -- hub. mcp-hub's default 37373 sits inside that ephemeral band and
+            -- clashed with a remote mcp-hub forwarded by Arca, causing the hub
+            -- to serve `/home/...` config paths (remote $HOME) and E739 on
+            -- macOS autofs `/home`.
+            require("mcphub").setup({ port = 27373 })
             -- Register nvu.nvim's structured-edit tools
             -- (`neovim__apply_edit`, `neovim__read_with_fingerprint`) as
             -- siblings of mcphub's built-in `neovim__edit_file`. Loaded
