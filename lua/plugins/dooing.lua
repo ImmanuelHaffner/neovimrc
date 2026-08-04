@@ -32,6 +32,22 @@ return {
                 window = {
                     position = 'bottom-right',
                     border = 'double',
+                    dimensions = function()
+                        local nvul = require'nvu.layout'
+                        return {
+                            width = nvul.adaptive_extent{
+                                frac = .6,
+                                extent = vim.o.columns,
+                                min = 30,
+                                max = 120,
+                            },
+                            height = nvul.adaptive_extent{
+                                frac = .7,
+                                extent = vim.o.lines,
+                                min = 10,
+                            },
+                        }
+                    end,
                 },
                 quick_keys = true,
             }
