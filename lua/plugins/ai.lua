@@ -83,14 +83,21 @@ return {
         --cmd = 'MCPHub',  -- lazy load
         build = "cd ~/.local && npm install mcp-hub@latest",
         config = function()
-            -- Pin an explicit port below the Linux ephemeral range (32768+)
-            -- so the Arca SSH companion — which mirrors arbitrary remote
-            -- devbox ports onto localhost — can never collide with the local
-            -- hub. mcp-hub's default 37373 sits inside that ephemeral band and
-            -- clashed with a remote mcp-hub forwarded by Arca, causing the hub
-            -- to serve `/home/...` config paths (remote $HOME) and E739 on
-            -- macOS autofs `/home`.
-            require("mcphub").setup({ port = 27373 })
+            require("mcphub").setup({
+                -- Pin an explicit port below the Linux ephemeral range (32768+) so the Arca SSH companion — which
+                -- mirrors arbitrary remote devbox ports onto localhost — can never collide with the local hub.
+                -- mcp-hub's default
+                -- 37373 sits inside that ephemeral band and clashed with a remote mcp-hub forwarded by Arca, causing
+                -- the hub to serve `/home/...` config paths (remote $HOME) and E739 on macOS autofs `/home`.
+                port = 27373,
+                -- Only *our own* marker may promote a directory to a workspace hub. The default `look_for` also
+                -- contains `.vscode/mcp.json` and `.cursor/mcp.json`, and the search walks upward all the way to `/`
+                -- without stopping at $HOME. Since Databricks tooling maintains `~/.cursor/mcp.json`, every unmarked
+                -- cwd under $HOME (notes, investigations, the read-only checkouts) resolved to a workspace hub rooted
+                -- at $HOME that merged Cursor's ~17 duplicate Databricks servers over ours. Narrowing this makes
+                -- unmarked directories fall back to true global mode, where the repo-scoped fff servers live.
+                workspace = { look_for = { '.mcphub/servers.json' } },
+            })
             -- Register nvu.nvim's structured-edit tools
             -- (`neovim__apply_edit`, `neovim__read_with_fingerprint`) as
             -- siblings of mcphub's built-in `neovim__edit_file`. Loaded
@@ -619,6 +626,15 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                                     -- fff connected); a harmless no-op otherwise. See the fff-mcp
                                     -- per-project enrollment convention (/fffenroll).
                                     'fff',
+                                    -- Repo-scoped fff servers declared in the *global* MCPHub
+                                    -- config (`servers.json`): fuzzy find / grep over the
+                                    -- read-only Databricks checkouts `~/universe` and `~/runtime`
+                                    -- from any CWD (notes, investigations, worktrees). Their
+                                    -- commands are guarded on the checkout existing, so on
+                                    -- machines without these repos they never connect and the
+                                    -- references below degrade to no-ops.
+                                    'fff_universe',
+                                    'fff_runtime',
                                 },
                             },
                             groups = {

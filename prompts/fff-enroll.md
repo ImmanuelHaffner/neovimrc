@@ -20,7 +20,7 @@ You enroll the current project into the **fff** MCP server (fff.nvim's `fff-mcp`
 
 `fff-mcp` refuses to index a filesystem root or a home directory: it errors with *"Can not run certain FFF features in a file system root or home directories. Consider smaller per-project directories."* The server's base path defaults to its process's current working directory. Under a **global** MCPHub hub, that cwd is wherever Neovim started (often `~`), so fff fails to start.
 
-The fix is MCPHub's **workspace** feature. When a project root contains a marker file — one of `.mcphub/servers.json`, `.vscode/mcp.json`, `.cursor/mcp.json` — MCPHub spawns an isolated *workspace hub* rooted at that project (its cwd becomes the project directory) and **merges** the project config over the global one. A per-project `fff` entry therefore starts rooted at the project and indexes successfully. `fff` has been removed from the global config on purpose, so it is *only* ever provided per-project via this enrollment.
+The fix is MCPHub's **workspace** feature. When a project root contains a marker file — one of `.mcphub/servers.json`, `.vscode/mcp.json`, `.cursor/mcp.json` — MCPHub spawns an isolated *workspace hub* rooted at that project (its cwd becomes the project directory) and **merges** the project config over the global one. A per-project `fff` entry therefore starts rooted at the project and indexes successfully. A generic, project-rooted `fff` server is deliberately absent from the global config — there is no sane global base path for it — so it is *only* ever provided per-project via this enrollment.
 
 ### The marker file to write
 

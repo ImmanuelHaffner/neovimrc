@@ -335,6 +335,40 @@
       "command": "dbexec",
       "disabled": false
     },
+    "fff_runtime": {
+      "args": [
+        "-c",
+        "d=\"$HOME/runtime\"; [ -d \"$d\" ] || { echo \"fff_runtime: $d does not exist on this machine, not starting\" >&2; exit 1; }; cd \"$d\" && exec fff-mcp \"$d\" --no-watch --no-update-check"
+      ],
+      "autoApprove": [
+        "find_files",
+        "grep",
+        "multi_grep"
+      ],
+      "command": "sh",
+      "custom_instructions": {
+        "text": "Repo-scoped, read-only index of `~/runtime` \u2014 Databricks' fork of Apache Spark, the runtime engine powering Databricks compute (~99k files, 12 GB). It is reachable from ANY working directory, so use it to search or read runtime source while working elsewhere (notes, investigations, an unrelated repo) in preference to shelling out `rg`/`find` over that tree.\n\n`~/runtime` is the canonical checkout: it stays on `master` and must never be edited. Code changes belong in a worktree under `~/worktrees/runtime/<project>/`.\n\nThe index is a snapshot taken when this server started, with file watching disabled, so it can lag a recent `master` update (typically by less than a day). If freshness matters, ask the user to restart this server.\n\nDo not confuse this with a project-rooted `fff` server: if one is present in this session it indexes the current project, whereas this one always indexes `~/runtime` regardless of the cwd."
+      },
+      "disabled": false,
+      "name": "fff (runtime)"
+    },
+    "fff_universe": {
+      "args": [
+        "-c",
+        "d=\"$HOME/universe\"; [ -d \"$d\" ] || { echo \"fff_universe: $d does not exist on this machine, not starting\" >&2; exit 1; }; cd \"$d\" && exec fff-mcp \"$d\" --no-watch --no-update-check"
+      ],
+      "autoApprove": [
+        "find_files",
+        "grep",
+        "multi_grep"
+      ],
+      "command": "sh",
+      "custom_instructions": {
+        "text": "Repo-scoped, read-only index of `~/universe` \u2014 the Databricks monorepo (\"Universe\"), holding the bulk of Databricks server-side code, services and infrastructure (~1.2M files, 98 GB). It is reachable from ANY working directory, so use it to search or read Universe source while working elsewhere (notes, investigations, an unrelated repo) in preference to shelling out `rg`/`find` over that tree.\n\n`~/universe` is the canonical checkout: it stays on `master` and must never be edited. Code changes belong in a worktree under `~/worktrees/universe/<project>/`.\n\nBecause the tree is enormous, scope every query: constrain it by path prefix or glob and cap the result count. An unconstrained pattern across 1.2M files is slow and floods the context window.\n\nThe index is a snapshot taken when this server started, with file watching disabled, so it can lag a recent `master` update (typically by less than a day). If freshness matters, ask the user to restart this server.\n\nDo not confuse this with a project-rooted `fff` server: if one is present in this session it indexes the current project, whereas this one always indexes `~/universe` regardless of the cwd."
+      },
+      "disabled": false,
+      "name": "fff (universe)"
+    },
     "git": {
       "args": [
         "mcp-server-git"

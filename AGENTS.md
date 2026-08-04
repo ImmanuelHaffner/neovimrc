@@ -194,9 +194,43 @@ The Makefile detects the OS (Linux/macOS) and runs the appropriate install targe
 - Use `:Lazy` to manage plugins
 - Use `:checkhealth` to diagnose issues
 
+## MCP Servers (MCPHub)
+
+MCP servers live in `servers.json` at the repo root — this is the **global MCPHub config**, not an LSP file.
+`make install` deploys it to `~/.config/mcphub/servers.json`; never edit the deployed copy, because MCPHub UI toggles written there are lost on the next install.
+
+The file must be **strict JSON**: mcphub.nvim parses it with `vim.json.decode`, so despite mcp-hub's own JSON5 support, comments and trailing commas break the entire config.
+Document non-obvious entries here rather than inline.
+
+mcp-hub honours these per-server keys: `command`, `args`, `env`, `cwd`, `disabled`, `url`, `headers`, `dev`, `name`.
+String values expand `${VAR}` / `${env:VAR}`, `${cmd: …}`, `${workspaceFolder}` and `${userHome}`, but `disabled` is compared with a strict `=== true` and therefore cannot be driven by a placeholder.
+mcphub.nvim adds two client-side keys: `autoApprove` (tools that skip confirmation) and `custom_instructions.text`, which is injected into the model's context as that server's tool-group system prompt — use it to explain what a server is for when several similar servers coexist.
+
+### Workspace hubs
+
+A directory becomes its own *workspace hub* when it contains `.mcphub/servers.json`; that hub runs as a separate `mcp-hub` process and merges the project config over the global one, so **every workspace hub also spawns all enabled global servers**.
+
+`workspace.look_for` is deliberately pinned to `{ '.mcphub/servers.json' }` in `lua/plugins/ai.lua`.
+MCPHub's default additionally accepts `.vscode/mcp.json` and `.cursor/mcp.json`, and its upward search never stops at `$HOME` — so with Databricks tooling maintaining `~/.cursor/mcp.json`, every unmarked directory under `$HOME` resolved to a `$HOME`-rooted hub that merged Cursor's ~17 duplicate Databricks servers over ours.
+With the narrowed list, unmarked directories fall back to the true global hub.
+
+### fff servers
+
+fff comes in two flavours.
+Project-scoped: the `/fffenroll` prompt writes `.mcphub/servers.json` into a project root so an `fff` server indexes that project.
+Repo-scoped: `servers.json` defines `fff_universe` and `fff_runtime`, pinned to the read-only checkouts `~/universe` and `~/runtime` so their source is searchable from any cwd.
+
+The repo-scoped entries wrap `fff-mcp` in a `sh -c` guard that checks the checkout exists and otherwise exits with an explanatory message, so a machine without those repos shows one failed server instead of a broken config.
+Use bare `$HOME` (not `${HOME}`) in such guards so mcp-hub's placeholder pass leaves them alone.
+
+They run with `--no-watch --no-update-check` and keep the content index (i.e. no `--no-warmup`).
+Despite its name, `--no-warmup` really means "skip the bigram content index" that makes `grep` fast; keeping that index costs roughly 8 GiB per server, which this machine can afford.
+`--no-watch` trades a live index for ~394k inotify watches per instance on universe — those checkouts stay on `master` and change less than daily, so a spawn-time snapshot is acceptable.
+Refreshing a stale index means restarting the server, since `fff-mcp` exposes no rescan tool.
+
 ## LSP Setup
 
-LSP servers are configured in `lua/lsp.lua`. Server-specific settings may be in `servers.json`. The setup uses nvim-lspconfig with custom handlers.
+LSP servers are configured in `lua/lsp.lua`, which uses nvim-lspconfig with custom handlers.
 
 ## Related Projects
 
