@@ -44,8 +44,17 @@ return {
                 shade_terminals = false,
                 autochdir = true,
                 auto_scroll = false,
+                -- No `<C-\>` mapping in insert or terminal mode: a bare `<C-\>` in terminal mode would shadow
+                -- the built-in `<C-\><C-n>` that leaves terminal mode.
                 insert_mappings = false,
                 terminal_mappings = false,
+                -- Instead, install a buffer-local terminal-mode toggle in every toggleterm buffer: double-tapping
+                -- `<C-\>` hides the terminal you are in.  Since `<C-\>` is only a *prefix* of that mapping,
+                -- `<C-\><C-n>` keeps working.
+                on_create = function(term)
+                    vim.keymap.set('t', [[<C-\><C-\>]], function() term:close() end,
+                        { buffer = term.bufnr, desc = 'Hide terminal' })
+                end,
                 float_opts = {
                     zindex = 200,
                 },
@@ -96,6 +105,9 @@ return {
                 cmd = env_string .. ' lazygit',
                 dir = 'git_dir',
                 direction = 'tab',
+                -- Dedicated terminal: exclude it from the `<C-\>` toggle and `:ToggleTerm`, which would
+                -- otherwise hijack whichever custom terminal happens to be spawned first.
+                hidden = true,
                 -- function to run on opening the terminal
                 on_open = function(term)
                     -- Install keymaps
@@ -131,6 +143,7 @@ return {
                 cmd = 'llm agent claude',
                 dir = vim.fn.getcwd(),
                 direction = 'tab',
+                hidden = true,
                 on_open = function(term)
                     vim.wo[term.window].scrolloff = 0
                     vim.wo[term.window].sidescrolloff = 0
@@ -144,6 +157,7 @@ return {
             local ranger = Terminal:new{
                 cmd = 'ranger',
                 direction = 'float',
+                hidden = true,
                 float_opts = {
                     border = 'double',
                 },
@@ -157,6 +171,7 @@ return {
 
             local float_term = Terminal:new{
                 direction = 'float',
+                hidden = true,
                 float_opts = {
                     border = 'double',
                 },
@@ -170,6 +185,7 @@ return {
             local ipython = Terminal:new{
                 cmd = 'ipython',
                 direction = 'vertical',
+                hidden = true,
                 on_open = function(term)
                     local winid = vim.api.nvim_get_current_win()
                     vim.api.nvim_win_set_width(winid, 80)
@@ -183,7 +199,7 @@ return {
                     lazygit.previous_tab = vim.api.nvim_get_current_tabpage()
                     lazygit:toggle()
                 end, desc = 'Lazygit' },
-                { '<leader>ft', '<cmd>TermSelect<cr>', desc = 'Select toggle term' },
+                { '<leader>ft', '<cmd>TermSelect!<cr>', desc = 'Select toggle term' },
 
                 { '<leader>r', group = 'Run command…' },
                 { '<leader>rc', function() claude_code:toggle() end, desc = 'Claude Code' },
