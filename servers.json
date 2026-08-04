@@ -222,6 +222,42 @@
       "command": "dbexec",
       "disabled": false
     },
+    "databricks_logs_summariser": {
+      "args": [
+        "repo",
+        "run",
+        "mcp",
+        "start-single",
+        "logs-summariser"
+      ],
+      "autoApprove": [
+        "analyse_logs"
+      ],
+      "command": "dbexec",
+      "disabled": false
+    },
+    "databricks_observability": {
+      "args": [
+        "repo",
+        "run",
+        "mcp",
+        "start-single",
+        "observability"
+      ],
+      "autoApprove": [
+        "get_log_results",
+        "get_structured_log_query_plan",
+        "search_logs",
+        "structured_log_cancel",
+        "structured_log_get_result",
+        "structured_log_get_schema",
+        "structured_log_list_queries",
+        "structured_log_list_types",
+        "structured_log_query"
+      ],
+      "command": "dbexec",
+      "disabled": false
+    },
     "databricks_pagerduty": {
       "args": [
         "repo",
