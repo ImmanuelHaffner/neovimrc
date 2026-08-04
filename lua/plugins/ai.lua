@@ -1144,37 +1144,41 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
             -- we scan the tool registry and build groups that aggregate tools from several servers.
             local meta_groups = {
                 ['db_all'] = {
-                    description = "All Databricks MCP servers",
+                    description = 'All Databricks MCP servers',
                     servers = {
-                        'databricks_confluence', 'databricks_devportal', 'databricks_github',
-                        'databricks_glean', 'databricks_google', 'databricks_jira',
-                        'databricks_pagerduty', 'databricks_client_v2', 'databricks_slack',
+                        'databricks_client_v2',
+                        'databricks_confluence',
+                        'databricks_debug_copilot',
+                        'databricks_devportal',
+                        'databricks_genie',
+                        'databricks_glean',
+                        'databricks_google',
+                        'databricks_jira',
+                        'databricks_logs_summariser',
+                        'databricks_observability',
+                        'databricks_pagerduty',
+                        'databricks_safe',
+                        'databricks_slack',
+                        'databricks_storage_console',
                         'databricks_testman',
+                        'databricks_github',
                     },
-                },
-                ['db_incidents'] = {
-                    description = "Incident investigation: PagerDuty, Slack, Jira, platform, Confluence",
-                    servers = {
-                        'databricks_pagerduty', 'databricks_slack', 'databricks_jira',
-                        'databricks_client_v2', 'databricks_confluence',
-                    },
-                },
-                ['db_docs'] = {
-                    description = "Google Docs/Slides work: Google, Confluence, Glean",
-                    servers = { 'databricks_google', 'databricks_confluence', 'databricks_glean' },
                 },
                 ['db_dev'] = {
-                    description = "Feature development: GitHub, Jira, Confluence, DevPortal, platform, TestMan",
+                    description = 'Full developer toolkit',
                     servers = {
-                        'databricks_github', 'databricks_jira', 'databricks_confluence',
-                        'databricks_devportal', 'databricks_client_v2', 'databricks_testman',
+                        'databricks_confluence',
+                        'databricks_devportal',
+                        'databricks_glean',
+                        'databricks_jira',
+                        'databricks_safe',
+                        'databricks_github',
                     },
                 },
-                ['db_data_science'] = {
-                    description = "Data science / statistics: platform, GitHub, Confluence, Glean",
+                ['db_comms'] = {
+                    description = 'Incident investigation: PagerDuty, Slack, Jira, platform, Confluence',
                     servers = {
-                        'databricks_client_v2', 'databricks_github',
-                        'databricks_confluence', 'databricks_glean',
+                        'databricks_slack',
                     },
                 },
             }
