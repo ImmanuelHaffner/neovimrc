@@ -90,13 +90,15 @@ return {
                 -- 37373 sits inside that ephemeral band and clashed with a remote mcp-hub forwarded by Arca, causing
                 -- the hub to serve `/home/...` config paths (remote $HOME) and E739 on macOS autofs `/home`.
                 port = 27373,
-                -- Only *our own* marker may promote a directory to a workspace hub. The default `look_for` also
-                -- contains `.vscode/mcp.json` and `.cursor/mcp.json`, and the search walks upward all the way to `/`
-                -- without stopping at $HOME. Since Databricks tooling maintains `~/.cursor/mcp.json`, every unmarked
-                -- cwd under $HOME (notes, investigations, the read-only checkouts) resolved to a workspace hub rooted
-                -- at $HOME that merged Cursor's ~17 duplicate Databricks servers over ours. Narrowing this makes
-                -- unmarked directories fall back to true global mode, where the repo-scoped fff servers live.
-                workspace = { look_for = { '.mcphub/servers.json' } },
+                -- Workspace hubs are OFF.  A workspace hub re-spawns every enabled global server, so each
+                -- enrolled project added its own duplicate `fff_universe` / `fff_runtime` — three universe
+                -- indexes at ~3.2 GiB each were once live at once, and 178 GiB resident was observed.
+                -- Project-scoped servers now come from `.project.lua` via `lua/project/mcp.lua` instead,
+                -- which yields exactly one hub, one static index per read-only checkout, and one process
+                -- per project.  This also retires the `look_for` pin that stopped MCPHub's upward marker
+                -- search (which never stopped at $HOME) from resolving every cwd under $HOME to a
+                -- $HOME-rooted hub that merged Cursor's ~17 duplicate Databricks servers over ours.
+                workspace = { enabled = false },
             })
             -- Register nvu.nvim's structured-edit tools
             -- (`neovim__apply_edit`, `neovim__read_with_fingerprint`) as
@@ -621,20 +623,11 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                                     'kgmemory',
                                     'neovim',  -- all tools from the Neovim MCP server
                                     'neovim_context',  -- provide context on open buffers, cursor pos, active buffer
-                                    -- Self-gating: resolves to the `fff` MCP tool group iff it is
-                                    -- currently registered (i.e. the workspace hub for this CWD has
-                                    -- fff connected); a harmless no-op otherwise. See the fff-mcp
-                                    -- per-project enrollment convention (/fffenroll).
-                                    'fff',
-                                    -- Repo-scoped fff servers declared in the *global* MCPHub
-                                    -- config (`servers.json`): fuzzy find / grep over the
-                                    -- read-only Databricks checkouts `~/universe` and `~/runtime`
-                                    -- from any CWD (notes, investigations, worktrees). Their
-                                    -- commands are guarded on the checkout existing, so on
-                                    -- machines without these repos they never connect and the
-                                    -- references below degrade to no-ops.
-                                    'fff_universe',
-                                    'fff_runtime',
+                                    -- fff servers are deliberately NOT listed here.  The project-scoped
+                                    -- ones are created on demand by `.project.lua` and named
+                                    -- `fff_<project>_<hash>` (see `lua/project/mcp.lua`), so no static
+                                    -- list can name them.  `sync_fff_tools()` below rewrites the `fff*`
+                                    -- entries of this very table from the hub's connected servers.
                                 },
                             },
                             groups = {
@@ -1230,6 +1223,41 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                 end
             end
 
+            -- Keep the `fff*` entries of `default_tools` in sync with the hub's connected servers.
+            --
+            -- Project-scoped fff servers are created on the fly by `.project.lua` (see
+            -- `lua/project/mcp.lua`) and named `fff_<project>_<hash>`, so they cannot be listed statically.
+            -- CodeCompanion reads `default_tools` when a chat is created (`chat/init.lua`), so rewriting
+            -- that live table is enough for every chat opened afterwards.
+            local function sync_fff_tools()
+                local tools = require('codecompanion.config').interactions.chat.tools.opts.default_tools
+                if not tools then return end
+
+                for i = #tools, 1, -1 do
+                    if type(tools[i]) == 'string' and tools[i]:match('^fff') then table.remove(tools, i) end
+                end
+                for _, server in ipairs((require('mcphub.state').server_state or {}).servers or {}) do
+                    local name = server.name
+                    if type(name) == 'string' and name:match('^fff') and server.status == 'connected' then
+                        table.insert(tools, name)
+                    end
+                end
+            end
+
+            -- Project-scoped fff servers persist in the hub's config file across restarts, so once per
+            -- session drop the ones whose project is gone and disable the ones this session has not asked
+            -- for (see `lua/project/mcp.lua`).  `sweep()` reports false until the hub config is loaded, so
+            -- this keeps trying on later events.
+            local project_servers_swept = false
+            local function sweep_project_servers()
+                if project_servers_swept then return end
+                local ok, project_mcp = pcall(require, 'project.mcp')
+                if not ok then return end
+
+                local swept_ok, swept = pcall(project_mcp.sweep)
+                project_servers_swept = swept_ok and swept or false
+            end
+
             -- When MCPHub finishes registering tools/resources (may happen after chat is already open),
             -- rebuild meta-groups and refresh tools + editor_context (variables) on all open chats.
             -- The mcphub CC extension's initial vim.schedule(M.register) often runs before the hub
@@ -1238,6 +1266,8 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
             require('mcphub').on({ 'servers_updated', 'tool_list_changed', 'resource_list_changed' },
                 vim.schedule_wrap(function()
                     build_meta_groups()
+                    sweep_project_servers()
+                    sync_fff_tools()
                     local EditorContext = require('codecompanion.interactions.shared.editor_context')
                     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
                         if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == 'codecompanion' then
