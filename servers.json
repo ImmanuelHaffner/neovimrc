@@ -338,7 +338,7 @@
     "fff_runtime": {
       "args": [
         "-c",
-        "d=\"$HOME/runtime\"; [ -d \"$d\" ] || { echo \"fff_runtime: $d does not exist on this machine, not starting\" >&2; exit 1; }; cd \"$d\" && exec fff-mcp \"$d\" --no-watch --no-update-check"
+        "d=\"$HOME/runtime\"; [ -d \"$d\" ] || { echo \"fff_runtime: $d does not exist on this machine, not starting\" >&2; exit 1; }; cd \"$d\" && exec fff-mcp \"$d\" --no-watch --no-update-check --no-warmup --content-indexing"
       ],
       "autoApprove": [
         "find_files",
@@ -355,7 +355,7 @@
     "fff_universe": {
       "args": [
         "-c",
-        "d=\"$HOME/universe\"; [ -d \"$d\" ] || { echo \"fff_universe: $d does not exist on this machine, not starting\" >&2; exit 1; }; cd \"$d\" && exec fff-mcp \"$d\" --no-watch --no-update-check"
+        "d=\"$HOME/universe\"; [ -d \"$d\" ] || { echo \"fff_universe: $d does not exist on this machine, not starting\" >&2; exit 1; }; cd \"$d\" && exec fff-mcp \"$d\" --no-watch --no-update-check --no-warmup --content-indexing"
       ],
       "autoApprove": [
         "find_files",
