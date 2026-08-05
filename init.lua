@@ -44,7 +44,7 @@ require'lazy'.setup{
 }
 
 -- Load our neovim utilities (after loading plugins)
-local Utils = require'utils'
+require'utils'
 
 -- Configure LSPs
 require'lsp'.setup()
@@ -68,11 +68,5 @@ vim.api.nvim_create_autocmd('UIEnter', {
 })
 
 -- Support for project-specific config {{{------------------------------------------------------------------------------
-local LoadProjectConfig = vim.api.nvim_create_augroup('LoadProjectConfig', { clear = false })
-vim.api.nvim_create_autocmd('DirChanged', {
-    group = LoadProjectConfig,
-    pattern = 'global',
-    callback = Utils.load_project_config,
-})
-Utils.load_project_config()
+require'project'.setup()
 ---}}}------------------------------------------------------------------------------------------------------------------

@@ -70,13 +70,9 @@ function M.get_vim_mode_info()
     return current_mode or { colors.dark_red, 'UNKNOWN ' .. mode }
 end
 
---- Load project-specific configuration from `.project.lua` or `.project.vim`.
-function M.load_project_config()
-    if vim.fn.filereadable('.project.lua') == 1 then
-        vim.cmd[[luafile .project.lua]]
-    elseif vim.fn.filereadable('.project.vim') == 1 then
-        vim.cmd[[source .project.vim]]
-    end
-end
+--- Load project-specific configuration for the current directory.
+---
+--- @deprecated Use `require'project'.load()` instead; kept so existing callers keep working.
+function M.load_project_config() require'project'.load() end
 
 return M
