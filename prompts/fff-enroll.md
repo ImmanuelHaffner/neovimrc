@@ -1,7 +1,7 @@
 ---
 name: Enroll Project in FFF
 interaction: chat
-description: Drop an MCPHub workspace config so the fff MCP server runs rooted at this project, then verify it connects
+description: Give this project its own fff MCP server by writing or extending its `.project.lua`, then verify it connects
 opts:
   auto_submit: true
   is_slash_cmd: true
@@ -14,98 +14,92 @@ opts:
 
 ## system
 
-You enroll the current project into the **fff** MCP server (fff.nvim's `fff-mcp` binary) by creating an MCPHub *workspace* config at the project root.
+You enroll the current project into a **project-scoped fff MCP server** by writing (or extending) that project's `.project.lua`.
 
-### Why this is needed
+### Why a project-scoped server exists at all
 
-`fff-mcp` refuses to index a filesystem root or a home directory: it errors with *"Can not run certain FFF features in a file system root or home directories. Consider smaller per-project directories."* The server's base path defaults to its process's current working directory. Under a **global** MCPHub hub, that cwd is wherever Neovim started (often `~`), so fff fails to start.
+`fff-mcp` indexes one base path, and it refuses a filesystem root or a home directory: *"Can not run certain FFF features in a file system root or home directories. Consider smaller per-project directories."* Its base path defaults to the process cwd, so it has to be told an explicit project root.
 
-The fix is MCPHub's **workspace** feature. When a project root contains a marker file — one of `.mcphub/servers.json`, `.vscode/mcp.json`, `.cursor/mcp.json` — MCPHub spawns an isolated *workspace hub* rooted at that project (its cwd becomes the project directory) and **merges** the project config over the global one. A per-project `fff` entry therefore starts rooted at the project and indexes successfully. A generic, project-rooted `fff` server is deliberately absent from the global config — there is no sane global base path for it — so it is *only* ever provided per-project via this enrollment.
+Two flavours coexist:
 
-### The marker file to write
+- **Static and global** — `fff_universe` and `fff_runtime` in `servers.json`, pinned to the read-only checkouts `~/universe` and `~/runtime`. One process each, reachable from any cwd.
+- **Project-scoped** — one `fff-mcp` per project root, registered at runtime by `require'project.mcp'.fff{ root = … }` from the project's `.project.lua`. Shared by every Neovim instance on the hub.
 
-Write `<project-root>/.mcphub/servers.json` with exactly this content (the `${workspaceFolder}` placeholder is expanded by MCPHub to the workspace hub's cwd — i.e. the project root — and passed to `fff-mcp` as its explicit base-path argument, belt-and-suspenders against any inherited cwd):
+MCPHub *workspace hubs* and `.mcphub/servers.json` markers are **retired** (`workspace.enabled = false`). A workspace hub re-spawns every enabled global server, so each enrolled project used to carry duplicate universe and runtime indexes; three universe indexes at ~3.2 GiB apiece were once live simultaneously. Never create a `.mcphub/` marker.
 
-```json
-{
-  "mcpServers": {
-    "fff": {
-      "command": "fff-mcp",
-      "args": ["${workspaceFolder}"],
-      "autoApprove": ["find_files", "grep", "multi_grep"]
-    }
-  }
+### The `.project.lua` contract
+
+The file is loaded by `require'project'` (`lua/project.lua` in the neovimrc repo):
+
+- The root is found by walking up from the directory entered, **bounded** by the enclosing repository and never resolving an ancestor at or above `$HOME`.
+- The file is read through `vim.secure.read`, which prompts once per file *version*.
+- The chunk runs **once per session** (re-run only if the file's mtime changes); `load(ctx)` runs on **every** directory change into the project — including bare window and tab switches — so `load` must be idempotent.
+- `ctx` is `{ root, cwd, cd_mode, first, changed_window }`, where `cd_mode` is `'global'`, `'tabpage'` or `'window'`.
+
+A minimal enrollment file is therefore:
+
+```lua
+return {
+    load = function(ctx)
+        require'project.mcp'.fff{ root = ctx.root }
+    end,
 }
 ```
 
 ### Procedure
 
-Follow these steps in order. Prefer Neovim MCP file tools for all file operations (they surface reviewable diffs); use shell only for inspection.
+Use Neovim MCP file tools for edits (they surface reviewable diffs); use shell only for inspection.
 
-1. **Determine the project root.** Walk up from the active buffer's directory looking for a marker; stop at the first hit. Fall back to the window's effective cwd if none is found, and if still ambiguous, ask the user.
+1. **Resolve the project root.** Prefer the enclosing repository:
 
    ```lua
-   local markers = { '.git', '.nvim.lua', 'Cargo.toml', 'pyproject.toml',
-                     'package.json', 'build.sbt', 'BUILD', 'WORKSPACE', 'MODULE.bazel' }
    local buf_path = vim.api.nvim_buf_get_name(0)
-   local root = vim.fs.root(buf_path, markers)
-             or (buf_path ~= '' and vim.fs.dirname(buf_path))
+   local root = vim.fs.root(buf_path ~= '' and buf_path or vim.fn.getcwd(),
+                            { '.git', '.nvim.lua', 'Cargo.toml', 'pyproject.toml', 'package.json',
+                              'build.sbt', 'BUILD', 'WORKSPACE', 'MODULE.bazel' })
              or vim.fn.getcwd()
    print('project root: ' .. tostring(root))
    ```
 
-2. **Guard against root / home.** If the resolved root is `/`, the user's home directory (`vim.uv.os_homedir()`), or empty, **stop** and tell the user — enrolling one of these is exactly what fff refuses. Ask for a narrower project directory.
+2. **Refuse the cases that must not be enrolled.** Stop and explain if the root is `/`, the home directory (`vim.uv.os_homedir()`), or empty. Also refuse `~/universe` and `~/runtime`: those trees are already served by the static global servers, so a project server would be a second index of the same files. Point the user at the corresponding worktree under `~/worktrees/**` instead.
 
-3. **Check for an existing marker.** If `<root>/.mcphub/servers.json` already exists, read it. If it already defines an `fff` server, report that the project is already enrolled and skip to verification (step 6). If the file exists but has *other* servers and no `fff`, **merge** the `fff` entry into its `mcpServers` rather than overwriting — preserve the user's existing servers.
+3. **Inspect any existing `.project.lua`** at the root and pick the matching path:
+   - **No file** — create the minimal file shown above.
+   - **New contract** (returns a table with `load`) — add the `require'project.mcp'.fff{ root = ctx.root }` call inside the existing `load`, leaving the rest untouched. If it already calls `fff`, report that the project is already enrolled and skip to verification.
+   - **Legacy** (returns nothing, just side effects) — convert it. Move one-time work into a `configure(root)` helper called from `load` behind a chunk-level `local configured = false` upvalue, and make each operation individually idempotent, because an mtime change re-runs the chunk and resets that guard: create augroups with a per-root name and `clear = true`, and *upsert* list entries (e.g. dap configurations, matched by `name`) rather than appending them. Then add the fff call. Summarise every semantic change you made.
 
-4. **Write the marker.** Create `<root>/.mcphub/servers.json` (or the merged version) using the Neovim file-writing tool. Never write into a deployed/config directory; write into the actual project root.
-
-5. **Trigger workspace detection.** MCPHub only re-detects a workspace on a `DirChanged` event, so a freshly-created marker is not picked up until the cwd changes. Rather than forcing a `:cd`, invoke the detection directly and wait for the async hub switch:
+4. **Load it.** The loader caches per root, so force a re-read and invoke it:
 
    ```lua
-   local State = require('mcphub.state')
-   local hub = State.hub_instance
-   if hub then
-     -- Show what will be resolved (workspace port should differ from the current global port)
-     local ok, ctx = pcall(function() return hub:resolve_context() end)
-     if ok and ctx then
-       print(('resolved: workspace=%s root=%s port=%s'):format(
-         tostring(ctx.is_workspace_mode), tostring(ctx.workspace_root), tostring(ctx.port)))
-     end
-     hub:handle_directory_change()   -- same path the DirChanged autocmd runs
-   else
-     print('no MCPHub hub_instance — is MCPHub running?')
+   local project = require 'project'
+   project.reload(root)
+   project.load('global', root)
+   ```
+
+   The first read triggers a `vim.secure` trust prompt for the file; the user must accept it once.
+
+5. **Verify.**
+
+   ```lua
+   vim.print(require('project.mcp').status())
+   for _, s in ipairs((require('mcphub.state').server_state or {}).servers or {}) do
+       if s.name:match('^fff') then print(('%s: %s'):format(s.name, tostring(s.status))) end
    end
    ```
 
-   The switch is asynchronous (it stops the current transport, then schedules a fresh `start()`), so give it a few seconds before verifying.
-
-6. **Verify fff connected.** Confirm the current hub is a workspace hub rooted at the project and that `fff` reports `connected`:
-
-   ```lua
-   vim.wait(3000, function() return false end)
-   local State = require('mcphub.state')
-   local cur = State.current_hub
-   print(('current hub: workspace=%s root=%s port=%s'):format(
-     tostring(cur and cur.is_workspace_mode), tostring(cur and cur.workspace_root), tostring(cur and cur.port)))
-   for _, s in ipairs((State.server_state or {}).servers or {}) do
-     if s.name == 'fff' then print('fff status: ' .. tostring(s.status)) end
-   end
-   ```
-
-   If `fff` is `connected`, do a tiny live check by calling the fff `find_files` tool with a filename you expect in this project (e.g. `.mcphub/servers.json` itself). Results rooted at the project — not a `FilesystemRoot` error — confirm success.
+   The project's server is named `fff_<basename>_<hash>`. Once its status is `connected`, call its `find_files` tool with a filename you expect in this project; results rooted at the project confirm success. Note that a fresh index takes a moment on a large tree.
 
 ### Notes and caveats
 
-- Everyday use does not need step 5: opening Neovim in (or `:cd`-ing into) a project that already has the marker triggers detection automatically. This prompt exists for the *first* enrollment, when the marker is created while already sitting in the project.
-- MCPHub's own guidance is to use `:cd` (not a shell `cd`) so `DirChanged` fires; workspace switching also requires `reload_on_dir_changed = true` (the default).
-- Enrolling any project is fine, including the read-only checkouts `~/universe` and `~/runtime`: the read-only rule covers only *committed source*, and `.mcphub/servers.json` is a local, untracked config file, not committed source. Just keep the marker untracked (e.g. via a local ignore) rather than committing it into these checkouts. Worktrees under `~/worktrees/**` are of course fine too.
-- Commit the new `.mcphub/servers.json` with the project's own commit conventions if the user wants it tracked; otherwise leave it untracked.
+- `.project.lua` is machine-local: it is covered by the global gitignore, so never commit it and never add it to a repository's tracked files.
+- Do not hand-roll fff flags. They live in `M.config.fff_args` in `lua/project/mcp.lua` (`--no-warmup --content-indexing --no-update-check`, with the file watcher deliberately left on).
+- `M.config.max_active` caps how many project servers run at once; registering a further one stops the least recently used and marks it `disabled`. That is expected, not a failure.
+- If the hub is not ready yet, registration still writes the entry and the hub spawns it when it starts, so a "not ready" message is benign.
 
 ### Report
 
-Finish with a short summary: the project root, the path written, whether it was a fresh create or a merge, the workspace hub port, and fff's final status.
+Finish with a short summary: the project root, whether the `.project.lua` was created, extended or converted, what changed semantically, the server name, and its final status.
 
 ## user
 
-Enroll the current project into the fff MCP server. Detect the project root, write the `.mcphub/servers.json` marker there (merging if one already exists), trigger MCPHub workspace detection, and verify that `fff` connects rooted at the project. Report the result.
+Enroll the current project into a project-scoped fff MCP server. Resolve the project root, refuse the cases that must not be enrolled, write or extend the project's `.project.lua`, load it, and verify the server connects. Report what you changed.
