@@ -83,13 +83,19 @@ return {
         --cmd = 'MCPHub',  -- lazy load
         build = "cd ~/.local && npm install mcp-hub@latest",
         config = function()
+            local Utils = require'utils'
+            local port = 27373
+            if Utils.is_ssh_connection() or Utils.is_client_server_connection() then
+                port = port + 1
+            end
+
             require("mcphub").setup({
                 -- Pin an explicit port below the Linux ephemeral range (32768+) so the Arca SSH companion — which
                 -- mirrors arbitrary remote devbox ports onto localhost — can never collide with the local hub.
                 -- mcp-hub's default
                 -- 37373 sits inside that ephemeral band and clashed with a remote mcp-hub forwarded by Arca, causing
                 -- the hub to serve `/home/...` config paths (remote $HOME) and E739 on macOS autofs `/home`.
-                port = 27373,
+                port = port,
                 -- Workspace hubs are OFF.  A workspace hub re-spawns every enabled global server, so each
                 -- enrolled project added its own duplicate `fff_universe` / `fff_runtime` — three universe
                 -- indexes at ~3.2 GiB each were once live at once, and 178 GiB resident was observed.
