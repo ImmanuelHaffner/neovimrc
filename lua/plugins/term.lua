@@ -139,14 +139,18 @@ return {
                 end,
             }
 
-            -- Open a file from Lazygit in a new tab.  Lazygit's `os.edit` / `os.editAtLine` (see
-            -- `~/Documents/dotfiles/lazygit.yml`) invoke this through `nvr -c`, that is, as an RPC
-            -- *command*.
+            -- Open a file from Lazygit in a new tab.  Lazygit's `os.edit` / `os.editAtLine` /
+            -- `os.editAtLineAndWait` (see `dotfiles/lazygit.yml`) invoke this through `nvr`,
+            -- that is, as an RPC *command*.
             --
             -- Never go back to `nvr --remote-send ':tabedit …<cr>'`: `--remote-send` feeds key presses
             -- into whichever window has focus, so as soon as focus sits on a terminal in Terminal-mode,
             -- which is precisely what happens when Lazygit was opened from a `:terminal` tab, the Ex
             -- command is typed into that shell instead of being executed by Neovim.
+            --
+            -- With a bang, Lazygit is *waiting* for the file to be closed again (`os.editAtLineAndWait`,
+            -- the `E` hunk edit): keep Lazygit around, because it resumes and rebuilds the patch
+            -- afterwards, and let the buffer die with its window so that nvr stops waiting.
             vim.api.nvim_create_user_command('LazygitEdit', function(cmd)
                 -- `+<line> <file>` comes from `editAtLine`, a bare `<file>` from `edit`.
                 local line, file = cmd.args:match('^%+(%d+)%s+(.+)$')
@@ -157,15 +161,29 @@ return {
 
                 -- Close Lazygit and return to the tab it was opened from, so the file's tab lands right
                 -- next to it, just like the former `<C-q>`-then-edit dance did.
-                local previous_tab = lazygit.previous_tab
-                if lazygit:is_open() then lazygit:close() end
-                if previous_tab and vim.api.nvim_tabpage_is_valid(previous_tab) then
-                    vim.api.nvim_set_current_tabpage(previous_tab)
+                if not cmd.bang then
+                    local previous_tab = lazygit.previous_tab
+                    if lazygit:is_open() then lazygit:close() end
+                    if previous_tab and vim.api.nvim_tabpage_is_valid(previous_tab) then
+                        vim.api.nvim_set_current_tabpage(previous_tab)
+                    end
                 end
 
                 local at_line = line and ('+' .. line .. ' ') or ''
                 vim.cmd('silent tabedit ' .. at_line .. vim.fn.fnameescape(file))
-            end, { nargs = '+', desc = 'Lazygit: open [+<line>] <file> in a new tab' })
+
+                if cmd.bang then
+                    -- `nvr --remote-wait` returns only once the buffer is DELETED (it hooks `BufDelete`),
+                    -- so make closing this window enough to release Lazygit.
+                    vim.bo.bufhidden = 'delete'
+                    if #vim.fn.win_findbuf(vim.api.nvim_get_current_buf()) > 1 then
+                        -- Another window keeps the buffer alive, so closing this one would leave Lazygit
+                        -- suspended with no hint as to why.
+                        vim.notify('Lazygit waits until this buffer is deleted; it is open in another '
+                            .. 'window too, so close that one or `:bdelete` to return.', vim.log.levels.WARN)
+                    end
+                end
+            end, { nargs = '+', bang = true, desc = 'Lazygit: open [+<line>] <file> in a new tab' })
 
             local claude_code = Terminal:new{
                 cmd = 'llm agent claude',
