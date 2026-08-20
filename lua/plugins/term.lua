@@ -52,7 +52,7 @@ return {
                 -- `<C-\>` hides the terminal you are in.  Since `<C-\>` is only a *prefix* of that mapping,
                 -- `<C-\><C-n>` keeps working.
                 on_create = function(term)
-                    vim.keymap.set('t', [[<C-\><C-\>]], function() term:close() end,
+                    vim.keymap.set({ 'n', 't' }, [[<C-\><C-\>]], function() term:close() end,
                         { buffer = term.bufnr, desc = 'Hide terminal' })
                 end,
                 float_opts = {
