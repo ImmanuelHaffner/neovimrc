@@ -20,14 +20,13 @@ local function setup_metals()
     }
 
     metals_config.init_options.statusBarProvider = 'off'
+    -- metals is started by nvim-metals rather than `vim.lsp.enable`, so it never goes
+    -- through `vim.lsp.config` resolution and has to inherit the global `capabilities`
+    -- explicitly. It needs no `on_attach` wiring: `LspAttach` fires for every client
+    -- however it was started, so the global setup in `M.setup()` covers metals too.
     local global_config = vim.lsp.config['*']
-    if global_config then
-        if global_config.on_attach then
-            metals_config.on_attach = global_config.on_attach
-        end
-        if global_config.capabilities then
-            metals_config.capabilities = global_config.capabilities
-        end
+    if global_config and global_config.capabilities then
+        metals_config.capabilities = global_config.capabilities
     end
     metals_config.capabilities.workspace = metals_config.capabilities.workspace or {}
     metals_config.capabilities.workspace.semanticTokens = metals_config.capabilities.workspace.semanticTokens or {}
@@ -71,8 +70,31 @@ function M.setup()
         ),
         -- Common root markers
         root_markers = { '.git' },
-        -- Global on_attach that will be called for all servers
-        on_attach = function(client, bufnr)
+    })
+
+    -- Global on-attach behaviour, installed as an `LspAttach` autocmd rather than as an
+    -- `on_attach` field in the `'*'` config above.
+    --
+    -- Neovim resolves a server config as
+    --     vim.tbl_deep_extend('force', config['*'], <rtp lsp/NAME.lua>, config[NAME])
+    -- so `'*'` has the *lowest* precedence -- below the `lsp/NAME.lua` files shipped by
+    -- nvim-lspconfig. Functions cannot be merged, so any server that ships its own
+    -- `on_attach` silently replaces ours; nvim-lspconfig does precisely that for `texlab`
+    -- and `clangd`, which used to cost `texlab` its statusline progress and its navic
+    -- breadcrumbs. `LspAttach` fires for every client on every buffer, outside that
+    -- precedence chain, so no upstream change can shadow it.
+    --
+    -- Note this runs once per attaching *client*, not once per buffer: a `.tex` buffer
+    -- attaches both `ltex` and `texlab`, so the body below must stay idempotent.
+    local lsp_attach_group = vim.api.nvim_create_augroup('user-lsp-attach', { clear = true })
+    vim.api.nvim_create_autocmd('LspAttach', {
+        group = lsp_attach_group,
+        desc = 'Global LSP keymaps and UI setup for every attaching client',
+        callback = function(args)
+            local client = vim.lsp.get_client_by_id(args.data.client_id)
+            if not client then return end
+            local bufnr = args.buf
+
             -- Keymaps and UI setup
             local buf = vim.lsp.buf
             local diag = vim.diagnostic
@@ -158,32 +180,23 @@ function M.setup()
             },
         },
         handlers = lsp_status.extensions.clangd.setup(),
-        on_attach = function(client, bufnr)
-            -- Call the global on_attach first
-            local global_config = vim.lsp.config['*']
-            if global_config and global_config.on_attach then
-                global_config.on_attach(client, bufnr)
-            end
-
-            -- Clangd-specific setup
-            -- Clangd extensions (uncomment if needed)
-            --require("clangd_extensions.inlay_hints").setup_autocmd()
-            --require("clangd_extensions.inlay_hints").set_inlay_hints()
-        end,
+        -- Deliberately no `on_attach` here: the global setup lives in the `LspAttach`
+        -- autocmd above, and leaving this key unset lets nvim-lspconfig's own clangd
+        -- `on_attach` register its buffer-local `LspClangdSwitchSourceHeader` and
+        -- `LspClangdShowSymbolInfo`. The `<leader>ls*` keymaps call the global commands
+        -- from clangd_extensions.nvim instead, so both remain available.
+        -- Clangd extensions (uncomment if needed):
+        --require("clangd_extensions.inlay_hints").setup_autocmd()
+        --require("clangd_extensions.inlay_hints").set_inlay_hints()
     }
 
     -- Configure ltex
     vim.lsp.config.ltex = {
         filetypes = { 'tex' },
         root_markers = { '.latexmkrc', 'latexmkrc', '.git' },
-        on_attach = function(client, bufnr)
-            -- Call the global on_attach first
-            local global_config = vim.lsp.config['*']
-            if global_config and global_config.on_attach then
-                global_config.on_attach(client, bufnr)
-            end
-
-            -- ltex-specific setup
+        -- Global setup now comes from the `LspAttach` autocmd above, so this does only
+        -- the ltex-specific part.
+        on_attach = function()
             require("ltex_extra").setup{
                 load_langs = { 'en_US', 'de_DE' },
                 path = '.ltex',
