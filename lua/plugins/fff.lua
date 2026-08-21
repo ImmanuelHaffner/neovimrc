@@ -1,6 +1,7 @@
 return {
     {
-        'dmtrKovalenko/fff.nvim',
+        -- Upstream renamed the repo from `fff.nvim` to `fff`; the Lua module is still `fff`.
+        'dmtrKovalenko/fff',
         build = function(plugin)
             -- Downloads the picker binary the Lua plugin loads (or `cargo build`).
             require'fff.download'.download_or_build_binary()
