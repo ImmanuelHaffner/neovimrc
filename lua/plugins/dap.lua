@@ -48,6 +48,12 @@ return {
     },
     {
         'igorlfs/nvim-dap-view',
+        -- Must NOT be lazy-loaded: `auto_toggle` and the inline `virtual_text` below are
+        -- driven by `dap.listeners` that are only registered once `setup()` runs, so a
+        -- plugin loaded on first keypress silently misses every session started before
+        -- it.  Upstream advises against lazy-loading it for the same reason.
+        lazy = false,
+        dependencies = { 'mfussenegger/nvim-dap' },
         ---@module 'dap-view'
         ---@type dapview.Config
         opts = {
