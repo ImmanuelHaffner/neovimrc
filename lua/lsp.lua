@@ -165,7 +165,6 @@ function M.setup()
             '--fallback-style=GNU',
             '--header-insertion=iwyu',
             '--enable-config',
-            '--malloc-trim',
             '--pch-storage=memory',
         },
         filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda', 'proto', 'yacc', 'lex' },
