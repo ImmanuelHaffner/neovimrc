@@ -73,8 +73,8 @@ return {
         --       variables→editor_context rename, output handler changes, image API).
         --       Upstream looks dormant (last commit 2026-01-18); alternative PR #287
         --       was closed unmerged on 2026-06-01. Don't expect quick resolution.
-        'bahaaza/mcphub.nvim',
-        commit = 'f94e1c8e1aea68c3f8f6df5cf51c752033584fd0',
+        'ImmanuelHaffner/mcphub.nvim',
+        branch = 'dev',
         dependencies = {
             'nvim-lua/plenary.nvim',  -- Required for Job and HTTP requests
             'Joakker/lua-json5',
@@ -152,7 +152,7 @@ return {
         dependencies = {
             'nvim-lua/plenary.nvim',
             'nvim-treesitter/nvim-treesitter',
-            'bahaaza/mcphub.nvim',  -- TODO: switch back to 'ravitemer/mcphub.nvim' after PR #279 merged
+            'ImmanuelHaffner/mcphub.nvim',
             -- 'zbirenbaum/copilot.lua',
             -- 'CopilotC-Nvim/CopilotChat.nvim',
             'folke/which-key.nvim',
