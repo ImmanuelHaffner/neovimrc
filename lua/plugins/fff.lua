@@ -6,10 +6,9 @@ return {
             -- Downloads the picker binary the Lua plugin loads (or `cargo build`).
             require'fff.download'.download_or_build_binary()
             -- Also install the standalone `fff-mcp` server binary consumed by
-            -- MCPHub (registered in servers.json). We invoke the plugin's own
-            -- bundled installer so the MCP version is pinned to the plugin
-            -- revision locked in lazy-lock.json -- one version-controlled pin,
-            -- no second SHA table to hand-bump.
+            -- MCPHub (registered in servers.json). The installer resolves the latest
+            -- stable *release* of fff-mcp, so its version is independent of the plugin
+            -- revision in lazy-lock.json and the two can drift apart.
             local installer = plugin.dir .. '/install-mcp.sh'
             if vim.uv.fs_stat(installer) then
                 local out = vim.system({ 'bash', installer }, { text = true }):wait()
