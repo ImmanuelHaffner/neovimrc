@@ -42,7 +42,6 @@ return {
                 'xcompose',
                 'xresources',
                 'yaml',
-                'zathurarc',
             }
 
             if Utils.has_tree_sitter_cli() then
