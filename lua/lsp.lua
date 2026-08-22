@@ -39,6 +39,12 @@ local function setup_metals()
     vim.api.nvim_create_autocmd('FileType', {
         pattern = { 'scala', 'sbt', 'java' },
         callback = function(opts)
+            -- Register the `scala` DAP adapter.  nvim-metals never does this itself, and
+            -- without it neither our `dap.configurations.scala` entries nor the run/debug
+            -- code lenses can start a session.  Upstream documents the call for metals'
+            -- `on_attach`, which we no longer use; it only assigns an adapter function and
+            -- is idempotent, so this hook is an equivalent site.
+            metals.setup_dap()
             metals.initialize_or_attach(metals_config)
             wk.add({
                 buffer = opts.buf,
