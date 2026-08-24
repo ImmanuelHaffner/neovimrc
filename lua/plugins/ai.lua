@@ -106,23 +106,6 @@ return {
                 -- $HOME-rooted hub that merged Cursor's ~17 duplicate Databricks servers over ours.
                 workspace = { enabled = false },
             })
-            -- Register nvu.nvim's structured-edit tools
-            -- (`neovim__apply_edit`, `neovim__read_with_fingerprint`) as
-            -- siblings of mcphub's built-in `neovim__edit_file`. Loaded
-            -- after setup{} so the native `neovim` server already exists.
-            -- The adapter self-fires `tool_list_changed` on the mcphub
-            -- State bus so the CodeCompanion bridge re-scans and exposes
-            -- the new tools in chat — no extra nudge needed here.
-            -- Guarded with pcall so a missing/broken nvu.nvim checkout doesn't
-            -- break the whole mcphub config (and CodeCompanion startup).
-            local ok, err = pcall(require, 'mcphub._native.edit')
-            if not ok then
-                vim.notify(
-                    'mcphub._native.edit failed to load: ' .. tostring(err),
-                    vim.log.levels.WARN,
-                    { title = 'nvu.edit' }
-                )
-            end
         end
     },
     {

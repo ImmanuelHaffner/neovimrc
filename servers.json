@@ -466,8 +466,7 @@
         "execute_command",
         "list_directory",
         "read_file",
-        "read_with_fingerprint",
-        "apply_edit"
+        "read_with_fingerprint"
       ],
       "disabled": false,
       "disabled_resources": [],
