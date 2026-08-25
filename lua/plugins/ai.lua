@@ -751,30 +751,6 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                         callback = 'codecompanion._extensions.event_bus',
                         opts = {},
                     },
-                    -- MCP tool output size guard: spills oversized tool responses to disk and replaces
-                    -- the inline payload with a short summary + path + usage hints (rg/jq/head).
-                    -- Catches every MCP server uniformly via the single mcphub output handler.
-                    -- Defaults: 20k tokens / 96 KB / 2000 lines (whichever trips first).
-                    mcp_size_guard = {
-                        callback = 'codecompanion._extensions.mcp_size_guard',
-                        opts = {
-                            -- Bypass the size guard for tools whose contract is to deliver content
-                            -- or perform structured edits — spilling those is counter-productive
-                            -- (a `read_with_fingerprint` whose payload is spilled defeats the whole
-                            -- point of getting the content into the LLM's working set).
-                            -- Execution tools (execute_command, execute_lua) stay guarded: their
-                            -- output is opaque and often huge (rg dumps, vim.inspect of big tables).
-                            skip = {
-                                'neovim__apply_edit',
-                                'neovim__delete_items',
-                                'neovim__edit_file',
-                                'neovim__list_directory',
-                                'neovim__move_item',
-                                'neovim__read_with_fingerprint',
-                                'neovim__write_file',
-                            },
-                        },
-                    },
                     mcphub = {
                         callback = 'mcphub.extensions.codecompanion',
                         opts = {
