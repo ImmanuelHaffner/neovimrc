@@ -49,6 +49,9 @@ return {
                         }
                     end,
                 },
+                ui = {
+                    style = 'modern',
+                },
                 quick_keys = true,
             }
 
