@@ -40,7 +40,7 @@
   "markview.nvim": { "branch": "dev", "commit": "70df6ca3211aadbf2fd05e578e6aa9d5b5a7c068" },
   "mason-lspconfig.nvim": { "branch": "main", "commit": "9d28935aa95fa6c1dc7c4d6747f101a72a8a4bec" },
   "mason.nvim": { "branch": "main", "commit": "2a6940af80375532e5e9e7c1f2fc6319a1b7a69d" },
-  "mcphub.nvim": { "branch": "dev", "commit": "93a9983a19049dcc445d5ef2c7defed7c0106731" },
+  "mcphub.nvim": { "branch": "dev", "commit": "79dd3089d4dc8d0ba7b83129ff24d4c9e6600550" },
   "mdx.nvim": { "branch": "main", "commit": "6c3dc7c4a4b58b5d86404c21a9b4655282ca08c5" },
   "neo-tree.nvim": { "branch": "v3.x", "commit": "ebd66767191714e008ce73b769518a763ff31bdc" },
   "neovim-session-manager": { "branch": "master", "commit": "89d253a6c68af60b49570044591d5b8701866601" },
