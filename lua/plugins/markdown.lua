@@ -1,11 +1,60 @@
 return {
     {
         'euclio/vim-markdown-composer',
-        -- Only load on local instances (servername starts with '/') and not over SSH
+        -- Only load on local instances (servername starts with '/'), not over SSH, and only when the
+        -- Rust server has actually been built.  Test the built artefact rather than
+        -- `executable('markdown-composer')`: the binary is invoked by absolute path and never lands on
+        -- $PATH, so a PATH probe would keep the plugin dormant even after a successful build.
         cond = function()
             local is_local = (vim.v.servername or ''):sub(1, 1) == '/'
             local is_ssh = vim.env.SSH_TTY ~= nil or vim.env.SSH_CONNECTION ~= nil
-            return is_local and not is_ssh
+            local binary = vim.g.markdown_composer_binary
+                or (vim.fn.stdpath('data') .. '/lazy/vim-markdown-composer/target/release/markdown-composer')
+            return is_local and not is_ssh and vim.fn.executable(binary) == 1
+        end,
+        -- The plugin's hooks are not crash-safe.  `s:onServerExit` tests `exists(s:job)` — the job
+        -- *value*, not the name `'s:job'` — so when the Rust server dies (it panics; see the plugin's
+        -- own `error.log`) `s:job` is never unlet.  Every later `BufEnter` then notifies a dead channel
+        -- (`E475: Channel doesn't exist`) while `s:startServer()` early-returns forever, so the preview
+        -- never recovers and the errors break any tooling that loads a `.md` buffer.
+        --
+        -- Replace those hooks with `silent!`-wrapped equivalents: live preview still works while a
+        -- server is alive, a dead one stays silent, and starting it is explicit (`:ComposerStart`).
+        init = function()
+            -- Only read by the hook stripped below, but keep the intent explicit.
+            vim.g.markdown_composer_autostart = 0
+        end,
+        config = function()
+            local group = vim.api.nvim_create_augroup('ComposerGuard', { clear = true })
+            -- Whether the preview server still answers.  Deliberately a bare `pcall` and NOT
+            -- `silent!`: the `!` makes the E475 raised inside the plugin's `s:sendBuffer` non-aborting,
+            -- so `pcall` would report success *and* the message would still be echoed (verified both
+            -- ways).  A bare `pcall` is silent and tells us the truth.  Once the server is gone the
+            -- plugin cannot restart it (`s:job` is never unlet, so `s:startServer()` early-returns),
+            -- so further attempts are pure waste — stop until the next markdown buffer re-arms us.
+            local alive = true
+            vim.api.nvim_create_autocmd({ 'BufEnter', 'TextChanged', 'TextChangedI' }, {
+                group = group,
+                pattern = { '*.md', '*.mkd', '*.markdown' },
+                callback = function()
+                    if not alive then return end
+                    alive = pcall(vim.cmd, 'ComposerUpdate')
+                end,
+                desc = 'Crash-safe vim-markdown-composer refresh',
+            })
+            -- The plugin's `after/ftplugin` re-creates its augroup on *every* markdown FileType, so a
+            -- single clear does not stick — re-strip it each time.  This is also the natural retry
+            -- point: re-arm here, so a dead server costs at most one failed call per markdown buffer
+            -- rather than one per keystroke.
+            vim.api.nvim_create_autocmd('FileType', {
+                group = group,
+                pattern = { 'markdown', 'pandoc' },
+                callback = function()
+                    pcall(vim.api.nvim_clear_autocmds, { group = 'markdown-composer' })
+                    alive = true
+                end,
+                desc = 'Strip vim-markdown-composer hooks (not crash-safe; see comment above)',
+            })
         end,
         build = { 'cargo build --release', ':UpdateRemotePlugins' }
     },
