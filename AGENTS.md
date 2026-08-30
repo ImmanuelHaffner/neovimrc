@@ -156,6 +156,22 @@ The adoption *had* taken effect; the inspection was looking at the wrong table.
 - In-editor help: `:help codecompanion`
 - Online documentation: https://codecompanion.olimorris.dev/
 
+#### The Databricks AI Gateway adapter is not in this repo
+
+It lives in the **private** `cc-db-aigateway.nvim`, wired in as a dependency of the codecompanion spec with `dev = true` and gated on that working copy existing, so this configuration starts clean on a machine without access to it.
+The plugin carries the internal workspace host, the serving-endpoint names, the probed per-model capability matrix and the credential layout — none of which belong in a public repository — and it registers the adapter itself from its `db_aigateway` CodeCompanion extension.
+
+What stays here is **policy**, not adapter internals:
+
+- The options the plugin reads, in the `db_opts` table: which adapter to register, under which display name, with which default model and preferred effort.
+- `get_default_adapter()`, the default-adapter ladder. It asks the plugin *whether* a credential resolves (`db.candidates()`) and decides *which* adapter wins, falling back to `copilot`. With the plugin absent the candidate list is empty and copilot is chosen, so nothing here needs to know what a credential looks like.
+
+Two consequences worth knowing before editing that seam:
+
+- **`db.setup(db_opts)` must run before the ladder.** `get_default_adapter()` is evaluated while the argument to `cc.setup()` is still being built, hence before CodeCompanion loads extensions — so without that explicit call the ladder would read the plugin's pristine defaults and could name an adapter the extension never registers.
+- **Adapter behaviour is debugged in the plugin, not here.** If a model 400s, the capability matrix (thinking shape, accepted `output_config.effort` values, prompt-cache support, output ceiling) is in that repository's README and `config.models.capabilities`. None of it is discoverable from the API, and every mismatch is a hard 400 rather than an ignored field.
+
+
 ### Lua Style
 - Maximum line width: 120 columns
 - Use `require'module'` syntax (single quotes, no parentheses for simple requires)

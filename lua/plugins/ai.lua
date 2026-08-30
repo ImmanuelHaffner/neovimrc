@@ -136,209 +136,74 @@ return {
             'nvim-lua/plenary.nvim',
             'nvim-treesitter/nvim-treesitter',
             'ImmanuelHaffner/mcphub.nvim',
+            -- Databricks AI Gateway adapters. Lives in a private repo, so this entry
+            -- names nothing but the repository itself.
+            --
+            -- Enabled only when that repo is already checked out locally. `enabled` is
+            -- evaluated before any plugin loads, so it cannot ask the plugin what it
+            -- needs; presence of the working copy is both the condition that actually
+            -- matters and one this file can test without knowing anything about
+            -- credentials. It also has to be tested, not assumed: `dev.fallback` is on
+            -- in init.lua, so a missing directory would send lazy off to clone a
+            -- repository this machine may have no access to, at every startup.
+            {
+                'ImmanuelHaffner/cc-db-aigateway.nvim',
+                url = 'git@ImmanuelHaffner:ImmanuelHaffner/cc-db-aigateway.nvim.git',
+                dev = true,
+                enabled = function()
+                    -- Mirrors `dev.path` from init.lua, which is lazy's own root.
+                    return vim.uv.fs_stat(vim.fn.stdpath('data') .. '/lazy/cc-db-aigateway.nvim') ~= nil
+                end,
+            },
             -- 'zbirenbaum/copilot.lua',
             -- 'CopilotC-Nvim/CopilotChat.nvim',
             'folke/which-key.nvim',
             -- 'Davidyz/VectorCode',
         },
         config = function()
-            -- Databricks workspace host. Serves both the AI Gateway
-            -- (/ai-gateway/...) and the serving-endpoints REST API (/api/2.0/...).
-            local DATABRICKS_AI_GATEWAY_URL = 'https://dbc-a5d4177a-49dc.cloud.databricks.com'
+            -- The Databricks AI Gateway adapter and everything it needs -- the workspace
+            -- host, the token file layout, the model catalogue and the per-model
+            -- capability matrix -- live in the private cc-db-aigateway.nvim. It
+            -- registers the adapter itself, from the `db_aigateway` extension
+            -- configured below, so this public repo names nothing but the extension
+            -- key and the adapter's display name.
+            --
+            -- Only the availability probe is still needed here, for the default-adapter
+            -- ladder, and it is guarded so this config keeps loading on a machine that
+            -- cannot see that plugin: the ladder then simply falls through to copilot.
+            local ok_db, db = pcall(require, 'cc_db_aigateway')
 
-            -- Databricks model-serving OAuth token, kept fresh by the managed
-            -- refresh_model_serving_token.sh hook (~/.config/llm-cli/hooks). The
-            -- token is short-lived and rotated, so it is read fresh on every
-            -- request rather than pulled once from the environment.
-            local MODEL_SERVING_TOKEN_PATH = vim.fn.expand('~/.databricks/model-serving-token.json')
-
-            --- Read the current bearer token from the model-serving token file.
-            --- @return string|nil token The OAuth access token, or nil if unavailable.
-            local function read_model_serving_token()
-                if vim.fn.filereadable(MODEL_SERVING_TOKEN_PATH) == 0 then
-                    return nil
-                end
-                local ok, content = pcall(vim.fn.readfile, MODEL_SERVING_TOKEN_PATH)
-                if not ok or not content or #content == 0 then
-                    return nil
-                end
-                local decoded_ok, data = pcall(vim.json.decode, table.concat(content, '\n'))
-                if not decoded_ok or type(data) ~= 'table' then
-                    return nil
-                end
-                return data.access_token
-            end
-
-            -- Per-model output-token ceilings. Neither the serving-endpoints API
-            -- nor the /v1/models list reports max_tokens (both omit it or return
-            -- 0); the only API-truth source is the validation error you get by
-            -- overshooting. These values were read off those errors on
-            -- 2026-07-23. Anything not listed falls back to DEFAULT_MAX_TOKENS.
-            local DEFAULT_MAX_TOKENS = 128000
-            local MODEL_MAX_TOKENS = {
-                ['databricks-claude-haiku-4-5'] = 200000,
-            }
-
-            -- Effort levels the gateway accepts for adaptive thinking
-            -- (output_config.effort). The serving-endpoints capabilities block
-            -- reports anthropic_reasoning=false for every Claude model, which is
-            -- wrong: the native /v1/messages path does return thinking content
-            -- for these efforts (verified 2026-07-23). So the support list is
-            -- hardcoded rather than derived from the (lying) capabilities API.
-            local SUPPORTED_EFFORTS = { 'low', 'medium', 'high', 'xhigh', 'max' }
-
-            -- Static fallback catalogue, used when the serving-endpoints fetch
-            -- fails (no token, offline, request error). Mirrors the ModelChoice
-            -- shape the base `anthropic` adapter consumes.
-            local FALLBACK_MODELS = {
-                ['databricks-claude-opus-4-8'] = {
-                    formatted_name = 'Claude Opus 4.8',
-                    meta = { max_tokens = DEFAULT_MAX_TOKENS },
-                    opts = { has_vision = true, can_reason = true, reasoning = { supported = SUPPORTED_EFFORTS } },
+            -- Every option the plugin reads.  It ships fallbacks only and decides no
+            -- policy of its own, so the values live here; the extension configured
+            -- below is what registers the adapter from them.
+            --
+            -- Applied to the plugin *now*, before the default-adapter ladder runs.
+            -- The extension applies the same table again during `cc.setup()`, but that
+            -- is too late for the ladder: `get_default_adapter()` is evaluated while the
+            -- argument to `cc.setup()` is still being built, so without this call the
+            -- ladder would consult the plugin's pristine defaults and could name an
+            -- adapter the extension never registers.  `setup()` merges from pristine
+            -- defaults, so applying the same options twice is indistinguishable from
+            -- applying them once.
+            local db_opts = {
+                adapters = {
+                    gateway = {
+                        enabled = true,
+                        name = 'Databricks AI Gateway (Anthropic)',
+                        model = 'databricks-claude-opus-5',
+                    },
                 },
-                ['databricks-claude-sonnet-4-6'] = {
-                    formatted_name = 'Claude Sonnet 4.6',
-                    meta = { max_tokens = DEFAULT_MAX_TOKENS },
-                    opts = { has_vision = true, can_reason = true, reasoning = { supported = SUPPORTED_EFFORTS } },
+                -- Requested where the model accepts it; the plugin degrades it
+                -- to the highest level each model actually allows.
+                models = {
+                    preferred_effort = 'xhigh',
+                },
+                token = {
+                    refresh = true,
                 },
             }
-
-            -- Module-local cache for the fetched model catalogue.
-            local model_cache = { models = nil, expires = 0 }
-            local MODEL_CACHE_TTL = 300  -- seconds
-
-            --- Fetch the Claude chat models from the Databricks serving-endpoints API.
-            --- Returns a ModelChoice map (id -> { formatted_name, meta, opts }) or nil on failure.
-            --- @return table<string, table>|nil
-            local function fetch_gateway_models()
-                local token = read_model_serving_token()
-                if not token or token == '' then
-                    return nil
-                end
-
-                local ok, Curl = pcall(require, 'plenary.curl')
-                if not ok then
-                    return nil
-                end
-
-                local response = Curl.get(DATABRICKS_AI_GATEWAY_URL .. '/api/2.0/serving-endpoints', {
-                    headers = { ['Authorization'] = 'Bearer ' .. token },
-                    timeout = 5000,
-                })
-                if not response or response.status ~= 200 then
-                    return nil
-                end
-
-                local decoded_ok, data = pcall(vim.json.decode, response.body)
-                if not decoded_ok or type(data) ~= 'table' or type(data.endpoints) ~= 'table' then
-                    return nil
-                end
-
-                local models = {}
-                for _, endpoint in ipairs(data.endpoints) do
-                    local entity = endpoint.config
-                        and endpoint.config.served_entities
-                        and endpoint.config.served_entities[1]
-                    local fm = entity and entity.foundation_model
-                    local caps = endpoint.capabilities or {}
-                    -- Keep only Anthropic chat models reachable via /v1/messages.
-                    if fm
-                        and fm.model_class == 'claude'
-                        and endpoint.task == 'llm/v1/chat'
-                        and vim.tbl_contains(fm.api_types or {}, 'anthropic/v1/messages')
-                    then
-                        models[endpoint.name] = {
-                            formatted_name = fm.display_name or endpoint.name,
-                            meta = { max_tokens = MODEL_MAX_TOKENS[endpoint.name] or DEFAULT_MAX_TOKENS },
-                            opts = {
-                                has_vision = caps.image_input or false,
-                                -- Reasoning support is hardcoded (see SUPPORTED_EFFORTS);
-                                -- the capabilities block under-reports it.
-                                can_reason = true,
-                                reasoning = { supported = SUPPORTED_EFFORTS },
-                            },
-                        }
-                    end
-                end
-
-                if vim.tbl_isempty(models) then
-                    return nil
-                end
-                return models
-            end
-
-            --- Return the Claude model catalogue, cached with a short TTL and
-            --- falling back to the static list when discovery is unavailable.
-            --- @return table<string, table>
-            local function get_gateway_models()
-                if model_cache.models and model_cache.expires > os.time() then
-                    return model_cache.models
-                end
-                local fetched = fetch_gateway_models()
-                if fetched then
-                    model_cache.models = fetched
-                    model_cache.expires = os.time() + MODEL_CACHE_TTL
-                    return fetched
-                end
-                return FALLBACK_MODELS
-            end
-
-            --- Validate and fix JSON arguments for tool calls.
-            --- Databricks API strictly validates that tool_calls[].function.arguments is valid JSON.
-            --- Streaming can produce truncated JSON, so we attempt to complete it.
-            ---@param args string|nil The JSON arguments string to validate
-            ---@return string Valid JSON string (empty object '{}' if input is nil/empty/unfixable)
-            local function ensure_valid_json_args(args)
-                if args == nil or args == '' then
-                    return '{}'
-                end
-                -- Try to parse the JSON to validate it
-                local ok, _ = pcall(vim.json.decode, args)
-                if ok then
-                    return args  -- Valid JSON, return as-is
-                end
-                -- Invalid JSON - try to salvage by completing truncated JSON
-                -- Common case: streaming left incomplete object like '{"path": "foo'
-                -- Count unmatched braces and brackets
-                local open_braces = 0
-                local open_brackets = 0
-                local in_string = false
-                local escape_next = false
-                for i = 1, #args do
-                    local c = args:sub(i, i)
-                    if escape_next then
-                        escape_next = false
-                    elseif c == '\\' and in_string then
-                        escape_next = true
-                    elseif c == '"' and not escape_next then
-                        in_string = not in_string
-                    elseif not in_string then
-                        if c == '{' then open_braces = open_braces + 1
-                        elseif c == '}' then open_braces = open_braces - 1
-                        elseif c == '[' then open_brackets = open_brackets + 1
-                        elseif c == ']' then open_brackets = open_brackets - 1
-                        end
-                    end
-                end
-                -- Try to complete the JSON
-                local fixed = args
-                if in_string then
-                    fixed = fixed .. '"'  -- Close unclosed string
-                end
-                -- Close any unclosed brackets/braces
-                for _ = 1, open_brackets do
-                    fixed = fixed .. ']'
-                end
-                for _ = 1, open_braces do
-                    fixed = fixed .. '}'
-                end
-                -- Verify the fix worked
-                local ok2, _ = pcall(vim.json.decode, fixed)
-                if ok2 then
-                    return fixed
-                end
-                -- If still invalid, fall back to empty object
-                return '{}'
+            if ok_db then
+                db.setup(db_opts)
             end
 
             -- Check if Docker service is running (Linux with systemd only)
@@ -363,36 +228,14 @@ return {
 
             --- Returns the default adapter based on available credentials/configuration.
             --- Adapters are checked in priority order; first available one wins.
+            ---
+            --- The candidates come from cc-db-aigateway, which reports *whether* each of
+            --- its adapters has a usable credential; this config decides *which* one wins
+            --- and owns the final fallback.  With the plugin absent -- a machine without
+            --- access to that private repo -- the list is empty and copilot is chosen.
             --- @return string adapter_name The name of the adapter to use.
             local function get_default_adapter()
-                -- Define adapters in priority order (highest priority first).
-                -- Each entry specifies:
-                --   - name: the adapter name as registered in codecompanion
-                --   - is_available: function that returns true if this adapter can be used
-                local adapters = {
-                    {
-                        name = 'Databricks AI Gateway (Anthropic)',
-                        is_available = function()
-                            local token = read_model_serving_token()
-                            return token ~= nil and token ~= ''
-                        end,
-                    },
-                    {
-                        name = 'Databricks Anthropic',
-                        is_available = function()
-                            local key = vim.env.DATABRICKS_ANTHROPIC_API_KEY
-                            return key ~= nil and key ~= ''
-                        end,
-                    },
-                    -- Future adapters can be added here, e.g.:
-                    -- {
-                    --     name = 'anthropic',
-                    --     is_available = function()
-                    --         local key = vim.env.ANTHROPIC_API_KEY
-                    --         return key ~= nil and key ~= ''
-                    --     end,
-                    -- },
-                }
+                local adapters = ok_db and db.candidates() or {}
 
                 -- Check each adapter in priority order.
                 for _, adapter in ipairs(adapters) do
@@ -426,124 +269,13 @@ return {
                                 },
                             })
                         end,
-                        -- Databricks Anthropic adapter (connects directly to Anthropic API)
-                        ['Databricks Anthropic'] = function()
-                            return require'codecompanion.adapters'.extend('anthropic', {
-                                formatted_name = 'Databricks Anthropic',
-                                env = {
-                                    api_key = 'DATABRICKS_ANTHROPIC_API_KEY',
-                                },
-                                schema = {
-                                    model = {
-                                        -- Static `choices` (rather than inheriting the base
-                                        -- `anthropic` adapter's function, which fetches GET
-                                        -- https://api.anthropic.com/v1/models). Our
-                                        -- DATABRICKS_ANTHROPIC_API_KEY is only accepted by the
-                                        -- Databricks gateway, not by api.anthropic.com directly,
-                                        -- so that fetch 401s ("API key is invalid") and spams the
-                                        -- log. A static list keeps this adapter inert unless a
-                                        -- genuinely direct Anthropic key is configured.
-                                        default = 'claude-opus-4-8',
-                                        choices = {
-                                            ['claude-opus-4-8'] = {
-                                                formatted_name = 'Claude Opus 4.8',
-                                            },
-                                            ['claude-sonnet-4-6'] = {
-                                                formatted_name = 'Claude Sonnet 4.6',
-                                            },
-                                        },
-                                    },
-                                    -- Pin the output token budget explicitly. The base adapter's
-                                    -- `max_tokens` default derives from the async model catalogue
-                                    -- (`meta.max_tokens`), but on a cold cache that fetch hasn't
-                                    -- completed when the first chat's settings render, so it falls
-                                    -- back to a tiny 4096. Setting it here makes the ceiling
-                                    -- deterministic (128k = Opus 4.8's API-reported max).
-                                    max_tokens = {
-                                        default = 128000,
-                                    },
-                                    -- Pin the reasoning effort. Like `max_tokens`, the base
-                                    -- adapter's `effort` default is derived from the async model
-                                    -- catalogue. But `effort` is also *gated* by an `enabled`
-                                    -- function that checks the same catalogue for reasoning
-                                    -- support; on a cold cache that returns false and the key is
-                                    -- dropped from the settings block entirely (so `default` never
-                                    -- applies). Override `enabled` to always-true since every
-                                    -- Opus/Sonnet model we use supports effort, and pin the default.
-                                    effort = {
-                                        default = 'xhigh',
-                                        enabled = function() return true end,
-                                    },
-                                },
-                            })
-                        end,
-                        -- Databricks AI Gateway adapter, extending the base `anthropic`
-                        -- adapter over the gateway's native /v1/messages endpoint.
-                        -- The native path (unlike the mlflow OpenAI-compatible one) both
-                        -- authenticates with a Bearer token and returns thinking content,
-                        -- so the base adapter's reasoning/effort handling works unchanged.
-                        ['Databricks AI Gateway (Anthropic)'] = function()
-                            local anthropic = require('codecompanion.adapters.http.anthropic')
-                            return require'codecompanion.adapters'.extend('anthropic', {
-                                formatted_name = 'Databricks AI Gateway (Anthropic)',
-                                env = {
-                                    -- Resolve the bearer token from the model-serving token file
-                                    -- on every request so a rotated token is always picked up.
-                                    api_key = function()
-                                        return read_model_serving_token()
-                                    end,
-                                },
-                                url = DATABRICKS_AI_GATEWAY_URL .. '/ai-gateway/anthropic/v1/messages',
-                                headers = {
-                                    ['content-type'] = 'application/json',
-                                    -- Gateway authenticates with a Bearer token. The base adapter's
-                                    -- x-api-key header is still sent (tbl_deep_extend can't drop a
-                                    -- key) but the gateway ignores it when Authorization is present.
-                                    ['Authorization'] = 'Bearer ${api_key}',
-                                    ['anthropic-version'] = '2023-06-01',
-                                },
-                                handlers = {
-                                    -- Repair truncated tool-call argument JSON before the base
-                                    -- adapter's form_messages runs: it decodes each tool_use's
-                                    -- `arguments` string and silently discards the whole call on a
-                                    -- parse failure (common when a stream is cut off by max_tokens).
-                                    -- ensure_valid_json_args completes the truncated JSON so the
-                                    -- call survives.
-                                    form_messages = function(self, messages)
-                                        for _, message in ipairs(messages) do
-                                            if message.tools and message.tools.calls then
-                                                for _, call in ipairs(message.tools.calls) do
-                                                    if call['function'] then
-                                                        call['function'].arguments = ensure_valid_json_args(
-                                                            call['function'].arguments
-                                                        )
-                                                    end
-                                                end
-                                            end
-                                        end
-                                        return anthropic.handlers.form_messages(self, messages)
-                                    end,
-                                },
-                                schema = {
-                                    model = {
-                                        default = 'databricks-claude-opus-4-8',
-                                        -- Discover the live Claude catalogue from the Databricks
-                                        -- serving-endpoints API, with a static fallback. Provides
-                                        -- formatted_name, per-model max_tokens, vision, and the
-                                        -- (hardcoded) supported reasoning efforts.
-                                        choices = function()
-                                            return get_gateway_models()
-                                        end,
-                                    },
-                                    -- Default the reasoning effort to xhigh. The base adapter
-                                    -- gates `effort` on the model catalogue's reasoning.supported
-                                    -- list, which get_gateway_models() populates for every model.
-                                    effort = {
-                                        default = 'xhigh',
-                                    },
-                                },
-                            })
-                        end
+                        -- The `Databricks AI Gateway (Anthropic)` adapter is deliberately
+                        -- absent here: cc-db-aigateway.nvim registers it from its
+                        -- `db_aigateway` extension, configured under `extensions` below,
+                        -- which owns every option the adapter takes. The adapter carries
+                        -- the internal workspace host, the serving-endpoint names, the
+                        -- probed output ceilings and the credential layout, none of which
+                        -- belong in a public configuration.
                     }
                 },
                 interactions = {
@@ -736,6 +468,17 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                     },
                 },
                 extensions = {
+                    -- Databricks AI Gateway adapters, from the private cc-db-aigateway.nvim.
+                    -- Registration happens inside the extension, from the `db_opts` table
+                    -- above -- the plugin ships fallbacks only and decides no policy of its
+                    -- own, in particular it never picks the default adapter.
+                    --
+                    -- Skipped rather than attempted when the plugin is unavailable, so a
+                    -- machine without access to that repo gets no error in the log.
+                    db_aigateway = {
+                        enabled = ok_db,
+                        opts = db_opts,
+                    },
                     -- Neovim context extension from nvu library (provides #neovim_context variable and neovim_context tool)
                     editor_context = {
                         callback = 'codecompanion._extensions.editor_context',
