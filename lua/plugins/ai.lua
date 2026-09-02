@@ -1,26 +1,5 @@
 return {
     {
-        'zbirenbaum/copilot.lua',
-        enabled = false,
-        cmd = 'Copilot',
-        event = 'InsertEnter',
-        config = function()
-            require'copilot'.setup{}
-        end,
-    },
-    {
-        'CopilotC-Nvim/CopilotChat.nvim',
-        enabled = false,
-        dependencies = {
-            { 'zbirenbaum/copilot.lua' },
-            { 'nvim-lua/plenary.nvim' }, -- for curl, log and async functions
-        },
-        build = 'make tiktoken', -- Only on MacOS or Linux
-        opts = {
-            model = 'claude-sonnet-4',
-        },
-    },
-    {
         -- TODO: Switch back to 'ravitemer/mcphub.nvim' once PR #279 is merged:
         --       https://github.com/ravitemer/mcphub.nvim/pull/279
         --       This fork adds CodeCompanion v19 compatibility (tool cmd signature,
