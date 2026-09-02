@@ -76,6 +76,7 @@ This rule covers all `.md` files in this repo, including `AGENTS.md`, `README*`,
 │   ├── neovide.lua          # Neovide GUI-specific settings
 │   └── plugins/             # Plugin specifications (lazy.nvim format)
 │       ├── ai.lua           # AI/CodeCompanion configuration
+│       ├── mcphub.lua       # MCPHub client (single hub on a pinned port)
 │       ├── lsp.lua          # LSP-related plugins
 │       ├── telescope.lua    # Fuzzy finder
 │       ├── treesitter.lua   # Syntax highlighting
@@ -228,7 +229,7 @@ mcphub.nvim adds two client-side keys: `autoApprove` (tools that skip confirmati
 
 ### Workspace hubs (retired)
 
-Workspace hubs are **off** — `workspace = { enabled = false }` in `lua/plugins/ai.lua`.
+Workspace hubs are **off** — `workspace = { enabled = false }` in `lua/plugins/mcphub.lua`.
 There is exactly one `mcp-hub` process, on the pinned port `27373`, shared by every Neovim instance; project-scoped servers come from `.project.lua` instead (see **Project-Local Configuration** below).
 
 Why they were abandoned: a workspace hub merges the project config over the global one and therefore **re-spawns every enabled global server**, so each enrolled project carried its own duplicate `fff_universe` and `fff_runtime`.
