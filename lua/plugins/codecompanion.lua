@@ -835,6 +835,162 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                 pcall(vim.api.nvim_buf_set_name, self.bufnr, title)
             end
 
+            -- Chat auto-scroll: honour `scrolloff`, and keep tailing the stream.
+            --
+            -- Two defects in `codecompanion.interactions.chat.ui`, both traced by
+            -- instrumenting a live streaming response:
+            --
+            --  1. Following dies mid-stream and never revives.  `UI:is_following()` infers
+            --     "is the cursor still tracking the stream?" from the cursor's position: it
+            --     must sit on the buffer's last line, or on the exact `{line, col}` pair the
+            --     previous follow recorded in `cursor.followed_to`.  Neither survives a
+            --     write.  `Builder:_write()` inserts the chunk *at* the cursor, which stays
+            --     put while the buffer grows beneath it, and `_set_trailing_blanks()` deletes
+            --     surplus blank lines from *above* it -- deliberately, since deleting from
+            --     the bottom would drop anchored extmarks -- dragging the cursor upwards.
+            --     The debounced `CursorMoved` handler reads the resulting mismatch as a user
+            --     motion and latches `cursor.moved_by_user`, after which `follow()` returns
+            --     early forever, and `UI:move_cursor()` refuses to re-follow because it only
+            --     does so when `not is_active()` -- that is, never while you sit in the chat
+            --     window.  Observed live: cursor pinned at line 765 while the buffer grew
+            --     past 811.
+            --
+            --  2. Following parks the cursor on the buffer's *last* line, where `scrolloff`
+            --     is unsatisfiable -- there are no lines below to scroll into view -- so the
+            --     streamed text hugs the window's bottom row.
+            --
+            -- (1) is fixed by not inferring intent from coordinates at all.  Every candidate
+            -- heuristic (cursor on the last line, remembered position, even a drift-tracking
+            -- extmark) is defeated by the writes themselves, because a write relocates the
+            -- cursor for reasons that have nothing to do with the reader.  `vim.on_key`
+            -- supplies the one signal that does mean something -- a keystroke the human
+            -- actually typed -- so tailing becomes a sticky per-chat flag that only genuine
+            -- input can flip: steer away from the bottom and tailing stops, return to the
+            -- bottom and it resumes.
+            --
+            -- (2) is fixed by scrolling the view after each follow until `scrolloff` rows sit
+            -- free below the last line.  `CTRL-E` scrolls past the end of the buffer, and a
+            -- later `nvim_win_set_cursor()` onto that line does not pull the view back (both
+            -- verified); every appended line eats one row of the gap and a single `CTRL-E`
+            -- restores it, so the correction stays incremental.
+            local ChatUI = require('codecompanion.interactions.chat.ui')
+
+            --- Set by `vim.on_key` when the user types inside a chat buffer and consumed by
+            --- the cursor autocmd below.  A cursor movement arriving without it was caused by
+            --- a write, not by the reader, and must not disturb the tailing flag.
+            local user_typed = false
+
+            --- The live chat buffers, so the (very hot) key callback decides with one lookup.
+            ---@type table<integer, true>
+            local chat_bufs = {}
+
+            --- Per chat buffer: is it tailing the stream?  Absent means yes -- a chat tails
+            --- until the user steers away.  Kept here rather than on the `UI` object so that
+            --- upstream's class stays unpolluted.
+            ---@type table<integer, boolean>
+            local tailing = {}
+
+            vim.on_key(function(_, typed)
+                -- `typed` is the key *before* mappings: non-empty for what the human pressed,
+                -- empty for keys Nvim produced itself (mapping expansion, `feedkeys()`).  That
+                -- asymmetry is the whole point -- it is what separates reader from writer.
+                if typed ~= '' and chat_bufs[vim.api.nvim_get_current_buf()] then user_typed = true end
+            end, vim.api.nvim_create_namespace('CodeCompanionUserInput'))
+
+            --- The last line worth calling "the bottom": the final non-blank one, so that the
+            --- blank run CodeCompanion keeps below the cursor still counts as being at the end.
+            ---@param bufnr integer chat buffer
+            ---@return integer line 1-based
+            local function bottom_line(bufnr)
+                local count = vim.api.nvim_buf_line_count(bufnr)
+                for line = count, math.max(1, count - 5), -1 do
+                    if vim.api.nvim_buf_get_lines(bufnr, line - 1, line, false)[1] ~= '' then return line end
+                end
+                return count
+            end
+
+            --- Scroll `winnr` so that `scrolloff` screen rows stay free below the last line.
+            --- No-op unless the buffer already overflows the window, so nothing that would
+            --- otherwise be visible gets scrolled out of sight.
+            ---@param winnr integer window showing the chat buffer
+            local function keep_bottom_gap(winnr)
+                if not (winnr and vim.api.nvim_win_is_valid(winnr)) then return end
+                pcall(vim.api.nvim_win_call, winnr, function()
+                    local height = vim.api.nvim_win_get_height(winnr)
+                    local off = vim.api.nvim_get_option_value('scrolloff', { win = winnr })
+                    if off < 0 then off = vim.go.scrolloff end  -- window-local unset: global applies
+                    -- Never claim more than half the window, else `scrolloff` at the *top*
+                    -- fights back and drags the cursor along.
+                    local gap = math.min(off, math.max(0, math.floor(height / 2) - 1))
+                    if gap <= 0 or vim.fn.line('w0') <= 1 then return end
+                    if vim.fn.line('w$') < vim.api.nvim_buf_line_count(0) then return end
+                    for _ = 1, gap do
+                        if height - vim.fn.winline() >= gap then break end
+                        local before = vim.fn.winsaveview()
+                        vim.cmd('normal! \5')  -- CTRL-E: scroll the view, leave the cursor put
+                        local after = vim.fn.winsaveview()
+                        if after.topline == before.topline and after.skipcol == before.skipcol then break end
+                    end
+                end)
+            end
+
+            ---@return boolean tailing a fresh chat until the user says otherwise
+            function ChatUI:is_following()
+                return tailing[self.chat_bufnr] ~= false
+            end
+
+            local orig_follow = ChatUI.follow
+            function ChatUI:follow()
+                -- Upstream's `moved_by_user` latch is precisely what strands the cursor
+                -- mid-buffer; `__tail` is the authority now, so clear it before delegating.
+                self.cursor.moved_by_user = false
+                self.cursor.pos = nil
+                orig_follow(self)
+                if self:is_visible() then keep_bottom_gap(self.winnr) end
+            end
+
+            ---@param _ boolean upstream's `was_following`, superseded by `__tail`
+            function ChatUI:move_cursor(_)
+                if not require('codecompanion.config').display.chat.auto_scroll then return end
+                if not self:is_following() then return end
+                -- Never fight a typist: CodeCompanion drops back to normal mode on submit, so
+                -- insert mode here means the user is composing, not watching.
+                if self:is_active() and vim.startswith(vim.api.nvim_get_mode().mode, 'i') then return end
+                self:follow()
+            end
+
+            vim.api.nvim_create_autocmd('User', {
+                pattern = 'CodeCompanionChatCreated',
+                group = cc_group,
+                callback = function(request)
+                    local bufnr = request.buf
+                    chat_bufs[bufnr] = true
+
+                    vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+                        buffer = bufnr,
+                        group = cc_group,
+                        callback = function()
+                            if not user_typed then return end
+                            user_typed = false
+                            tailing[bufnr] = vim.api.nvim_win_get_cursor(0)[1] >= bottom_line(bufnr)
+                        end,
+                        desc = 'Track whether the user steered the chat away from the bottom',
+                    })
+
+                    vim.api.nvim_create_autocmd('BufUnload', {
+                        buffer = bufnr,
+                        group = cc_group,
+                        once = true,
+                        callback = function()
+                            chat_bufs[bufnr] = nil
+                            tailing[bufnr] = nil
+                        end,
+                        desc = 'Forget an unloaded CodeCompanion chat buffer',
+                    })
+                end,
+                desc = 'Keep the chat tailing the stream unless the user scrolls away',
+            })
+
             -- Protect chat buffers from accidental deletion (`:bdel`, `:bw`).
             --
             -- Layer 1 – switch buftype to `acwrite` and keep `modified=true`.
