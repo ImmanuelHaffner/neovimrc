@@ -308,6 +308,12 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                         show_token_count = true,
                         show_settings = false,  -- when `true` prevents changing adapter/model
 
+                        --- Initial width only.  The `CodeCompanionHooks` handlers below remember
+                        --- whatever geometry the window is given and restore it on reopen.
+                        window = {
+                            width = 0.4,
+                        },
+
                         --- Customize how tokens are displayed
                         --- @param tokens number
                         --- @param _ CodeCompanion.Adapter
@@ -469,6 +475,164 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
             }
 
             local cc_group = vim.api.nvim_create_augroup('CodeCompanionHooks', {})
+
+            -- Remember the chat window's arrangement across an interval where it has no window.
+            --
+            -- `shared_ui.open` rebuilds the window from `display.chat.window` on every open and runs `vertical resize
+            -- <width>`, so toggling the chat off and on with `<leader>act` used to snap a hand-sized window back to the
+            -- configured fraction.  Cycling keeps its size because our fork hands the window over instead of rebuilding
+            -- it, but a toggle genuinely destroys the window and nothing survives it.
+            --
+            -- Capture on `WinResized` rather than `WinLeave` / `WinClosed`: the hand-over swaps buffers with
+            -- `nvim_win_set_buf`, which fires neither, so a leave-based record would go stale and this handler would
+            -- then clobber the size the user is looking at. `WinResized` is also deferred until Neovim is back in the
+            -- main loop (see `:help WinScrolled`), so CodeCompanion's own resize during `open` cannot overwrite the
+            -- record before we restore from it.
+            --
+            -- Restore synchronously from `CodeCompanionChatOpened`, which CodeCompanion fires at the end of `UI:open`
+            -- with the new window already current.  A repaint only happens once Neovim is back in the main loop, so the
+            -- configured width is never painted.
+            do
+                -- One record rather than one per chat: with `sticky` and `pertab` both off there is a single chat
+                -- window at a time, and the size last set is the size meant for whichever chat lands in it.
+                local geometry = nil
+
+                -- How does this window sit in the tabpage?  Either a float, or the leaf of a
+                -- `row` (side by side, hence a vertical split) or a `col` (stacked, hence
+                -- horizontal).  `edge` names the end it occupies, which `wincmd H/J/K/L` can
+                -- reproduce; it stays nil for a window in the middle.
+                local function classify(winnr)
+                    if vim.api.nvim_win_get_config(winnr).relative ~= '' then
+                        return { layout = 'float' }
+                    end
+                    local found
+                    local function walk(node, layout, index, count)
+                        if node[1] == 'leaf' then
+                            if node[2] == winnr and layout then
+                                found = { layout = layout, index = index, count = count }
+                            end
+                            return
+                        end
+                        local children = node[2]
+                        local kind = node[1] == 'row' and 'vertical' or 'horizontal'
+                        for i, child in ipairs(children) do
+                            walk(child, kind, i, #children)
+                        end
+                    end
+                    walk(vim.fn.winlayout(), nil, 1, 1)
+                    if not found then return nil end
+                    local edge
+                    if found.index == 1 then
+                        edge = found.layout == 'vertical' and 'left' or 'top'
+                    elseif found.index == found.count then
+                        edge = found.layout == 'vertical' and 'right' or 'bottom'
+                    end
+                    return { layout = found.layout, edge = edge }
+                end
+
+                -- Sizes are stored as a fraction of the editor rather than in absolute columns
+                -- and rows, so a window hidden at one screen size comes back at the same
+                -- proportion after the terminal is resized.  `vim.o.columns` / `vim.o.lines` are
+                -- the totals CodeCompanion itself divides by for `display.chat.window.width`, so
+                -- these fractions are directly comparable to that setting.
+                --
+                -- The way back, fraction to cells, is `nvu.layout.adaptive_extent`.
+                local function fraction(size, total)
+                    return total > 0 and size / total or 0
+                end
+
+                local function capture(winnr)
+                    local where = classify(winnr)
+                    if not where then return end
+                    where.width = fraction(vim.api.nvim_win_get_width(winnr), vim.o.columns)
+                    where.height = fraction(vim.api.nvim_win_get_height(winnr), vim.o.lines)
+                    -- A zero fraction would fall outside `adaptive_extent`'s (0, 1] domain on the
+                    -- way back, so never record one
+                    if where.width <= 0 or where.height <= 0 then return end
+                    if where.layout == 'float' then
+                        local cfg = vim.api.nvim_win_get_config(winnr)
+                        where.float = {
+                            relative = cfg.relative,
+                            row = fraction(type(cfg.row) == 'number' and cfg.row or 0, vim.o.lines),
+                            col = fraction(type(cfg.col) == 'number' and cfg.col or 0, vim.o.columns),
+                        }
+                    end
+                    geometry = where
+                end
+
+                local edge_to_wincmd = { left = 'H', right = 'L', top = 'K', bottom = 'J' }
+
+                local function restore(winnr)
+                    -- `wincmd` and `resize` act on the current window, and CodeCompanion leaves
+                    -- the chat window current when it fires the event
+                    if not geometry or vim.api.nvim_get_current_win() ~= winnr then return end
+                    local adaptive_extent = require'nvu.layout'.adaptive_extent
+                    local where = classify(winnr)
+                    if geometry.layout == 'float' or (where and where.layout == 'float') then
+                        -- A split cannot become a float nor a float a split, so only a float that
+                        -- is still a float can be put back.  Set the geometry keys alone, leaving
+                        -- the border and the title CodeCompanion just set for *this* chat intact.
+                        if geometry.layout == 'float' and where and where.layout == 'float' then
+                            -- `row` and `col` are offsets, not extents, and zero is a legitimate
+                            -- value for them, so `adaptive_extent` and its one-cell floor do not
+                            -- apply here
+                            local function offset(frac, total)
+                                return math.max(0, math.floor(frac * total + 0.5))
+                            end
+                            pcall(vim.api.nvim_win_set_config, winnr, {
+                                relative = geometry.float.relative,
+                                row = offset(geometry.float.row, vim.o.lines),
+                                col = offset(geometry.float.col, vim.o.columns),
+                                width = adaptive_extent{ frac = geometry.width, extent = vim.o.columns },
+                                height = adaptive_extent{ frac = geometry.height, extent = vim.o.lines },
+                            })
+                        end
+                        return
+                    end
+                    -- Rearrange only when the arrangement actually differs, so a window handed
+                    -- over by the registry patch is left exactly as the user left it
+                    if not where or where.layout ~= geometry.layout or where.edge ~= geometry.edge then
+                        local key = edge_to_wincmd[geometry.edge]
+                        if key then vim.cmd('wincmd ' .. key) end
+                    end
+                    -- `adaptive_extent` clamps to the screen and `resize` clamps to what is
+                    -- actually free, so a shrunken editor needs no special case here
+                    if geometry.layout == 'vertical' then
+                        local target = adaptive_extent{ frac = geometry.width, extent = vim.o.columns }
+                        if vim.api.nvim_win_get_width(winnr) ~= target then
+                            vim.cmd('vertical resize ' .. target)
+                        end
+                    else
+                        local target = adaptive_extent{ frac = geometry.height, extent = vim.o.lines }
+                        if vim.api.nvim_win_get_height(winnr) ~= target then
+                            vim.cmd('resize ' .. target)
+                        end
+                    end
+                end
+
+                vim.api.nvim_create_autocmd('WinResized', {
+                    group = cc_group,
+                    desc = 'Remember the CodeCompanion chat window geometry',
+                    callback = function()
+                        for _, winnr in ipairs(vim.v.event.windows or {}) do
+                            if vim.api.nvim_win_is_valid(winnr)
+                                and vim.bo[vim.api.nvim_win_get_buf(winnr)].filetype == 'codecompanion'
+                            then
+                                capture(winnr)
+                            end
+                        end
+                    end,
+                })
+
+                vim.api.nvim_create_autocmd('User', {
+                    group = cc_group,
+                    pattern = 'CodeCompanionChatOpened',
+                    desc = 'Restore the remembered CodeCompanion chat window geometry',
+                    callback = function()
+                        restore(vim.api.nvim_get_current_win())
+                    end,
+                })
+            end
 
             -- Strip expensive nvim-cmp sources from CodeCompanion chat buffers.
             -- cmp-buffer's on_lines watcher re-indexes the full buffer on every
