@@ -296,7 +296,7 @@ Semantics worth knowing before editing one:
 `lua/project/mcp.lua` registers project-scoped MCP servers from those hooks.
 `mcp.fff{ root = … }` upserts an `fff_<basename>_<hash>` entry through mcphub's `ConfigManager` — always with `merge = false`, because a deep merge would splice the old `args` list element-wise into the new one — and starts it once `hub:is_ready()`.
 `M.config.max_active` caps how many run at once, evicting the least recently used with `disable = true` so a later hub start does not resurrect it.
-Because those names are dynamic they cannot appear in CodeCompanion's `default_tools`; instead `sync_fff_tools()` in `lua/plugins/ai.lua` rewrites the `fff*` entries of that live table from the hub's connected servers whenever MCPHub fires `servers_updated`, which works because CodeCompanion reads `default_tools` when a chat is created.
+Because those names are dynamic they cannot appear in CodeCompanion's `default_tools`; instead `sync_mcp_tools()` in `lua/plugins/codecompanion.lua` rewrites the `fff*` entries of that live table — together with the `mcphub` entry, whose native server is only worth offering while it is connected — from the hub's live state whenever MCPHub fires `servers_updated`, which works because CodeCompanion reads `default_tools` when a chat is created.
 
 `lua/project/databricks.lua` holds the shared configuration for the Databricks Scala repositories — the canonical checkouts and every worktree under `~/worktrees/**` — so each of their `.project.lua` files is a three-line stub delegating to it.
 Keeping that logic in one version-controlled module rather than copied into a dozen gitignored files means a fix costs one edit instead of a dozen, and adding a worktree costs three lines.

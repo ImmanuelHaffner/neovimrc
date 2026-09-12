@@ -210,12 +210,13 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                                     'memory',
                                     'kgmemory',
                                     'neovim',  -- all tools from the Neovim MCP server
-                                    'neovim_context',  -- provide context on open buffers, cursor pos, active buffer
-                                    -- fff servers are deliberately NOT listed here.  The project-scoped
-                                    -- ones are created on demand by `.project.lua` and named
-                                    -- `fff_<project>_<hash>` (see `lua/project/mcp.lua`), so no static
-                                    -- list can name them.  `sync_fff_tools()` below rewrites the `fff*`
-                                    -- entries of this very table from the hub's connected servers.
+                                    -- The `fff*` and `mcphub` entries are deliberately NOT listed here.
+                                    -- Project-scoped fff servers are created on demand by `.project.lua`
+                                    -- and named `fff_<project>_<hash>` (see `lua/project/mcp.lua`), so no
+                                    -- static list can name them, and `mcphub`'s native server -- which
+                                    -- exposes `get_current_servers` and `toggle_mcp_server` -- is only worth
+                                    -- offering while it is connected.  `sync_mcp_tools()` below rewrites
+                                    -- both kinds of entry in this very table from the hub's live state.
                                 },
                             },
                             groups = {
@@ -918,23 +919,32 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                 end
             end
 
-            -- Keep the `fff*` entries of `default_tools` in sync with the hub's connected servers.
+            -- Keep the dynamic MCP entries of `default_tools` in sync with the hub's live state.
             --
-            -- Project-scoped fff servers are created on the fly by `.project.lua` (see
-            -- `lua/project/mcp.lua`) and named `fff_<project>_<hash>`, so they cannot be listed statically.
+            -- Two kinds of entry cannot be written down statically: project-scoped fff servers, created
+            -- on the fly by `.project.lua` and named `fff_<project>_<hash>` (see `lua/project/mcp.lua`),
+            -- and `mcphub`'s own native server, which is only worth exposing while it is connected.
             -- CodeCompanion reads `default_tools` when a chat is created (`chat/init.lua`), so rewriting
             -- that live table is enough for every chat opened afterwards.
-            local function sync_fff_tools()
+            local function sync_mcp_tools()
                 local tools = require('codecompanion.config').interactions.chat.tools.opts.default_tools
                 if not tools then return end
 
-                for i = #tools, 1, -1 do
-                    if type(tools[i]) == 'string' and tools[i]:match('^fff') then table.remove(tools, i) end
+                -- The entries this function owns; every other entry of `default_tools` is left alone.
+                local function is_dynamic(name)
+                    return type(name) == 'string' and (name == 'mcphub' or name:match('^fff') ~= nil)
                 end
-                for _, server in ipairs((require('mcphub.state').server_state or {}).servers or {}) do
-                    local name = server.name
-                    if type(name) == 'string' and name:match('^fff') and server.status == 'connected' then
-                        table.insert(tools, name)
+
+                for i = #tools, 1, -1 do
+                    if is_dynamic(tools[i]) then table.remove(tools, i) end
+                end
+
+                local state = require('mcphub.state').server_state or {}
+                for _, servers in ipairs{ state.servers or {}, state.native_servers or {} } do
+                    for _, server in ipairs(servers) do
+                        if is_dynamic(server.name) and server.status == 'connected' then
+                            table.insert(tools, server.name)
+                        end
                     end
                 end
             end
@@ -962,7 +972,7 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                 vim.schedule_wrap(function()
                     build_meta_groups()
                     sweep_project_servers()
-                    sync_fff_tools()
+                    sync_mcp_tools()
                     local EditorContext = require('codecompanion.interactions.shared.editor_context')
                     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
                         if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == 'codecompanion' then
