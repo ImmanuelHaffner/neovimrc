@@ -227,6 +227,18 @@ mcp-hub honours these per-server keys: `command`, `args`, `env`, `cwd`, `disable
 String values expand `${VAR}` / `${env:VAR}`, `${cmd: …}`, `${workspaceFolder}` and `${userHome}`, but `disabled` is compared with a strict `=== true` and therefore cannot be driven by a placeholder.
 mcphub.nvim adds two client-side keys: `autoApprove` (tools that skip confirmation) and `custom_instructions.text`, which is injected into the model's context as that server's tool-group system prompt — use it to explain what a server is for when several similar servers coexist.
 
+### Databricks servers
+
+The `databricks_*` entries mirror the servers Databricks' own tooling configures in `~/.claude.json`, renamed as `databricks_` plus the upstream name with hyphens turned into underscores (`databricks-v2` → `databricks_client_v2` is the sole irregular).
+Their `autoApprove` lists are maintained by toggling tools in the MCPHub UI and syncing the deployed copy back into this file.
+
+Every `dbexec` entry sets `env.DBEXEC_NO_CERT_REFRESH = "1"`, the repo-wide convention for background `dbexec` callers.
+Without it, a missing or expired prod cert makes `dbexec` shell out to `dbcert`, which opens a browser tab for SSO — unattended for a background MCP server, and multiplied by every server the hub restarts.
+With it set, `dbexec` reads the cached cert and otherwise fails with an error naming `dbcert`, which you then run yourself.
+
+The two HTTP servers (`databricks_security_genie`, `databricks_sqrc`) translate Claude's `headersHelper` into a header placeholder: `"Authorization": "Bearer ${cmd: databricks auth token --host <workspace> -o text}"`.
+mcp-hub resolves placeholders per header value at connect time, so the token is fetched on every connection and an expired one needs a server restart rather than refreshing itself.
+
 ### Workspace hubs (retired)
 
 Workspace hubs are **off** — `workspace = { enabled = false }` in `lua/plugins/mcphub.lua`.

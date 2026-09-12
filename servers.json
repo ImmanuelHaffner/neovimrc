@@ -33,7 +33,10 @@
         "run_job"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_confluence": {
       "args": [
@@ -47,10 +50,30 @@
         "get_confluence_spaces",
         "get_confluence_page_content",
         "search_confluence_pages",
-        "get_page_children"
+        "get_page_children",
+        "get_confluence_page_comments",
+        "list_confluence_page_versions"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
+    },
+    "databricks_dbr_doctor": {
+      "args": [
+        "repo",
+        "run",
+        "mcp",
+        "start-single",
+        "dbr-doctor"
+      ],
+      "autoApprove": [],
+      "command": "dbexec",
+      "disabled": true,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_debug_copilot": {
       "args": [
@@ -60,9 +83,25 @@
         "start-single",
         "debug-copilot"
       ],
-      "autoApprove": [],
+      "autoApprove": [
+        "analyze_service_dependency",
+        "get_cloud_health",
+        "get_cluster_health",
+        "get_dashboard_filter_values",
+        "get_grafana_dashboard",
+        "get_investigation_details",
+        "get_network_health",
+        "get_service_dependencies",
+        "get_ui_probe_artifacts",
+        "list_agents",
+        "query_prometheus_metrics",
+        "resolve_regional_context"
+      ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_devportal": {
       "args": [
@@ -73,19 +112,15 @@
         "devportal"
       ],
       "autoApprove": [
-        "get_prs",
-        "get_pr_details",
-        "get_run_group_details",
-        "get_run_details",
-        "get_run_logs",
-        "get_test_results",
-        "list_artifacts",
-        "devportal_get_api_info",
         "devportal_get_service_info",
+        "devportal_get_api_info",
         "devportal_read_api_call"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_genie": {
       "args": [
@@ -102,7 +137,10 @@
         "list_available_workspaces"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_github": {
       "args": [
@@ -142,7 +180,10 @@
         "github_read_api_call"
       ],
       "command": "dbexec",
-      "disabled": true
+      "disabled": true,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_glean": {
       "args": [
@@ -162,7 +203,10 @@
         "summarize_document"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_google": {
       "args": [
@@ -204,7 +248,10 @@
         "docs_document_create"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_jira": {
       "args": [
@@ -220,7 +267,10 @@
         "jira_read_api_call"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_logs_summariser": {
       "args": [
@@ -234,7 +284,10 @@
         "analyse_logs"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_observability": {
       "args": [
@@ -256,7 +309,10 @@
         "structured_log_query"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_pagerduty": {
       "args": [
@@ -270,7 +326,10 @@
         "pagerduty_query"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_safe": {
       "args": [
@@ -280,9 +339,24 @@
         "start-single",
         "safe"
       ],
-      "autoApprove": [],
+      "autoApprove": [
+        "safe_get_api_info",
+        "safe_get_service_info",
+        "safe_read_api_call"
+      ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
+    },
+    "databricks_security_genie": {
+      "autoApprove": [],
+      "disabled": true,
+      "headers": {
+        "Authorization": "Bearer ${cmd: databricks auth token --host https://security-dashboard-prod-us-west-2.cloud.databricks.com -o text}"
+      },
+      "url": "https://agent-genie-security-genie-5187031537940944.aws.databricksapps.com/api/mcp/"
     },
     "databricks_slack": {
       "args": [
@@ -299,7 +373,33 @@
         "slack_read_api_call"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
+    },
+    "databricks_spark_api_beta": {
+      "args": [
+        "repo",
+        "run",
+        "mcp",
+        "start-single",
+        "spark-api-beta"
+      ],
+      "autoApprove": [],
+      "command": "dbexec",
+      "disabled": true,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
+    },
+    "databricks_sqrc": {
+      "autoApprove": [],
+      "disabled": true,
+      "headers": {
+        "Authorization": "Bearer ${cmd: databricks auth token --host https://dbc-a5d4177a-49dc.cloud.databricks.com -o text}"
+      },
+      "url": "https://mcp-sqrc-proxy-1965859176160743.aws.databricksapps.com/mcp"
     },
     "databricks_storage_console": {
       "args": [
@@ -309,9 +409,53 @@
         "start-single",
         "storage-console"
       ],
-      "autoApprove": [],
+      "autoApprove": [
+        "check_approval_status",
+        "check_cdc_heartbeat_latency",
+        "check_mrt_cdc_ingestion_lag",
+        "check_port",
+        "check_ticdc_upstream_health",
+        "check_tls",
+        "fetch_available_kube_contexts",
+        "fetch_database_events",
+        "fetch_database_schemas",
+        "fetch_live_mysql_database_parameters",
+        "fetch_logfood_mysql_database_parameters",
+        "fetch_maintenance_windows",
+        "fetch_service_deployments",
+        "fetch_supported_services_and_logical_dbs",
+        "fetch_tidb_query_stats",
+        "get_current_timestamp",
+        "get_mrt_spark_logs",
+        "get_mysql_baseline_metric_comparison",
+        "get_ptosc_running_ranges",
+        "get_restored_backup_creations_and_iops",
+        "get_tidb_baseline_metric_comparison",
+        "get_workflow_status",
+        "list_cloned_databases",
+        "list_logical_databases",
+        "list_mrt_jobs_and_runs",
+        "list_physical_db_instances",
+        "list_query_templates",
+        "lookup_database_owner",
+        "mysql_read_error_logs",
+        "mysql_read_redacted_slow_queries",
+        "query_mrt_spark_logs",
+        "read_mysql_database_metric",
+        "read_mysql_innodb_status",
+        "read_mysql_process_list",
+        "read_pagerduty_incident",
+        "read_physical_db_info",
+        "read_tidb_database_metric",
+        "resolve_logical_db_from_topic",
+        "search_knowledge_base",
+        "tidb_read_redacted_slow_queries"
+      ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "databricks_testman": {
       "args": [
@@ -333,7 +477,25 @@
         "list_smartreverts"
       ],
       "command": "dbexec",
-      "disabled": false
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
+    },
+    "databricks_web_search": {
+      "args": [
+        "repo",
+        "run",
+        "mcp",
+        "start-single",
+        "web-search"
+      ],
+      "autoApprove": [],
+      "command": "dbexec",
+      "disabled": true,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
     },
     "fff_runtime": {
       "args": [
