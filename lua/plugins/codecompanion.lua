@@ -169,6 +169,16 @@ return {
                                 description = '[Chat] Close (with confirmation)',
                             },
                         },
+                        slash_commands = {
+                            -- A fork continues the same conversation, and that history already
+                            -- carries the prompts of the tools and rules the source chat was
+                            -- granted, so inherit its context rather than loading the defaults.
+                            ['fork'] = {
+                                opts = {
+                                    context = 'inherit',  -- inherit|default
+                                },
+                            },
+                        },
                         tools = {
                             -- The `memory` tool needs no approval.
                             ['memory'] = {
