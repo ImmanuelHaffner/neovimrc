@@ -255,7 +255,7 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                                 local base_prompt = table.concat({
                                     'You are an AI programming assistant working inside the Neovim text editor.',
                                     '',
-                                    'Your responses render in a Markdown buffer with live markview rendering, so:',
+                                    'Your responses render in a Markdown buffer with live Markdown rendering, so:',
                                     '- Do not use H1 or H2 headers.',
                                     '- Wrap filenames, paths, and code symbols in backticks.',
                                     '- Use four-backtick code fences with a correct language ID (e.g. ````lua).',
@@ -392,46 +392,32 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
 
             -- Use vertical layout for the action palette so the preview gets more space.
             -- Supply a custom previewer that:
-            --   1. Attaches markview with hybrid_mode disabled (markview's own OptionSet autocmd
-            --      attaches with the global default hybrid_mode=true; our FileType autocmd in
-            --      markdown.lua can't override it because the buffer isn't in the preview window
-            --      yet when FileType fires — Telescope schedules win_set_buf asynchronously)
+            --   1. Renders the preview buffer through `mdrender`, which forces the raw-markup cursor
+            --      line off: the renderer's own filetype hook attaches with the global default, and
+            --      the FileType autocmd in `mdrender` cannot override it because the buffer is not in
+            --      the preview window yet when FileType fires (Telescope schedules win_set_buf
+            --      asynchronously)
             --   2. Sets wrap=true on the preview window for readable markdown
             local ok_tp, telescope_provider = pcall(require, 'codecompanion.providers.actions.telescope')
             if ok_tp then
                 local previewers = require('telescope.previewers')
-
-                --- Attach markview to a Telescope preview buffer with hybrid_mode disabled.
-                ---@param bufnr integer
-                local function markview_attach_preview(bufnr)
-                    if not vim.api.nvim_buf_is_valid(bufnr) then return end
-                    local has_mv, mv_actions = pcall(require, 'markview.actions')
-                    if not has_mv then return end
-                    local mv_state = require('markview.state')
-                    if mv_state.buf_attached(bufnr) then
-                        mv_state.set_buffer_state(bufnr, { enable = true, hybrid_mode = false })
-                        mv_actions.render(bufnr)
-                    else
-                        mv_actions.attach(bufnr, { enable = true, hybrid_mode = false })
-                    end
-                end
 
                 local action_previewer = previewers.new_buffer_previewer({
                     define_preview = function(self, entry)
                         local width = vim.api.nvim_win_get_width(self.state.winid) - 4
                         entry.preview_command(entry, self.state.bufnr, width)
                         vim.bo[self.state.bufnr].filetype = 'markdown'
-                        -- Markview's OptionSet autocmd fires synchronously from the filetype
-                        -- assignment above and attaches with the global hybrid_mode=true default.
-                        -- Override to hybrid_mode=false so the CursorLine is fully concealed.
-                        markview_attach_preview(self.state.bufnr)
+                        -- The renderer's filetype hook attaches synchronously from the assignment
+                        -- above, with the raw-markup cursor line enabled; render through `mdrender`
+                        -- to force it off so the whole preview, cursor line included, is rendered.
+                        require'mdrender'.preview(self.state.bufnr)
                         -- Telescope sets wrap=false on every preview window; override for markdown.
-                        -- After enabling wrap we must re-render markview so it recalculates
-                        -- virtual text / concealment for the new wrap state.
+                        -- After enabling wrap we must re-render so that virtual text and concealment
+                        -- are recalculated for the new wrap state.
                         vim.schedule(function()
                             if self.state and self.state.winid and vim.api.nvim_win_is_valid(self.state.winid) then
                                 vim.wo[self.state.winid].wrap = true
-                                markview_attach_preview(self.state.bufnr)
+                                require'mdrender'.preview(self.state.bufnr)
                             end
                         end)
                     end,
@@ -677,12 +663,12 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
 
             --- Disable expensive rendering on CodeCompanion chat buffers.
             --- Stops treesitter highlighting and the underlying parser, and
-            --- disables markview at the state level.
+            --- disables the Markdown renderer at the state level.
             --- See: https://github.com/olimorris/codecompanion.nvim/issues/552
             ---
             --- Performance context (measured on a 2800-line chat buffer):
             ---   TS full reparse with injections: ~36ms (scales to ~300ms at 10k lines)
-            ---   Markview enable + render:        ~45ms (scales similarly)
+            ---   Renderer enable + render:        ~45ms (scales similarly)
             local function disable_chat_rendering(bufnr)
                 bufnr = bufnr or vim.api.nvim_get_current_buf()
                 -- Stop treesitter highlighting
@@ -696,17 +682,15 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                 if ok_parser and parser and parser.destroy then
                     parser:destroy()
                 end
-                -- Disable markview at the state level so its autocmds early-return
-                local has_mv, mv_actions = pcall(require, 'markview.actions')
-                if has_mv then
-                    mv_actions.disable(bufnr)
-                end
+                -- Disable the Markdown renderer at the state level so its autocmds early-return
+                require'mdrender'.disable(bufnr)
             end
 
             --- Re-enable rendering after LLM streaming or insert mode ends.
             --- Staggers re-enables: TS highlighting first (lets the highlighter
-            --- lazily parse only the visible range), then markview after a short
-            --- defer so the UI unblocks between the two expensive operations.
+            --- lazily parse only the visible range), then the Markdown renderer
+            --- after a short defer so the UI unblocks between the two expensive
+            --- operations.
             local function enable_chat_rendering(bufnr)
                 bufnr = bufnr or vim.api.nvim_get_current_buf()
                 vim.schedule(function()
@@ -714,14 +698,11 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                     -- Re-enable treesitter highlighting; the highlighter's on_win
                     -- callback will lazily parse only the visible range.
                     vim.treesitter.start(bufnr, 'markdown')
-                    -- Defer markview re-enable so the first redraw (with TS) completes
-                    -- before markview adds its decorations (~45ms at 2800 lines).
+                    -- Defer the renderer's re-enable so the first redraw (with TS) completes
+                    -- before it adds its own decorations (~45ms at 2800 lines).
                     vim.defer_fn(function()
                         if not vim.api.nvim_buf_is_valid(bufnr) then return end
-                        local has_mv, mv_actions = pcall(require, 'markview.actions')
-                        if has_mv then
-                            mv_actions.enable(bufnr)
-                        end
+                        require'mdrender'.enable(bufnr)
                     end, 50)
                 end)
             end
@@ -739,7 +720,7 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                         vim.bo[bufnr].undolevels = -1
                     end
                 end,
-                desc = 'Disable TS/markview during CodeCompanion streaming',
+                desc = 'Disable TS and Markdown rendering during CodeCompanion streaming',
             })
 
             -- Re-enable rendering after streaming completes
@@ -755,13 +736,14 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                         enable_chat_rendering(bufnr)
                     end
                 end,
-                desc = 'Re-enable TS/markview after CodeCompanion streaming',
+                desc = 'Re-enable TS and Markdown rendering after CodeCompanion streaming',
             })
 
-            -- Disable rendering during insert mode to prevent per-keystroke lag.
-            -- Markview's TextChangedI autocmd fires on every keystroke even when
-            -- modes={'n'}, because it still runs actions.clear(). Using
-            -- actions.disable() sets buffer state so all autocmd callbacks bail out.
+            -- Disable rendering during insert mode to prevent per-keystroke lag.  Treesitter always
+            -- needs this; whether the Markdown renderer does depends on which one is active.
+            -- markview's TextChangedI autocmd fires on every keystroke even with modes={'n'}, because
+            -- it still runs actions.clear(), so it has to be disabled at the state level;
+            -- render-markdown never registers TextChangedI unless insert is one of its render modes.
             vim.api.nvim_create_autocmd('InsertEnter', {
                 group = cc_group,
                 pattern = '*',

@@ -82,7 +82,7 @@ return {
                     hl(0, 'NotifyDEBUGBody', { fg = palette.cyan2, bg = palette.bg, nocombine = true })
                     hl(0, 'NotifyTRACEBody', { fg = palette.magenta, bg = palette.bg, nocombine = true })
 
-                    -- Distinct foreground colors for markview callout types
+                    -- Distinct foreground colors per heading level; both renderers link their heading icons here.
                     hl(0, "@markup.heading.1.markdown", { fg = "#ff5370" })  -- red
                     hl(0, "@markup.heading.2.markdown", { fg = "#f78c6c" })  -- orange
                     hl(0, "@markup.heading.3.markdown", { fg = "#ffcb6b" })  -- yellow
@@ -90,13 +90,44 @@ return {
                     hl(0, "@markup.heading.5.markdown", { fg = "#89ddff" })  -- cyan
                     hl(0, "@markup.heading.6.markdown", { fg = "#c792ea" })  -- purple
 
-                    -- With background variants for filled callout styles
+                    -- markview: background variants for filled callout styles
                     hl(0, "MarkviewPalette0", { fg = "#969595", bg = "#1e1e2e" })
                     hl(0, "MarkviewPalette1", { fg = "#f38ba8", bg = "#2a1f29" })
                     hl(0, "MarkviewPalette2", { fg = "#f9e2af", bg = "#2a2520" })
                     hl(0, "MarkviewPalette3", { fg = "#cba6f7", bg = "#25202e" })
                     hl(0, "MarkviewPalette4", { fg = "#a6e3a1", bg = "#1e2a22" })
                     hl(0, "MarkviewPalette5", { fg = "#89b4fa", bg = "#1a2332" })
+
+                    -- render-markdown: `RenderMarkdownH1`-`H6` link to the heading groups above by
+                    -- default, so only the backgrounds, the callout severities and the checkbox
+                    -- states need defining.  The `Diff*`/`Visual`/`CursorColumn` defaults for the
+                    -- heading bands clash badly with night-owl, the callout defaults carry no
+                    -- background at all, and the checkbox states follow markview's palette.  Drop
+                    -- the `*Bg` lines for unbanded headings.
+                    hl(0, 'RenderMarkdownH1Bg', { bg = '#2a1f29' })  -- red tint
+                    hl(0, 'RenderMarkdownH2Bg', { bg = '#2a231f' })  -- orange tint
+                    hl(0, 'RenderMarkdownH3Bg', { bg = '#2a2520' })  -- yellow tint
+                    hl(0, 'RenderMarkdownH4Bg', { bg = '#1e2a22' })  -- green tint
+                    hl(0, 'RenderMarkdownH5Bg', { bg = '#1a2a32' })  -- cyan tint
+                    hl(0, 'RenderMarkdownH6Bg', { bg = '#25202e' })  -- purple tint
+                    hl(0, 'RenderMarkdownQuote', { fg = '#969595' })
+                    hl(0, 'RenderMarkdownInfo', { fg = '#89b4fa', bg = '#1a2332' })
+                    hl(0, 'RenderMarkdownSuccess', { fg = '#a6e3a1', bg = '#1e2a22' })
+                    hl(0, 'RenderMarkdownHint', { fg = '#cba6f7', bg = '#25202e' })
+                    hl(0, 'RenderMarkdownWarn', { fg = '#f9e2af', bg = '#2a2520' })
+                    hl(0, 'RenderMarkdownError', { fg = '#f38ba8', bg = '#2a1f29' })
+                    hl(0, 'RenderMarkdownUnchecked', { fg = '#f38ba8' })  -- red
+                    hl(0, 'RenderMarkdownChecked', { fg = '#a6e3a1' })  -- green
+                    hl(0, 'RenderMarkdownTodo', { fg = '#969595' })  -- grey, `[-]` cancelled
+                    hl(0, 'RenderMarkdownStriked', { fg = '#969595', strikethrough = true })
+
+                    -- night-owl's own `after/queries/markdown/highlights.scm` captures a *checked*
+                    -- task marker as `@text.todo.checked` at priority 200 (it leaves unchecked
+                    -- alone), and its `@text.todo` is inverted — `bg` set to the foreground colour.
+                    -- render-markdown overlays the checkbox icon with `hl_mode = 'combine'`, so
+                    -- that background bleeds through behind the icon.  Override for markdown only,
+                    -- leaving `@text.todo` intact for every other language.
+                    hl(0, '@text.todo.checked.markdown', { link = 'RenderMarkdownChecked' })
                 end,
             })
 

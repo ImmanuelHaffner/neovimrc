@@ -91,30 +91,14 @@ return {
                 },
             }
 
-            -- Disable indent guides wherever markview is rendering (markdown, codecompanion,
-            -- mdx, Telescope previews, …). We hook markview's own attach/detach events so the
-            -- set of affected buffers always matches markview's, regardless of filetype.
-            local group = vim.api.nvim_create_augroup('ibl_markview', { clear = true })
-            vim.api.nvim_create_autocmd('User', {
-                pattern = 'MarkviewAttach',
-                group = group,
-                callback = function(args)
-                    local bufnr = args.data and args.data.buffer
-                    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
-                        ibl.setup_buffer(bufnr, { enabled = false })
-                    end
-                end,
-            })
-            vim.api.nvim_create_autocmd('User', {
-                pattern = 'MarkviewDetach',
-                group = group,
-                callback = function(args)
-                    local bufnr = args.data and args.data.buffer
-                    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
-                        ibl.setup_buffer(bufnr, { enabled = true })
-                    end
-                end,
-            })
+            -- Disable indent guides wherever the Markdown renderer is rendering (markdown,
+            -- codecompanion, mdx, Telescope previews, …).  Hooking the renderer's own attach and detach
+            -- keeps the set of affected buffers matching its own, regardless of filetype.  Only markview
+            -- ever detaches, so under render-markdown a buffer keeps its guides off for its lifetime.
+            local group = vim.api.nvim_create_augroup('ibl_mdrender', { clear = true })
+            local mdrender = require'mdrender'
+            mdrender.on_attach(group, function(bufnr) ibl.setup_buffer(bufnr, { enabled = false }) end)
+            mdrender.on_detach(group, function(bufnr) ibl.setup_buffer(bufnr, { enabled = true }) end)
         end,
     },
 }
