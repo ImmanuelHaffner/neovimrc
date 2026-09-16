@@ -110,6 +110,16 @@ return {
                     hl(0, 'RenderMarkdownH4Bg', { bg = '#1e2a22' })  -- green tint
                     hl(0, 'RenderMarkdownH5Bg', { bg = '#1a2a32' })  -- cyan tint
                     hl(0, 'RenderMarkdownH6Bg', { bg = '#25202e' })  -- purple tint
+                    -- Code, following markview: the block background is night-owl's `Normal` bg
+                    -- lightened ~15% in OKLab, so it reads as depth rather than as a colour, while
+                    -- inline code carries no background at all — `@markup.raw.markdown_inline`
+                    -- already resolves to `Special`.  Both default to `ColorColumn` here, whose
+                    -- deliberately loud dim red is a warning colour and drowns out a `word`
+                    -- mid-sentence.  `==highlight==` follows `CodeInline` unless pinned, and there a
+                    -- background is the whole point of the markup.
+                    hl(0, 'RenderMarkdownCode', { bg = '#062236' })
+                    hl(0, 'RenderMarkdownCodeInline', { link = 'Special' })
+                    hl(0, 'RenderMarkdownInlineHighlight', { link = 'ColorColumn' })
                     hl(0, 'RenderMarkdownQuote', { fg = '#969595' })
                     hl(0, 'RenderMarkdownInfo', { fg = '#89b4fa', bg = '#1a2332' })
                     hl(0, 'RenderMarkdownSuccess', { fg = '#a6e3a1', bg = '#1e2a22' })
@@ -128,6 +138,17 @@ return {
                     -- that background bleeds through behind the icon.  Override for markdown only,
                     -- leaving `@text.todo` intact for every other language.
                     hl(0, '@text.todo.checked.markdown', { link = 'RenderMarkdownChecked' })
+
+                    -- render-markdown derives groups from the ones above — the `█` fill on a code
+                    -- block's language line is a virtual text whose *foreground* is
+                    -- `RenderMarkdownCode`'s background — and refreshes them from its own
+                    -- `ColorScheme` handler.  That handler is registered when the plugin loads,
+                    -- hence before this one, so on any later `:colorscheme` it recomputes them from
+                    -- the pre-override colors and the fill keeps `ColorColumn`'s dim red.  Recompute
+                    -- after us, but only once the plugin is up: on the first `ColorScheme` it is not
+                    -- loaded yet and the lazy computation then reads the final colors anyway.
+                    local md_colors = package.loaded['render-markdown.core.colors']
+                    if md_colors then md_colors.reload() end
                 end,
             })
 

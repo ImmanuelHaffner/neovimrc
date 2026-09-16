@@ -74,11 +74,25 @@ return {
             render_modes = { 'n', 'c' },
             -- Show raw markup on the cursor line only — nothing above or below it.
             anti_conceal = { above = 0, below = 0 },
+            -- Outside those modes nothing should be hidden either.  The plugin's default for
+            -- `conceallevel` is whatever the global option says (2 here), which keeps treesitter's
+            -- own conceals — inline code backticks, emphasis delimiters, link targets — invisible in
+            -- insert and visual mode even though every extmark has been cleared.  markview pinned
+            -- this to 0; `concealcursor` is already empty globally, so the cursor line in insert mode
+            -- shows its raw markup.
+            win_options = { conceallevel = { default = 0, rendered = 3 } },
             code = {
                 -- Background across the whole window rather than sized to the block.  A block-width
                 -- background is not wrap-aware, so a wrapped line tears it open, and it suppresses
                 -- `colorcolumn` and `cursorline` on every line it covers.
                 width = 'full',
+                -- Keep the fence lines as rows filled with the code background, so the block always
+                -- has one empty line above and below it.  The default 'hide' drops those rows
+                -- outright (`conceal_lines`), leaving the body flush against the surrounding prose;
+                -- with a language the top row becomes the header instead.  `background_inset = 1`
+                -- keeps the background off both rows, so the border overlay paints them —
+                -- `RenderMarkdownCodeBorder` links to `RenderMarkdownCode`, so they match.
+                border = 'thick',
             },
             checkbox = {
                 -- markview parity: the state's color covers the whole item rather than just its
