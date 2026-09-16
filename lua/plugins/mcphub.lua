@@ -1,13 +1,8 @@
 return {
     {
-        -- TODO: Switch back to 'ravitemer/mcphub.nvim' once PR #279 is merged:
-        --       https://github.com/ravitemer/mcphub.nvim/pull/279
-        --       This fork adds CodeCompanion v19 compatibility (tool cmd signature,
-        --       variables→editor_context rename, output handler changes, image API).
-        --       Upstream looks dormant (last commit 2026-01-18); alternative PR #287
-        --       was closed unmerged on 2026-06-01. Don't expect quick resolution.
         'ImmanuelHaffner/mcphub.nvim',
         branch = 'dev',
+        dev = true,
         dependencies = {
             'nvim-lua/plenary.nvim',  -- Required for Job and HTTP requests
             'Joakker/lua-json5',
