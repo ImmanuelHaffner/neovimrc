@@ -1,8 +1,7 @@
 return {
     {
-        -- 'atiladefreitas/dooing',
         'ImmanuelHaffner/dooing',
-        branch = 'dev',
+        branch = 'main',
         dev = true,
         dependencies = {
             'folke/which-key.nvim',
