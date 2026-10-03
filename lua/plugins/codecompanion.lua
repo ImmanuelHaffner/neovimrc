@@ -57,13 +57,13 @@ return {
                     gateway = {
                         enabled = true,
                         name = 'Databricks AI Gateway (Anthropic)',
-                        model = 'databricks-claude-opus-5',
+                        model = 'databricks-claude-opus-5-5',
                     },
                 },
                 -- Requested where the model accepts it; the plugin degrades it
                 -- to the highest level each model actually allows.
                 models = {
-                    preferred_effort = 'xhigh',
+                    preferred_effort = 'high',
                 },
                 token = {
                     refresh = true,
