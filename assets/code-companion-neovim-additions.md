@@ -208,7 +208,7 @@ When the path you want to search sits inside one of those roots, query that serv
 - Pick the server whose root *contains* the target path, the narrowest one when several do, and write patterns relative to that root.
 - Constrain and cap every query on the huge roots (path prefix, glob, `maxResults`), then page with the returned cursor rather than widening blindly.
 
-Fall back to `rg`/`git grep` — still wrapped in `timeout`, see below — only when fff can't answer:
+Fall back to `rg`/`git grep` — still under a `timeout`, see below — only when fff can't answer:
 
 - The target lies outside every indexed root.
 - You need something the fff tools don't expose: context lines, multiline matches, per-file counts.
@@ -221,15 +221,15 @@ Fall back to `rg`/`git grep` — still wrapped in `timeout`, see below — only 
 Shell commands run synchronously and can block the session.
 Some repos here are enormous (`~/universe`, `~/runtime`) — an unscoped `rg`/`find` there can run for an hour. So:
 
-- **Wrap potentially expensive commands in `timeout`** (e.g. `timeout 60s …` for searches; pick a fitting budget for builds/tests, or ask).
+- **Pass `timeout` to `execute_command`** (seconds, default 30, up to 600 without asking) instead of wrapping the command in `timeout`; pick a fitting budget for builds/tests, or ask.
 - **Scope the search space**: limit to a subdirectory, filter by filetype (`rg --type <lang>`, `--glob`), and cap output (`--max-count`, `head`).
   Reach for an `fff` server first (see above); when you do fall back, `rg` searches content and `fdfind` names (both respect `.gitignore`), and `git grep`/`git ls-files` are cheaper inside a repository.
 - **Iterate on scope**: on no matches, widen; on too many, narrow.
   If a timeout fires, treat it as a signal to narrow rather than just raising the budget.
 
 ```bash
-# Scoped path, filetype filter, output cap, timeout:
-timeout 60s rg --type scala --max-count 50 'class QuercusPlanner' \
+# Scoped path, filetype filter, output cap:
+rg --type scala --max-count 50 'class QuercusPlanner' \
   ~/worktrees/universe/quercus/sql/
 ```
 
@@ -237,7 +237,7 @@ timeout 60s rg --type scala --max-count 50 'class QuercusPlanner' \
 
 `rtk` is a CLI proxy on `PATH` here that runs a native command and filters or summarizes its output before it reaches your context: `rtk <subcommand> <native args…>`, with exit codes propagated.
 Prefer it for read-only commands whose output is bulky and mostly boilerplate — `rtk git status`, `rtk git log`, `rtk ls`, `rtk tree`, `rtk test <cmd>`, `rtk err <cmd>`, `rtk summary <cmd>`, `rtk log`, `rtk json`; `rtk --help` lists the rest.
-Keep the `timeout` wrapper outside (`timeout 60s rtk …`), and ignore the `[rtk] /!\ No hook installed` line on stderr: it advertises a Claude Code hook this session doesn't use.
+Budget its run with the tool's `timeout` parameter rather than a `timeout` wrapper, and ignore the `[rtk] /!\ No hook installed` line on stderr: it advertises a Claude Code hook this session doesn't use.
 
 Filtering costs fidelity, so run the command bare when fidelity is the point:
 
