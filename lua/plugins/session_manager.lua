@@ -67,10 +67,12 @@ return {
 
             local function save_and_exit()
                 session_manager.save_current_session()
-                -- Force-close all terminals
                 for _, buf in ipairs(vim.api.nvim_list_bufs()) do
                     if vim.bo[buf].buftype == 'terminal' then
                         vim.api.nvim_buf_delete(buf, { force = true })
+                    elseif vim.bo[buf].filetype == 'codecompanion' then
+                        -- Chats stay `modified` to block `:bdel`; that also blocks `:wqa`.
+                        vim.bo[buf].modified = false
                     end
                 end
                 vim.cmd[[wqa]]
