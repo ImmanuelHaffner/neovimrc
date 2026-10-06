@@ -46,6 +46,25 @@ return {
                 max_path_length = 0,  -- Shorten the display path if length exceeds this threshold. Use 0 if don't want to shorten the path at all.
             }
 
+            -- save_session force-deletes every buffer it can't restore, which destroys chats, file trees and
+            -- plugin UIs.  Spare the buffers `:mksession` leaves out anyway: unlisted ones get no `badd`, and
+            -- windows showing a `nofile`/`acwrite`/`prompt` buffer are skipped.
+            local SESSIONLESS_BUFTYPES = { nofile = true, acwrite = true, prompt = true }
+            local sm_utils = require'session_manager.utils'
+            local is_restorable = sm_utils.is_restorable
+            sm_utils.is_restorable = function(buf)
+                if not vim.bo[buf].buflisted and SESSIONLESS_BUFTYPES[vim.bo[buf].buftype] then return true end
+                return is_restorable(buf)
+            end
+            -- `autosave_ignore_not_normal` asks whether any real buffer is open; answer with the unpatched
+            -- predicate, or the ever-present plugin buffers (noice, cmp) would always count.
+            sm_utils.is_restorable_buffer_present = function()
+                for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                    if vim.api.nvim_buf_is_valid(buf) and is_restorable(buf) then return true end
+                end
+                return false
+            end
+
             local function save_and_exit()
                 session_manager.save_current_session()
                 -- Force-close all terminals
@@ -75,6 +94,8 @@ return {
             local last_session_save_time = vim.loop.uptime()
 
             vim.api.nvim_create_autocmd({ 'CursorHold' }, {
+                -- Saving deletes non-restorable buffers; let their BufUnload/BufWipeout cleanup run.
+                nested = true,
                 callback = function()
                     local now = vim.loop.uptime()
                     local diff = now - last_session_save_time
