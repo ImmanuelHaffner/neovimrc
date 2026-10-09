@@ -58,6 +58,10 @@ return {
                         enabled = true,
                         name = 'Databricks AI Gateway (Anthropic)',
                         model = 'databricks-claude-opus-5-5',
+                        -- Offer CodeCompanion's own `memory` tool instead of Anthropic's
+                        -- predefined one. Both run the same client-side code; only the
+                        -- schema differs, and only CodeCompanion's can carry `cwd`.
+                        available_tools = { memory = { enabled = false } },
                     },
                 },
                 -- Requested where the model accepts it; the plugin degrades it
