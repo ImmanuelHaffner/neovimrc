@@ -13,6 +13,10 @@ return {
         config = function()
             local Utils = require'utils'
             local port = 27373
+            -- Hold edit reviews back until I am in Normal mode in the chat that asked for them, so a review
+            -- never takes the cursor while I am typing a prompt or working elsewhere. `edit_file.ui` also
+            -- governs `write_file`.
+            local defer = { allow_in_modes = { 'n' }, chat = 'focused' }
             if Utils.is_ssh_connection() or Utils.is_client_server_connection() then
                 port = port + 1
             end
@@ -33,6 +37,10 @@ return {
                 -- search (which never stopped at $HOME) from resolving every cwd under $HOME to a
                 -- $HOME-rooted hub that merged Cursor's ~17 duplicate Databricks servers over ours.
                 workspace = { enabled = false },
+                builtin_tools = {
+                    apply_edit = { ui = { defer = defer } },
+                    edit_file = { ui = { defer = defer } },
+                },
             })
         end
     },
