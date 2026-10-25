@@ -40,6 +40,7 @@ return {
                 builtin_tools = {
                     apply_edit = { ui = { defer = defer } },
                     edit_file = { ui = { defer = defer } },
+                    view_image = { enabled = true },
                 },
             })
         end

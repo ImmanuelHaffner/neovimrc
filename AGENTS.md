@@ -227,6 +227,14 @@ mcp-hub honours these per-server keys: `command`, `args`, `env`, `cwd`, `disable
 String values expand `${VAR}` / `${env:VAR}`, `${cmd: …}`, `${workspaceFolder}` and `${userHome}`, but `disabled` is compared with a strict `=== true` and therefore cannot be driven by a placeholder.
 mcphub.nvim adds two client-side keys: `autoApprove` (tools that skip confirmation) and `custom_instructions.text`, which is injected into the model's context as that server's tool-group system prompt — use it to explain what a server is for when several similar servers coexist.
 
+### Image vision (`view_image`)
+
+`view_image` is a native tool of the `neovim` server, from our MCPHub fork, that shows the model an image file; it is off by default and enabled here by `builtin_tools.view_image` in `lua/plugins/mcphub.lua`, read when the hub starts.
+It sits in the `neovim` server's `autoApprove`, which covers only paths inside the chat's working directory: anything outside always prompts, whatever the approval settings, and the prompt can approve that directory for the rest of the chat (`f`).
+Images over 2576 px on the long edge or 5,000,000 bytes of base64 are downscaled on the client with `sips` (ImageMagick elsewhere); those caps are hard-coded in `lua/mcphub/native/neovim/files/view_image/init.lua`, because they are the provider's, not a preference.
+With the gateway adapter the image travels nested in its `tool_result`, through the `FORK(vision)` changes in our CodeCompanion fork (`opts.tool_result_images` on `anthropic`); adapters without that option get it as a separate user message.
+The design and its evidence are in `notes/vision-tool-design.md`.
+
 ### Databricks servers
 
 The `databricks_*` entries mirror the servers Databricks' own tooling configures in `~/.claude.json`, renamed as `databricks_` plus the upstream name with hyphens turned into underscores (`databricks-v2` → `databricks_client_v2` is the sole irregular).
