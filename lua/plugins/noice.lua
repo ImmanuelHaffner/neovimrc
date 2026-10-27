@@ -159,6 +159,17 @@ return {
                         },
                         opts = { skip = true, history = false },
                     },
+                    -- Keep cc-db-aigateway's per-request token usage (`log_usage`) off the screen;
+                    -- it stays in `:Noice` history for checking prompt-cache hits.
+                    {
+                        filter = {
+                            event = 'notify',
+                            cond = function(msg)
+                                return msg.opts and msg.opts.title == 'cc-db-aigateway usage'
+                            end,
+                        },
+                        opts = { skip = true },
+                    },
                     -- Skip CodeCompanion Edit Tracker warnings shown via :echo
                     {
                         filter = {
