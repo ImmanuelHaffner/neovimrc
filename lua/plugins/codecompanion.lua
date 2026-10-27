@@ -347,6 +347,18 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                         },
                     },
                 },
+                skills = {
+                    -- The defaults plus Cursor's personal skills.  `tbl_deep_extend` replaces lists wholesale,
+                    -- so the defaults must be restated; later entries win on a name clash.
+                    dirs = {
+                        '~/.config/codecompanion/skills',
+                        '.codecompanion/skills',
+                        '~/.agents/skills',
+                        '~/.cursor/skills',
+                        '~/.claude/skills',
+                        '.claude/skills',
+                    },
+                },
                 prompt_library = {
                     markdown = {
                         dirs = {
