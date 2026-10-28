@@ -22,6 +22,30 @@ local function show_neo_tree(toggle)
     }
 end
 
+--- Preview `path`. In a terminal, image_preview.nvim draws images inline (WezTerm, Kitty). Neovide renders no
+--- terminal image protocol, so there the file goes to the OS viewer: on macOS Neovide's native Quick Look panel,
+--- opened by a `neovide.force_click` notification of kind 'file' (col/row anchor the panel), else `xdg-open`.
+local function preview(path)
+    if not vim.g.neovide then
+        require'image_preview'.PreviewImage(path)
+    elseif vim.fn.has'mac' == 1 then
+        local pos = vim.fn.screenpos(0, vim.fn.line'.', vim.fn.col'.')
+        vim.rpcnotify(vim.g.neovide_channel_id, 'neovide.force_click',
+            math.max(pos.col - 1, 0), math.max(pos.row - 1, 0), path, vim.o.guifont, 'file')
+    else
+        vim.system({ 'xdg-open', path }, { detach = true })
+    end
+end
+
+local preview_desc = not vim.g.neovide and 'Preview image (terminal)'
+    or vim.fn.has'mac' == 1 and 'Quick Look'
+    or 'Open in default viewer'
+
+--- @param node table|nil neo-tree node
+local function preview_node(node)
+    if node and node.type == 'file' then preview(node.path) end
+end
+
 
 return {
     {
@@ -82,7 +106,7 @@ return {
                         -- which-key label and neo-tree's own help text (`?` → show_help). Without it
                         -- the three cd entries below would all just read `cd_here`.
                         ['<F2>'] = { 'close_window', desc = 'Close neo-tree' },
-                        ['<leader>p'] = { 'image_wezterm', desc = 'Preview image (WezTerm)' },
+                        ['<leader>p'] = { 'preview_file', desc = preview_desc },
                         -- Explicit CWD relocation to the node under the cursor (see `cd_here` below).
                         ['<leader>cd'] = { 'cd_here', config = { scope = 'cd'  }, desc = ':cd  → node (global)' },
                         ['<leader>ct'] = { 'cd_here', config = { scope = 'tcd' }, desc = ':tcd → node (tab)' },
@@ -90,12 +114,7 @@ return {
                     },
                 },
                 commands = {
-                    image_wezterm = function(state)
-                        local node = state.tree:get_node()
-                        if node.type == 'file' then
-                            require'image_preview'.PreviewImage(node.path)
-                        end
-                    end,
+                    preview_file = function(state) preview_node(state.tree:get_node()) end,
 
                     -- Explicitly relocate the working directory to the node under the cursor.
                     -- Deliberate action, decoupled from navigation (cwd_target = 'none' above).
@@ -143,6 +162,22 @@ return {
                     wk.add{ { '<leader>c', group = 'cwd → node', buffer = args.buf } }
                 end,
             })
+
+            -- A trackpad force click makes Neovide run `:NeovideForceClick`, whose built-in entity detection
+            -- resolves `<cfile>` against the cwd and so never recognises a neo-tree node (bare name behind an
+            -- icon) as a file. A buffer-local command shadows the global one and hands over the node's path.
+            if vim.g.neovide and vim.fn.has'mac' == 1 then
+                vim.api.nvim_create_autocmd('FileType', {
+                    group = vim.api.nvim_create_augroup('neo-tree-force-click', { clear = true }),
+                    pattern = 'neo-tree',
+                    callback = function(args)
+                        vim.api.nvim_buf_create_user_command(args.buf, 'NeovideForceClick', function()
+                            local state = require'neo-tree.sources.manager'.get_state_for_window()
+                            if state and state.tree then preview_node(state.tree:get_node()) end
+                        end, { desc = 'Quick Look the neo-tree node under the cursor' })
+                    end,
+                })
+            end
         end,
         keys = {
             {
