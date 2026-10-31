@@ -63,7 +63,7 @@
   "nvim_json_graph_view": { "branch": "main", "commit": "5e7b39bb17d7381b06bcaae589c2d53854ae5c93" },
   "nvu.nvim": { "branch": "dev", "commit": "9d71282cffca534d4f23cb80536b140b4d14e0fb" },
   "outline.nvim": { "branch": "main", "commit": "2a132953b944561d45b52e4541ebfff71934a742" },
-  "pesto.nvim": { "branch": "main", "commit": "a870ac976d7b4fcd9bf0e466fe6ec29773dfb60d" },
+  "pesto.nvim": { "branch": "dev", "commit": "24df9f5567fcff5c3c117d0dc37c93beced11dcf" },
   "pigmentor.nvim": { "branch": "dev", "commit": "6aa7daa38de9ac49f552b025e6c208d7e9baa100" },
   "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
   "reactive.nvim": { "branch": "master", "commit": "0588b5c2b0cf49bd2232fe4366b3516c32edee44" },
