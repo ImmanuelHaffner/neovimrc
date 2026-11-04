@@ -64,11 +64,21 @@ return {
                         available_tools = { memory = { enabled = false } },
                     },
                 },
-                -- Requested where the model accepts it; the plugin degrades it
-                -- to the highest level each model actually allows.
                 models = {
+                    -- Requested where the model accepts it; the plugin degrades it
+                    -- to the highest level each model actually allows.  It is also a
+                    -- ceiling: the plugin's per-model recommendations can lower it
+                    -- (Opus 5.5 and Haiku 5.5 start at `medium`) but never raise a
+                    -- model above it.
                     preferred_effort = 'high',
+                    anthropic = {
+                        -- Per-model entries here bypass both the recommendation and
+                        -- the ceiling above.  Opus 5.5 is the default model, and the
+                        -- recommended `medium` would otherwise lower it from `high`.
+                        preferred_effort = { ['databricks-claude-opus-5-5'] = 'high' },
+                    },
                 },
+
                 token = {
                     refresh = true,
                 },
