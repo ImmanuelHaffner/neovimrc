@@ -32,8 +32,17 @@ local function setup_metals()
     metals_config.capabilities.workspace.semanticTokens = metals_config.capabilities.workspace.semanticTokens or {}
     metals_config.capabilities.workspace.semanticTokens.refreshSupport = true
 
-    -- Override `find_root_dir` to simply use CWD
-    metals_config.find_root_dir = function() return vim.fn.getcwd() end
+    -- Root the build at the project owning the file rather than at the cwd: buffers are also loaded hidden while
+    -- an unrelated window is current (an agent's file tools run in the chat window), and a wrong root spawns a
+    -- fresh Metals and build server there.  The cwd still wins for files inside it outside any project.
+    metals_config.find_root_dir = function(_, bufname)
+        local dir = vim.fs.dirname(bufname)
+        local root = require'project'.find_root(dir)
+        if root then return root end
+        local cwd = vim.fn.getcwd()
+        if vim.startswith(bufname, cwd .. '/') then return cwd end
+        return vim.fs.root(dir, '.git') or cwd
+    end
 
     local nvim_metals_group = vim.api.nvim_create_augroup('nvim-metals', { clear = true })
     vim.api.nvim_create_autocmd('FileType', {

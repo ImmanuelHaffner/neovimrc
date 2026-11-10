@@ -156,7 +156,7 @@ end
 --- repository and strictly below `M.config.stop_at`; see the bounding rationale at the top of this file.
 --- @param dir string
 --- @return string|nil
-local function find_root(dir)
+function M.find_root(dir)
     dir = (vim.fs.normalize(vim.fn.fnamemodify(dir, ':p')):gsub('/$', ''))
     if has_config(dir) then return dir end
 
@@ -185,7 +185,7 @@ function M.load(cd_mode, cwd)
     cd_mode = cd_mode or 'global'
     cwd = cwd or vim.fn.getcwd()
 
-    local root = find_root(cwd)
+    local root = M.find_root(cwd)
     if not root then return end
 
     local lua_path = root .. '/.project.lua'
