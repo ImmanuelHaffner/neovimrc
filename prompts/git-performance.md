@@ -27,6 +27,30 @@ You are a Git performance specialist. Your job is to diagnose why Git operations
 
 Follow this order. Run independent checks in parallel where possible.
 
+#### Phase 0 — Hang or Slow?
+
+A command that never returns is a different problem from one that is slow, and benchmarking it only blocks the session.
+Bound every probe in this procedure with `timeout` (e.g. `timeout 120 git status`), and treat a probe that times out as a finding.
+
+To find where a hanging command is stuck, trace it and read the last child process it started:
+
+```bash
+GIT_TRACE=1 timeout 60 git status 2>&1 | tail -5        # last run_command/start_command names the culprit
+GIT_TRACE2_PERF=1 timeout 60 git status 2>&1 | tail -20 # per-region timings, if it does finish
+ps -eo pid,etime,rss,args | grep -E '[g]it|[w]atchman|[i]ndex-pack'  # what is running right now
+```
+
+Then isolate the usual suspects:
+
+| Stuck in | Test | Meaning |
+|----------|------|---------|
+| fsmonitor hook | `time timeout 120 git -c core.fsmonitor=false status` | Fast without the hook → diagnose FSMonitor (Phase 3) |
+| ssh / credential helper | `GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND='ssh -o BatchMode=yes' timeout 30 git ls-remote <remote> HEAD` | Hangs or fails → auth or network, not Git |
+| `index-pack` | `ps` shows `index-pack … --pack_header=2,<objects>` | A large transfer is being indexed locally; it is progressing, not hung |
+| pager / editor | rerun with `GIT_PAGER=cat GIT_EDITOR=true` | Git was waiting for interactive input |
+
+`git fetch` consults the index too, including through the fsmonitor hook, so a broken hook can make a fetch look like a network hang.
+
 #### Phase 1 — Gather Repository Profile
 
 Collect these metrics first to understand the scale:
@@ -36,16 +60,17 @@ Collect these metrics first to understand the scale:
 git version
 
 # Repo scale
+G="$(git rev-parse --path-format=absolute --git-common-dir)"  # shared git dir; `.git` is a file in worktrees
 git rev-list --count HEAD              # total commits
 git ls-files | wc -l                   # tracked files
-du -sh .git                            # git dir size
-ls -lh .git/objects/pack/*.pack        # pack file sizes
+du -sh "$G"                            # git dir size
+ls -lh "$G"/objects/pack/*.pack        # pack file sizes
 
 # Ref counts
 git branch | wc -l                     # local branches
 git branch -r | wc -l                  # remote-tracking branches
 git tag | wc -l                        # tags
-wc -l < .git/packed-refs               # packed refs entries
+wc -l < "$G"/packed-refs               # packed refs entries
 
 # Remotes and fetch config
 git remote -v
@@ -53,10 +78,10 @@ git config --get-all remote.origin.fetch
 git config --get-all remote.<other>.fetch
 
 # Special repo features
-cat .git/shallow 2>/dev/null           # shallow clone?
-cat .git/objects/info/alternates 2>/dev/null  # alternates?
+cat "$G"/shallow 2>/dev/null           # shallow clone?
+cat "$G"/objects/info/alternates 2>/dev/null  # alternates?
 git worktree list 2>/dev/null          # worktrees?
-cat .git 2>/dev/null                   # worktree link? (.git is a file in worktrees)
+git rev-parse --git-dir                # differs from $G inside a linked worktree
 ```
 
 #### Phase 2 — Benchmark Baseline
@@ -64,13 +89,14 @@ cat .git 2>/dev/null                   # worktree link? (.git is a file in workt
 Time the operations the user cares about. Common slow ones:
 
 ```bash
-time git status
-time git log --oneline -1              # without graph
-time git log --graph --oneline -1      # with graph (often the killer)
-time git log --graph --oneline -20
-time git diff HEAD~1 --stat
-time git branch -r
-time git fetch --dry-run
+time timeout 120 git status
+time timeout 120 git -c core.fsmonitor=false status   # A/B: does fsmonitor help or hurt?
+time timeout 120 git log --oneline -1              # without graph
+time timeout 120 git log --graph --oneline -1      # with graph (often the killer)
+time timeout 120 git log --graph --oneline -20
+time timeout 120 git diff HEAD~1 --stat
+time timeout 120 git branch -r
+time timeout 300 git fetch --dry-run
 ```
 
 #### Phase 3 — Check Performance Features
@@ -83,11 +109,11 @@ Investigate each of these. Report which are enabled, disabled, broken, or miscon
 git config --get core.commitGraph
 
 # Does the file exist and is it fresh?
-ls -lh .git/objects/info/commit-graph 2>/dev/null
-ls -lh .git/objects/info/commit-graphs/ 2>/dev/null
+ls -lh "$G"/objects/info/commit-graph 2>/dev/null
+ls -lh "$G"/objects/info/commit-graphs/ 2>/dev/null
 
 # If alternates are used, check there too
-cat .git/objects/info/alternates
+cat "$G"/objects/info/alternates
 ls -lh <alternates_path>/info/commit-graph 2>/dev/null
 
 # Is it actually being opened? (the definitive test)
@@ -100,10 +126,30 @@ grep 'commit.graph\|commit-graph' /tmp/strace.log
 
 **FSMonitor** (critical for `git status`):
 ```bash
-git config --get core.fsmonitor
+git config --show-origin --get-all core.fsmonitor
 git fsmonitor--daemon status 2>&1
 # If "not supported on this platform" → it's silently failing
 ```
+
+If `core.fsmonitor` names a watchman hook, check that the hook can answer cheaply:
+
+```bash
+# The index stores the last watchman clock token (c:<epoch>:<daemon pid>:…)
+grep -aom1 'c:[0-9]*:[0-9]*:[0-9]*:[0-9]*' "$(git rev-parse --git-dir)/index"
+watchman clock "$(git rev-parse --show-toplevel)"   # the current daemon's clock
+
+# Time the hook directly with the stored token
+time timeout 120 "$(git config core.fsmonitor)" 2 '<token from the index>' | tr '\0' '\n' | wc -l
+
+# The stock hook falls back to pure-Perl JSON::PP, which is far slower on large responses
+perl -MJSON::XS -e1 && echo JSON::XS || echo 'JSON::PP only'
+watchman version
+```
+
+A token whose pid differs from the current daemon's is unknown to watchman (the daemon restarted, e.g. after a reboot), so the query is a *fresh instance*.
+The stock `fsmonitor-watchman.sample` then receives and parses the path of every file in the working tree, which on a large tree takes minutes and hundreds of MB.
+Read-only callers (`--no-optional-locks`, as used by editor integrations and shell prompts) never write the refreshed token back to the index, so each of them pays that cost again.
+The fix is the hardened hook under *Set up FSMonitor with watchman*.
 
 **Untracked cache**:
 ```bash
@@ -117,7 +163,8 @@ git config --get feature.manyFiles   # enables index v4 + untracked cache
 
 **Background maintenance**:
 ```bash
-git maintenance run --auto 2>&1
+git config --get-all maintenance.repo   # registered repos (`git maintenance run` would mutate)
+git config --get maintenance.auto
 crontab -l 2>/dev/null | grep -i git
 systemctl --user list-timers 2>/dev/null | grep -i git
 ```
@@ -132,11 +179,14 @@ Common root causes ranked by typical impact:
 | **Too many remote-tracking refs** (>10K) | Everything slow, especially `--graph` | Topo-sort must consider all ref tips |
 | **Stale/missing commit-graph** | `--graph` slow, `git log` with `--topo-order` slow | Falls back to full commit walk |
 | **FSMonitor broken/missing** | `git status` slow | Must stat every file in working tree |
+| **Stale fsmonitor token** (watchman daemon restarted) | `git status`, `git fetch` and editor Git calls hang for minutes | The stock watchman hook lists and parses every file on each call |
+| **No `JSON::XS` for the watchman hook** | Hook calls with many changed files are slow | Pure-Perl parsing of large watchman responses |
 | **Too many tags** (>10K) | Ref enumeration slow | Extra ref tips + packed-refs bloat |
 | **Unpacked refs** | Ref operations slow | Many small file reads vs one packed-refs |
 | **No background maintenance** | Performance degrades over time | Commit-graph, packs, refs go stale |
 | **Alternates with stale commit-graph** | `--graph` uses outdated graph data | Partial speedup, misses recent commits |
 | **Overly broad fetch refspec** (`+refs/heads/*`) | `git fetch` slow, downloads all branches | Network + local ref storage overhead |
+| **Large `index-pack` after a long gap** | `git fetch` looks hung after the transfer | Local indexing of millions of objects; progressing, not stuck |
 | **Relative paths in config + worktrees** | `.git/hooks/...` fails in worktrees | `.git` is a file in worktrees, not a directory |
 
 #### Phase 5 — Recommend and Apply Fixes
@@ -160,7 +210,7 @@ For each issue found, provide:
 ```bash
 # Instead of fetching all branches from a monorepo remote:
 git config remote.origin.fetch '+refs/heads/master:refs/remotes/origin/master'
-git config --add remote.origin.fetch '+refs/heads/<username>_data/*:refs/remotes/origin/<username>_data/*'
+git config --add remote.origin.fetch '+refs/heads/<username>/*:refs/remotes/origin/<username>/*'
 ```
 
 **Prune stale remote-tracking refs** (one-time):
@@ -228,22 +278,50 @@ To set up the watchman hook:
 # 1. Verify watchman is available and can watch the repo
 watchman watch-project "$(pwd)"
 
-# 2. Copy the sample hook that ships with every git clone
-cp .git/hooks/fsmonitor-watchman.sample .git/hooks/query-watchman
-chmod +x .git/hooks/query-watchman
+# 2. Copy the sample hook that ships with every git clone, then harden it (below)
+G="$(git rev-parse --path-format=absolute --git-common-dir)"
+cp "$G"/hooks/fsmonitor-watchman.sample "$G"/hooks/query-watchman
+chmod +x "$G"/hooks/query-watchman
 
 # 3. Set core.fsmonitor to the hook path (LOCAL config — overrides global "true")
-#    IMPORTANT: Use an absolute path so this works in worktrees too.
+#    IMPORTANT: Use an absolute path into the COMMON git dir so this works in worktrees too.
 #    In worktrees, .git is a file (not a directory), so relative paths like
 #    .git/hooks/query-watchman fail with "cannot exec: Not a directory".
-git config core.fsmonitor "$(git rev-parse --git-dir)/hooks/query-watchman"
+git config core.fsmonitor "$G/hooks/query-watchman"
 ```
+
+**Harden the hook against fresh instances.**
+The stock sample asks watchman for every change since the token stored in the index.
+When watchman doesn't know that token (the daemon restarted), it answers with a fresh instance that lists *every* file, which the hook parses and hands to Git, and it does so on every call from a caller that doesn't write the index.
+Ask for an empty list instead and report "everything may be dirty" (`/`), so Git does one ordinary scan and stores the new token:
+
+```perl
+# in watchman_query(), add to the query object:
+			"empty_on_fresh_instance": true,
+
+# and replace launch_watchman():
+sub launch_watchman {
+	my $o = watchman_query();
+	if (is_work_tree_watched($o)) {
+		# An unknown token (e.g. the daemon restarted) would list every
+		# file; report everything dirty so git rescans once instead.
+		if ($o->{is_fresh_instance}) {
+			output_result($o->{clock}, ("/"));
+		} else {
+			output_result($o->{clock}, @{$o->{files}});
+		}
+	}
+}
+```
+
+Verify with a token the daemon cannot know: `"$G"/hooks/query-watchman 2 c:0:0:0:0 | tr '\0' '\n'` must print a clock and `/`, within milliseconds.
+Also check for the Perl module `JSON::XS`, which the hook uses when present; installing it is a system package change, so ask first.
 
 What this creates:
 
 | Artifact | Path | Type |
 |----------|------|------|
-| Hook script | `.git/hooks/query-watchman` | File inside `.git` — not tracked, not shared across clones |
+| Hook script | `<common git dir>/hooks/query-watchman` | Not tracked; shared by all worktrees of the clone, not across clones |
 | Config entry | `.git/config` → `core.fsmonitor` | Local config — overrides the global `true` for this repo |
 | Watchman daemon | System-level `/usr/bin/watchman` | Already installed, runs per-user |
 | Watchman state | `~/.cache/watchman/` or similar | Per-user daemon state, persists across sessions |
@@ -251,17 +329,14 @@ What this creates:
 The first `git status` after setup will be slow (~30-60s for large repos) as watchman indexes
 the working tree. Subsequent runs use filesystem events and are significantly faster.
 
-Regression risk: Low. The watchman daemon persists across terminal sessions. If the devbox is
-reprovisioned and `.git/hooks/query-watchman` is lost, Git falls back to the global
-`core.fsmonitor = true` (which tries the broken built-in daemon → silent fallback to full
-scan). Both the hook file and local config entry would need to be recreated.
+Regression risk: Low. The watchman daemon persists across terminal sessions, but every restart (e.g. a reboot) invalidates the tokens stored in each index.
+With the hardened hook that costs one ordinary scan per worktree; with the stock sample it costs a full file listing on every call until an index-writing command such as `git status` runs.
+If the machine is reprovisioned and the hook file is lost, Git falls back to the global `core.fsmonitor = true` (which tries the unsupported built-in daemon → silent fallback to a full scan).
+Both the hook file and the local config entry would then need to be recreated.
 
-**Worktree compatibility**: The hook file lives inside the main `.git/` directory and is shared
-by all worktrees (worktrees resolve `core.fsmonitor` from the shared `.git/config`). However,
-the **path must be absolute** — a relative path like `.git/hooks/query-watchman` breaks in
-worktrees because `.git` there is a file (containing `gitdir: /path/to/main/.git/worktrees/X`),
-not a directory. Always use `$(git rev-parse --git-dir)/hooks/query-watchman` which resolves to
-the real `.git` directory regardless of context.
+**Worktree compatibility**: The hook file lives in the common git directory and is shared by all worktrees (worktrees resolve `core.fsmonitor` from the shared config).
+However, the **path must be absolute** — a relative path like `.git/hooks/query-watchman` breaks in worktrees because `.git` there is a file (containing `gitdir: /path/to/main/.git/worktrees/X`), not a directory.
+Use `$(git rev-parse --path-format=absolute --git-common-dir)/hooks/query-watchman`; `--git-dir` would point into `.git/worktrees/<name>/` inside a linked worktree, where no hooks live.
 
 **Note on global `core.fsmonitor = true`**: If the built-in daemon is not supported on this
 platform, the global setting silently fails for ALL repos. Consider either:
@@ -322,7 +397,7 @@ git for-each-repo --config=maintenance.repo maintenance run --schedule=<frequenc
 This iterates over all registered repos and runs the appropriate maintenance tasks.
 
 Regression risk: Low. Systemd user timers survive reboots (activated at user login via
-`timers.target`). If the devbox is fully reprovisioned and systemd user config is wiped,
+`timers.target`). If the machine is fully reprovisioned and systemd user config is wiped,
 `git maintenance start` needs to be re-run. If the repo is moved or deleted, clean up the
 stale `maintenance.repo` entry: `git config --global --unset maintenance.repo /old/path`.
 
@@ -365,9 +440,8 @@ When the repository uses `git worktree`, several config assumptions break:
 3. **Commit-graph is shared** — The commit-graph lives in the main `.git/objects/info/` and is
    used by all worktrees. Writing it once benefits all.
 
-4. **Watchman watches are per-worktree** — Each worktree has its own working directory, so
-   watchman needs a separate watch for each. The first `git status` in a new worktree triggers
-   a fresh watchman indexing pass.
+4. **Watchman watches and tokens are per-worktree** — Each worktree has its own working directory, so watchman needs a separate watch for each, and the first `git status` in a new worktree triggers a fresh watchman indexing pass.
+   The fsmonitor token lives in each worktree's own index, so a daemon restart invalidates the tokens of all worktrees at once, and each pays the fresh-instance cost on first use.
 
 **Diagnostic**: If the user has worktrees, always verify config paths resolve correctly:
 ```bash
