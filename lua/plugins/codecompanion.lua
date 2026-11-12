@@ -137,6 +137,9 @@ return {
                 neovim_additions = table.concat(vim.fn.readfile(additions_path), '\n')
             end
 
+            local claude = require'claude_plugins'
+            local claude_plugins = claude.plugins()
+
             local cc = require'codecompanion'
             cc.setup{
                 adapters = {
@@ -358,16 +361,18 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                     },
                 },
                 skills = {
-                    -- The defaults plus Cursor's personal skills.  `tbl_deep_extend` replaces lists wholesale,
-                    -- so the defaults must be restated; later entries win on a name clash.
-                    dirs = {
+                    -- The defaults plus Cursor's personal skills, after the skills of the plugins enabled in
+                    -- Claude Code.  `tbl_deep_extend` replaces lists wholesale, so the defaults must be
+                    -- restated; later entries win on a name clash, so personal and project skills override
+                    -- plugin ones.
+                    dirs = vim.list_extend(claude.skill_dirs(claude_plugins), {
                         '~/.config/codecompanion/skills',
                         '.codecompanion/skills',
                         '~/.agents/skills',
                         '~/.cursor/skills',
                         '~/.claude/skills',
                         '.claude/skills',
-                    },
+                    }),
                 },
                 prompt_library = {
                     markdown = {
@@ -415,6 +420,8 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                     },
                 }
             }
+
+            claude.patch_codecompanion(claude_plugins)
 
             -- Extend (don't override) the built-in `default` rules preset with global
             -- instruction files from the home directory. This MUST run *after* `cc.setup{}`
