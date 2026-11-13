@@ -21,6 +21,9 @@ return {
             if Utils.is_ssh_connection() or Utils.is_client_server_connection() then
                 port = port + 1
             end
+            -- Isolated test hubs: a probe Neovim with these set gets a hub of its own, which neither reads
+            -- nor writes the files the real hub watches.  Pair with `MCPHUB_PROJECT_OVERLAY` (`project.mcp`).
+            port = tonumber(vim.env.MCPHUB_PORT) or port
 
             require("mcphub").setup({
                 -- Pin an explicit port below the Linux ephemeral range (32768+) so the Arca SSH companion — which
@@ -29,6 +32,7 @@ return {
                 -- 37373 sits inside that ephemeral band and clashed with a remote mcp-hub forwarded by Arca, causing
                 -- the hub to serve `/home/...` config paths (remote $HOME) and E739 on macOS autofs `/home`.
                 port = port,
+                config = vim.env.MCPHUB_CONFIG,
                 -- Workspace hubs are OFF.  A workspace hub re-spawns every enabled global server, so each
                 -- enrolled project added its own duplicate `fff_universe` / `fff_runtime` — three universe
                 -- indexes at ~3.2 GiB each were once live at once, and 178 GiB resident was observed.
@@ -53,9 +57,11 @@ return {
                 },
             })
 
-            -- Once per session, as soon as the overlay is loaded, drop entries whose project is gone.
+            -- Once per session, as soon as the overlay is loaded, drop entries whose project is gone.  And on
+            -- every update adopt project servers other Neovims started, so `max_active` holds hub-wide.
             local swept = false
             require('mcphub').on('servers_updated', function()
+                pcall(project_mcp.observe)
                 if swept then return end
                 local ok, ran = pcall(project_mcp.sweep)
                 swept = ok and ran

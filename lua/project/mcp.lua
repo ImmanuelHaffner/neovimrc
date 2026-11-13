@@ -19,12 +19,13 @@
 --- fff.nvim's single in-process index cannot.
 ---
 --- Lifecycle.  Servers are written into the overlay config file `M.config.overlay` and started; the number
---- of *running* ones is capped by `M.config.max_active`, evicting the least recently used (stopped and marked
---- `disabled`).  The overlay is *ephemeral*: whichever Neovim spawns a hub disables every entry in it first,
---- so a fresh hub starts none of them, and each Neovim then re-enables the ones it asked for once the hub is
---- ready (`M.on_hub_ready()`).  What runs therefore follows where you are now, not where you were when the
---- hub last ran.  The entry itself is kept as a cheap catalogue record; `M.forget()` deletes it and
---- `M.prune()` drops entries whose root has disappeared.
+--- of *running* ones is capped hub-wide by `M.config.max_active`, counting the ones other Neovims started
+--- (`M.observe()`), and the least recently used is evicted (stopped and marked `disabled`).  The overlay is
+--- *ephemeral*: whichever Neovim spawns a hub disables every entry in it first, so a fresh hub starts none of
+--- them, and each Neovim then re-enables the ones it asked for once the hub is ready (`M.on_hub_ready()`).
+--- What runs therefore follows where you are now, not where you were when the hub last ran.  The entry itself
+--- is kept as a cheap catalogue record; `M.forget()` deletes it and `M.prune()` drops entries whose root has
+--- disappeared.
 ---
 --- The overlay is a config file of its own, which the hub reads after the global `servers.json`
 --- (`config_overlays` in `lua/plugins/mcphub.lua`).  Only this module writes it.  It lives in Neovim's
@@ -35,9 +36,13 @@ local M = {}
 
 M.config = {
     --- The config file holding every project-scoped server, read by the hub after the global one.
-    overlay = vim.fs.normalize(vim.fn.stdpath('state') .. '/mcphub/project-servers.json'),
-    --- How many project-scoped servers may run at once.  Beyond this the least recently used is stopped.
-    max_active = 2,
+    --- `MCPHUB_PROJECT_OVERLAY` points an isolated test hub elsewhere (see `lua/plugins/mcphub.lua`).
+    overlay = vim.fs.normalize(vim.env.MCPHUB_PROJECT_OVERLAY
+        or (vim.fn.stdpath('state') .. '/mcphub/project-servers.json')),
+    --- How many project-scoped servers may run at once, hub-wide.  Beyond this the least recently used is
+    --- stopped.  The budget is memory: a universe worktree's index settles near 2.2–3.4 GiB and peaks around
+    --- 5.5 GiB while it builds.
+    max_active = 4,
     --- Flags every project-scoped fff server gets:
     ---   * `--no-warmup` skips only the *eager mmap warmup* — the pass that once drove fff to 178 GiB
     ---     resident when several instances started at once.  Files are still mmap'd lazily on first access.
@@ -360,6 +365,33 @@ end
 --- another one restarted it, so each restores its own servers.
 function M.on_hub_ready() vim.schedule(M.resync) end
 
+--- Adopt project servers that are connected but that this session never asked for: started by another
+--- Neovim on the shared hub, or kept alive for one.  They then count against `max_active` and can be
+--- evicted like our own, so the cap holds hub-wide rather than per session.
+---
+--- They are adopted with `wanted = false`, because bringing one back after a hub spawn is its owner's
+--- business, and `running = false`: that flag only stands in while the hub has not reported a server, and an
+--- adopted one that the hub later drops must stop counting.  `last_used` is the time of first sight, so a
+--- session evicts its own stale servers before another session's fresh ones.
+--- @return string[] names the servers adopted
+function M.observe()
+    local state = mcphub()
+    if not state then return {} end
+
+    local adopted = {}
+    for _, server in ipairs((state.server_state or {}).servers or {}) do
+        local entry = server.config_source == M.config.overlay and server.status == 'connected'
+            and not M.state[server.name] and file_entry(server.name)
+        if entry and entry._project_root then
+            M.state[server.name] = {
+                root = entry._project_root, last_used = os.time(), spec = entry, running = false, wanted = false,
+            }
+            table.insert(adopted, server.name)
+        end
+    end
+    return adopted
+end
+
 --- Once-per-session housekeeping: prune vanished projects.  Returns false while the hub's config is not
 --- loaded yet, so the caller can retry on a later event.
 --- @return boolean ran
@@ -376,7 +408,10 @@ end
 function M.status()
     local out = {}
     for name, entry in pairs(M.state) do
-        table.insert(out, { name = name, root = entry.root, running = is_running(name), hub_status = status_of(name) })
+        table.insert(out, {
+            name = name, root = entry.root, wanted = entry.wanted, running = is_running(name),
+            hub_status = status_of(name),
+        })
     end
     return out
 end

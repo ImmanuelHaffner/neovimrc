@@ -143,6 +143,87 @@ T['resync']['ignores entries this session never asked for'] = function()
     eq(env.hub.calls, {})
 end
 
+T['observe'] = MiniTest.new_set{ hooks = { pre_case = function()
+    setup{ overlay = { mcpServers = {
+        fff_foreign = { command = 'fff-mcp', disabled = false, _project_root = '/elsewhere/foreign' },
+    } } }
+end } }
+
+--- Did the fake hub get asked to stop `name`?
+--- @param name string
+--- @return boolean
+local function stopped(name)
+    return vim.tbl_contains(env.hub.calls, function(call)
+        return call[1] == 'stop' and call[2] == name
+    end, { predicate = true })
+end
+
+T['observe']['adopts a connected server another session started'] = function()
+    connected{ 'fff_foreign' }
+
+    eq(mcp.observe(), { 'fff_foreign' })
+    eq(mcp.state.fff_foreign.root, '/elsewhere/foreign')
+    eq(mcp.state.fff_foreign.wanted, false)
+end
+
+T['observe']['adopted servers are evictable'] = function()
+    mcp.config.max_active = 1
+    connected{ 'fff_foreign' }
+    mcp.observe()
+
+    mcp.fff{ root = project('mine') }
+
+    eq(stopped('fff_foreign'), true)
+    eq(H.read_json(env.overlay).mcpServers.fff_foreign.disabled, true)
+end
+
+T['observe']['our own stale server goes first'] = function()
+    mcp.config.max_active = 2
+    local own = mcp.fff{ root = project('old') }
+    mcp.state[own].last_used = os.time() - 3600
+    connected{ own, 'fff_foreign' }
+    mcp.observe()
+
+    mcp.fff{ root = project('new') }
+
+    eq(stopped(own), true)
+    eq(stopped('fff_foreign'), false)
+end
+
+T['observe']['ignores global and disconnected servers'] = function()
+    H.write_json(env.global, { mcpServers = {
+        fff_global = { command = 'fff-mcp', _project_root = '/elsewhere/global' },
+    } })
+    reload()
+    H.set_servers{
+        { name = 'fff_global', status = 'connected', config_source = env.global },
+        { name = 'fff_foreign', status = 'disconnected', config_source = env.overlay },
+    }
+
+    eq(mcp.observe(), {})
+    eq(mcp.state, {})
+end
+
+T['observe']['is idempotent'] = function()
+    connected{ 'fff_foreign' }
+    mcp.observe()
+    local before = vim.deepcopy(mcp.state)
+
+    eq(mcp.observe(), {})
+    eq(mcp.state, before)
+end
+
+T['observe']['an adopted server the hub dropped stops counting'] = function()
+    mcp.config.max_active = 1
+    connected{ 'fff_foreign' }
+    mcp.observe()
+    H.set_servers{}
+
+    mcp.fff{ root = project('mine') }
+
+    eq(stopped('fff_foreign'), false)
+end
+
 T['prune'] = MiniTest.new_set()
 
 T['prune']['drops overlay entries whose root is gone'] = function()
