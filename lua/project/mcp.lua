@@ -18,18 +18,21 @@
 --- projects be current at once in a single Neovim — it can serve several roots simultaneously, which
 --- fff.nvim's single in-process index cannot.
 ---
---- Lifecycle.  Servers are written into the hub's config file and started; the number of *running* ones is
---- capped by `M.config.max_active`, evicting the least recently used (stopped **and** marked `disabled`,
---- so a later hub start does not resurrect it).  The entry itself is kept as a cheap catalogue record;
---- `M.forget()` deletes it and `M.prune()` drops entries whose root has disappeared.
+--- Lifecycle.  Servers are written into the overlay config file `M.config.overlay` and started; the number
+--- of *running* ones is capped by `M.config.max_active`, evicting the least recently used (stopped **and**
+--- marked `disabled`, so a later hub start does not resurrect it).  The entry itself is kept as a cheap
+--- catalogue record; `M.forget()` deletes it and `M.prune()` drops entries whose root has disappeared.
 ---
---- Note that entries are written to `State.config.config` — the single config file the global hub reads,
---- i.e. the deployed `~/.config/mcphub/servers.json`.  `make install` overwrites that file, which is
---- harmless: the next `load` re-upserts.
+--- The overlay is a config file of its own, which the hub reads after the global `servers.json`
+--- (`config_overlays` in `lua/plugins/mcphub.lua`).  Only this module writes it.  It lives in Neovim's
+--- state directory, away from the deployed `~/.config/mcphub/servers.json`: `make install` replaces that file
+--- wholesale, and when project servers lived there the hub dropped every one of them on each install.
 
 local M = {}
 
 M.config = {
+    --- The config file holding every project-scoped server, read by the hub after the global one.
+    overlay = vim.fs.normalize(vim.fn.stdpath('state') .. '/mcphub/project-servers.json'),
     --- How many project-scoped servers may run at once.  Beyond this the least recently used is stopped.
     max_active = 2,
     --- Flags every project-scoped fff server gets:
@@ -114,7 +117,16 @@ end
 local function write_entry(name, spec)
     local _, config_manager = mcphub()
     if not config_manager then return false end
-    return config_manager.update_server_config(name, spec, { merge = false })
+    return config_manager.update_server_config(name, spec, { merge = false, config_source = M.config.overlay })
+end
+
+--- The entry for `name` as the overlay holds it, or nil.
+--- @param name string
+--- @return table|nil
+local function file_entry(name)
+    local _, config_manager = mcphub()
+    if not config_manager then return nil end
+    return ((config_manager.get_file_config(M.config.overlay) or {}).mcpServers or {})[name]
 end
 
 --- Current status of `name` as the hub sees it, or nil when the hub does not know it.
@@ -215,16 +227,21 @@ function M.fff(opts)
         return nil
     end
 
+    -- Compare with the file, not with what this session last wrote: the entry can change or vanish behind
+    -- our back (another Neovim, an edit in the MCPHub UI), and a cached copy would then keep us from
+    -- restoring it.
     local spec = spec_for(root, opts)
-    local known = M.state[name]
-    if not known or not vim.deep_equal(known.spec, spec) then
+    if not vim.deep_equal(file_entry(name), spec) then
         if not write_entry(name, spec) then
             notify('failed to register ' .. name, vim.log.levels.ERROR)
             return nil
         end
-        M.state[name] = { root = root, last_used = os.time(), spec = spec, running = false }
+    end
+    local known = M.state[name]
+    if known then
+        known.spec, known.last_used = spec, os.time()
     else
-        known.last_used = os.time()
+        M.state[name] = { root = root, last_used = os.time(), spec = spec, running = false }
     end
 
     ensure_running(name)
@@ -260,13 +277,14 @@ function M.forget(root)
     M.state[name] = nil
 end
 
---- Entries in the hub's config file that this module wrote, keyed by server name.
+--- Entries of the config file `path` that this module wrote, keyed by server name.
+--- @param path string
 --- @return table<string, table>
-local function project_entries()
-    local state = mcphub()
-    if not state then return {} end
+local function project_entries(path)
+    local _, config_manager = mcphub()
+    if not config_manager then return {} end
 
-    local file = (state.config_files_cache or {})[state.config.config] or {}
+    local file = config_manager.get_file_config(path) or {}
     local entries = {}
     for name, entry in pairs(file.mcpServers or {}) do
         if type(entry) == 'table' and entry._project_root then entries[name] = entry end
@@ -274,27 +292,45 @@ local function project_entries()
     return entries
 end
 
---- Drop entries this module wrote in earlier sessions whose root no longer exists.  Worktrees get deleted
---- routinely, and the entries outlive them because they live in the hub's config file.
+--- Delete entries that earlier versions of this module wrote into the global config file.  `make install`
+--- would drop them eventually; until then they clutter the hub with stale servers.
+--- @return string[] names
+local function prune_global()
+    local state, config_manager = mcphub()
+    if not state or not config_manager then return {} end
+
+    local removed = {}
+    for name in pairs(project_entries(state.config.config)) do
+        config_manager.update_server_config(name, nil, { config_source = state.config.config })
+        table.insert(removed, name)
+    end
+    return removed
+end
+
+--- Drop entries whose root no longer exists.  Worktrees get deleted routinely, and the entries outlive them
+--- because the overlay persists.  Leftovers in the global config file are dropped as well.
 --- @return integer removed
---- @return string[] names the entries that were deleted
+--- @return string[] names the overlay entries that were deleted
 function M.prune()
     local removed = {}
-    for name, entry in pairs(project_entries()) do
+    for name, entry in pairs(project_entries(M.config.overlay)) do
         if vim.fn.isdirectory(entry._project_root) == 0 then
             write_entry(name, nil)
             M.state[name] = nil
             table.insert(removed, name)
         end
     end
-    if #removed > 0 then notify(('pruned %d stale project server(s)'):format(#removed)) end
+    local leftovers = prune_global()
+    if #removed + #leftovers > 0 then
+        notify(('pruned %d stale project server(s)'):format(#removed + #leftovers))
+    end
     return #removed, removed
 end
 
 --- Disable project-scoped servers left over from an earlier session, so that what runs is decided by where
 --- you are now rather than by where you were last time.
 ---
---- The hub spawns every entry with `disabled = false` when it starts, and entries persist in its config file
+--- The hub spawns every entry with `disabled = false` when it starts, and entries persist in the overlay
 --- across restarts, so without this up to `max_active` indexes come back unbidden.
 ---
 --- Two safeguards.  It only acts when this Neovim started the hub (`hub.is_owner`), because the hub is
@@ -314,11 +350,12 @@ function M.reset(skip)
     for _, name in ipairs(skip or {}) do ignore[name] = true end
 
     local count = 0
-    for name, entry in pairs(project_entries()) do
+    for name, entry in pairs(project_entries(M.config.overlay)) do
         if entry.disabled ~= true and not M.state[name] and not ignore[name] then
             -- `merge = true` on purpose: flip one flag and keep the rest of the entry.  The wholesale
             -- replace is only needed when writing `args`, which a deep merge would splice element-wise.
-            config_manager.update_server_config(name, { disabled = true }, { merge = true })
+            config_manager.update_server_config(name, { disabled = true },
+                { merge = true, config_source = M.config.overlay })
             count = count + 1
         end
     end
@@ -333,7 +370,7 @@ end
 --- @return boolean ran
 function M.sweep()
     local state = mcphub()
-    if not state or not (state.config_files_cache or {})[state.config.config] then return false end
+    if not state or not (state.config_files_cache or {})[M.config.overlay] then return false end
 
     local _, pruned = M.prune()
     M.reset(pruned)

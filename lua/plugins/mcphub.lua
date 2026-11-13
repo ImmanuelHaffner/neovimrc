@@ -37,6 +37,10 @@ return {
                 -- search (which never stopped at $HOME) from resolving every cwd under $HOME to a
                 -- $HOME-rooted hub that merged Cursor's ~17 duplicate Databricks servers over ours.
                 workspace = { enabled = false },
+                -- Project-scoped servers live in their own file, which `make install` never touches: it
+                -- replaces the global `servers.json` wholesale, and the hub used to drop every project server
+                -- with it.  Only `lua/project/mcp.lua` writes this file; the hub reads and watches it.
+                config_overlays = { { path = require'project.mcp'.config.overlay } },
                 builtin_tools = {
                     apply_edit = { ui = { defer = defer } },
                     edit_file = { ui = { defer = defer } },
