@@ -41,6 +41,7 @@ return {
                     apply_edit = { ui = { defer = defer } },
                     edit_file = { ui = { defer = defer } },
                     view_image = { enabled = true },
+                    execute_command = { memory_limit = 32 * 1024 ^ 3 },  -- 32 GiB
                 },
             })
         end
