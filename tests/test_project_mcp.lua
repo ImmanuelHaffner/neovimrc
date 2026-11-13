@@ -93,6 +93,56 @@ T['overlay']['eviction disables the least recently used server in the overlay'] 
     eq(H.slurp(env.global), global)
 end
 
+T['resync'] = MiniTest.new_set{ hooks = { pre_case = function() setup() end } }
+
+--- Rewrite the overlay on disk with `edit` applied to its servers, leaving mcphub's cache stale.
+--- @param edit fun(servers: table)
+local function edit_overlay(edit)
+    local file = H.read_json(env.overlay)
+    edit(file.mcpServers)
+    H.write_json(env.overlay, file)
+end
+
+T['resync']['re-enables a wanted entry the spawning hub disabled'] = function()
+    local name = mcp.fff{ root = project('proj') }
+    -- Behind the cache's back, as a Neovim spawning the hub would.
+    edit_overlay(function(servers) servers[name].disabled = true end)
+
+    eq(mcp.resync(), { name })
+    eq(H.read_json(env.overlay).mcpServers[name].disabled, false)
+end
+
+T['resync']['leaves an evicted entry disabled'] = function()
+    mcp.config.max_active = 1
+    local first = mcp.fff{ root = project('a') }
+    connected{ first }
+    local second = mcp.fff{ root = project('b') }
+
+    eq(mcp.resync(), {})
+    local servers = H.read_json(env.overlay).mcpServers
+    eq(servers[first].disabled, true)
+    eq(servers[second].disabled, false)
+end
+
+T['resync']['restores a wanted entry deleted from the overlay'] = function()
+    local root = project('proj')
+    local name = mcp.fff{ root = root }
+    edit_overlay(function(servers) servers[name] = nil end)
+
+    eq(mcp.resync(), { name })
+    eq(H.read_json(env.overlay).mcpServers[name]._project_root, root)
+end
+
+T['resync']['ignores entries this session never asked for'] = function()
+    edit_overlay(function(servers)
+        servers.fff_foreign = { command = 'fff-mcp', disabled = true, _project_root = env.dir }
+    end)
+
+    eq(mcp.resync(), {})
+    eq(H.read_json(env.overlay).mcpServers.fff_foreign.disabled, true)
+    eq(env.hub.calls, {})
+end
+
 T['prune'] = MiniTest.new_set()
 
 T['prune']['drops overlay entries whose root is gone'] = function()

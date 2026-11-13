@@ -12,6 +12,7 @@ return {
         build = "cd ~/.local && npm install mcp-hub@latest",
         config = function()
             local Utils = require'utils'
+            local project_mcp = require'project.mcp'
             local port = 27373
             -- Hold edit reviews back until I am in Normal mode in the chat that asked for them, so a review
             -- never takes the cursor while I am typing a prompt or working elsewhere. `edit_file.ui` also
@@ -40,7 +41,10 @@ return {
                 -- Project-scoped servers live in their own file, which `make install` never touches: it
                 -- replaces the global `servers.json` wholesale, and the hub used to drop every project server
                 -- with it.  Only `lua/project/mcp.lua` writes this file; the hub reads and watches it.
-                config_overlays = { { path = require'project.mcp'.config.overlay } },
+                -- `ephemeral`: whichever Neovim spawns a hub disables every entry first, so a fresh hub starts
+                -- none of them and each Neovim re-enables its own from `on_ready`.
+                config_overlays = { { path = project_mcp.config.overlay, ephemeral = true } },
+                on_ready = function() project_mcp.on_hub_ready() end,
                 builtin_tools = {
                     apply_edit = { ui = { defer = defer } },
                     edit_file = { ui = { defer = defer } },
@@ -48,6 +52,14 @@ return {
                     execute_command = { memory_limit = 32 * 1024 ^ 3 },  -- 32 GiB
                 },
             })
+
+            -- Once per session, as soon as the overlay is loaded, drop entries whose project is gone.
+            local swept = false
+            require('mcphub').on('servers_updated', function()
+                if swept then return end
+                local ok, ran = pcall(project_mcp.sweep)
+                swept = ok and ran
+            end)
         end
     },
 }

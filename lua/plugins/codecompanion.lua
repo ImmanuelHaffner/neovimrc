@@ -974,20 +974,6 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                 end
             end
 
-            -- Project-scoped fff servers persist in the hub's config file across restarts, so once per
-            -- session drop the ones whose project is gone and disable the ones this session has not asked
-            -- for (see `lua/project/mcp.lua`).  `sweep()` reports false until the hub config is loaded, so
-            -- this keeps trying on later events.
-            local project_servers_swept = false
-            local function sweep_project_servers()
-                if project_servers_swept then return end
-                local ok, project_mcp = pcall(require, 'project.mcp')
-                if not ok then return end
-
-                local swept_ok, swept = pcall(project_mcp.sweep)
-                project_servers_swept = swept_ok and swept or false
-            end
-
             -- When MCPHub finishes registering tools/resources (may happen after chat is already open),
             -- rebuild meta-groups and refresh tools + editor_context (variables) on all open chats.
             -- The mcphub CC extension's initial vim.schedule(M.register) often runs before the hub
@@ -996,7 +982,6 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
             require('mcphub').on({ 'servers_updated', 'tool_list_changed', 'resource_list_changed' },
                 vim.schedule_wrap(function()
                     build_meta_groups()
-                    sweep_project_servers()
                     sync_mcp_tools()
                     local EditorContext = require('codecompanion.interactions.shared.editor_context')
                     for _, buf in ipairs(vim.api.nvim_list_bufs()) do

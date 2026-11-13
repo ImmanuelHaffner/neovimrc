@@ -19,9 +19,12 @@
 --- fff.nvim's single in-process index cannot.
 ---
 --- Lifecycle.  Servers are written into the overlay config file `M.config.overlay` and started; the number
---- of *running* ones is capped by `M.config.max_active`, evicting the least recently used (stopped **and**
---- marked `disabled`, so a later hub start does not resurrect it).  The entry itself is kept as a cheap
---- catalogue record; `M.forget()` deletes it and `M.prune()` drops entries whose root has disappeared.
+--- of *running* ones is capped by `M.config.max_active`, evicting the least recently used (stopped and marked
+--- `disabled`).  The overlay is *ephemeral*: whichever Neovim spawns a hub disables every entry in it first,
+--- so a fresh hub starts none of them, and each Neovim then re-enables the ones it asked for once the hub is
+--- ready (`M.on_hub_ready()`).  What runs therefore follows where you are now, not where you were when the
+--- hub last ran.  The entry itself is kept as a cheap catalogue record; `M.forget()` deletes it and
+--- `M.prune()` drops entries whose root has disappeared.
 ---
 --- The overlay is a config file of its own, which the hub reads after the global `servers.json`
 --- (`config_overlays` in `lua/plugins/mcphub.lua`).  Only this module writes it.  It lives in Neovim's
@@ -48,8 +51,9 @@ M.config = {
     fff_auto_approve = { 'find_files', 'grep', 'multi_grep' },
 }
 
---- Project-scoped servers we manage, keyed by server name.
---- @type table<string, { root: string, last_used: integer, spec: table, running: boolean }>
+--- Project-scoped servers we manage, keyed by server name.  `wanted` is this session's intent, which
+--- `M.resync()` restores after a hub spawn disabled the overlay; eviction and `M.release()` clear it.
+--- @type table<string, { root: string, last_used: integer, spec: table, running: boolean, wanted: boolean }>
 M.state = {}
 
 --- @param msg string
@@ -181,12 +185,12 @@ local function ensure_running(name)
     })
 end
 
---- Stop `name` and mark it disabled, so a later hub start does not bring it back.
+--- Stop `name` and mark it disabled, so neither the hub nor `M.resync()` brings it back.
 --- @param name string
 local function stop(name)
     local state = mcphub()
     local hub = state and state.hub_instance
-    if M.state[name] then M.state[name].running = false end
+    if M.state[name] then M.state[name].running, M.state[name].wanted = false, false end
     if not hub then return end
     hub:stop_mcp_server(name, true, {
         callback = function(_, err)
@@ -239,9 +243,9 @@ function M.fff(opts)
     end
     local known = M.state[name]
     if known then
-        known.spec, known.last_used = spec, os.time()
+        known.spec, known.last_used, known.wanted = spec, os.time(), true
     else
-        M.state[name] = { root = root, last_used = os.time(), spec = spec, running = false }
+        M.state[name] = { root = root, last_used = os.time(), spec = spec, running = false, wanted = true }
     end
 
     ensure_running(name)
@@ -327,53 +331,43 @@ function M.prune()
     return #removed, removed
 end
 
---- Disable project-scoped servers left over from an earlier session, so that what runs is decided by where
---- you are now rather than by where you were last time.
+--- Re-enable every server this session wants that the overlay has disabled or lost, typically because a
+--- Neovim spawning the hub disabled the whole overlay first.
 ---
---- The hub spawns every entry with `disabled = false` when it starts, and entries persist in the overlay
---- across restarts, so without this up to `max_active` indexes come back unbidden.
----
---- Two safeguards.  It only acts when this Neovim started the hub (`hub.is_owner`), because the hub is
---- shared and a second instance must not disable servers the first one is using.  And it skips anything in
---- `M.state`, i.e. anything this session has already asked for, which also removes the ordering hazard of
---- running after a `.project.lua` has registered its project.
---- @param skip? string[] entries to leave alone, e.g. ones a preceding `M.prune()` just deleted
---- @return integer disabled
-function M.reset(skip)
-    local state, config_manager = mcphub()
-    local hub = state and state.hub_instance
-    if not hub or not config_manager or not hub.is_owner then return 0 end
+--- Reads the overlay from disk rather than mcphub's cache.  After a restart every Neovim reloads its cache and
+--- reconnects, and one that reloads just before the spawning one disables the overlay would otherwise still
+--- see its entries enabled and leave them off.
+--- @return string[] names the entries written back
+function M.resync()
+    local _, config_manager = mcphub()
+    if not config_manager then return {} end
+    config_manager.load_config(M.config.overlay)
 
-    -- Explicit rather than relying on the deletions of a preceding prune having already refreshed
-    -- mcphub's config cache.
-    local ignore = {}
-    for _, name in ipairs(skip or {}) do ignore[name] = true end
-
-    local count = 0
-    for name, entry in pairs(project_entries(M.config.overlay)) do
-        if entry.disabled ~= true and not M.state[name] and not ignore[name] then
-            -- `merge = true` on purpose: flip one flag and keep the rest of the entry.  The wholesale
-            -- replace is only needed when writing `args`, which a deep merge would splice element-wise.
-            config_manager.update_server_config(name, { disabled = true },
-                { merge = true, config_source = M.config.overlay })
-            count = count + 1
+    local restored = {}
+    for name, entry in pairs(M.state) do
+        if entry.wanted then
+            local current = file_entry(name)
+            if (not current or current.disabled == true) and write_entry(name, entry.spec) then
+                table.insert(restored, name)
+            end
+            ensure_running(name)
         end
     end
-    if count > 0 then
-        notify(('disabled %d project server(s) left over from an earlier session'):format(count))
-    end
-    return count
+    return restored
 end
 
---- Once-per-session housekeeping: prune vanished projects, then disable whatever this session has not asked
---- for.  Returns false when the hub's config is not loaded yet, so the caller can retry on a later event.
+--- `on_ready` hook for `mcphub.setup`.  The hub reports ready to every connected Neovim, including after
+--- another one restarted it, so each restores its own servers.
+function M.on_hub_ready() vim.schedule(M.resync) end
+
+--- Once-per-session housekeeping: prune vanished projects.  Returns false while the hub's config is not
+--- loaded yet, so the caller can retry on a later event.
 --- @return boolean ran
 function M.sweep()
     local state = mcphub()
     if not state or not (state.config_files_cache or {})[M.config.overlay] then return false end
 
-    local _, pruned = M.prune()
-    M.reset(pruned)
+    M.prune()
     return true
 end
 
