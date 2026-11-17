@@ -108,13 +108,20 @@ Anything that lives at a source line goes inline. Body prose is the exception, n
 
 5. **Present the PR description**: Show the PR title, description, and any linked issues.
 
-6. **Analyze and batch changes**: 
+6. **Recall what earlier reviews established** before reading the diff in depth:
+   - Read the user's review-preferences entity in the knowledge graph (search `review preferences`). It collects the rulings he made on earlier reviews about how to grade, phrase and scope findings, and they override generic habits.
+   - When the PR fixes an incident or its description makes claims about production behaviour, also read his investigation-lessons entity (search `investigation method lessons`): its rules on evidence apply to those claims.
+   - List the topic entities with `search_nodes` on `verified-knowledge` and read every one whose `SCOPE` names a component, symbol or path this PR touches. For a stacked PR, also read the review entities of its predecessors.
+   - `search_nodes` matches the query as a single substring, so search for one symbol at a time.
+   - Treat what you find as leads pinned to a date and commit, not as truths: re-verify a fact against this PR's base before a posted comment relies on it.
+
+7. **Analyze and batch changes**: 
    - Get the diff between base and head branches
    - Identify all changed files and categorize them
    - **Order by dependencies**: Present foundational changes first (new types, interfaces, utilities), then changes that depend on them
    - Group related changes into small, reviewable batches
 
-7. **Guide through each batch**:
+8. **Guide through each batch**:
    - Open relevant files in Neovim buffers using `vim.api.*` functions
    - Position cursor at the relevant changes
    - Optionally annotate changed lines using `statuscolumn` or signs
@@ -240,7 +247,13 @@ Reviews span sessions and rounds, so persist state as you go.
 - `.pr-<N>-review-comments.json` — the inline comments as a JSON array.
 - `memories/parked-sessions/<slug>.md` — the session narrative, written when parking.
 
-**Durable facts go to the knowledge graph** as one entity per review: the PR's identity (URL, author, head SHA, base, position in its stack), each finding with its severity and evidence, each platform fact you verified, and the post-state (review id, event, what is awaiting an answer). Keep observations atomic.
+**Durable facts go to the knowledge graph**, split by how long they stay true:
+
+- **One entity per review** for what is specific to the PR: its identity (URL, author, head SHA, base, position in its stack), each finding with its severity and evidence, the user's decisions including "dropped, do not re-raise", and the post-state (review id, event, what is awaiting an answer).
+- **Topic entities of type `verified-knowledge`** for verified mechanisms that a later review of the same code will need. Add to the topic whose `SCOPE` fits, or start one whose first observation is a `SCOPE:` line naming the components, symbols and paths it covers. Pin each fact to the date and commit it was verified at, link the review to the topic, and replace an observation that a later review proves stale rather than appending a contradiction.
+- **The user's review-preferences entity** for any ruling of his that applies beyond this PR.
+
+Keep observations atomic.
 
 At the start of a session, read the graph entity and the parked-session note **before** touching the code, so a later round builds on the earlier one instead of redoing it.
 

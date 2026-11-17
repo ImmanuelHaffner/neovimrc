@@ -52,6 +52,12 @@ resuming agent will need to know about. Common examples:
 - Notes directories under `~/Documents/databricks/<topic>/`
 - External repos or vendored dependencies that were inspected or edited
 
+Also find the **governing instructions**: every `AGENTS.md` in a directory
+above the CWD, up to but excluding `~`. CodeCompanion autoloads only the
+`AGENTS.md` of the directory a chat starts in (plus `~/AGENTS.md`), so a
+chat resumed from a subfolder never sees a parent's instructions unless the
+continuation prompt names them.
+
 Only list directories that actually came up in the conversation or were
 clearly in use — do not speculate. If unsure, ask the user.
 
@@ -94,6 +100,17 @@ Write to `/memories/parked-sessions/<slug>.md` with this format:
 <any additional context that would help resume: error messages, API details, tricky parts, etc.>
 ```
 
+### Step 2b — File Durable Knowledge
+
+The parked note is for resuming this task; knowledge that outlives the task
+belongs where the next, unrelated task will look for it. Before writing the
+continuation prompt, check the conversation for facts it verified and lessons
+it taught that will matter beyond this task, and file each one where the
+governing instructions say such knowledge goes (for example a knowledge-graph
+topic or a lessons entity). In the parked note, point at what you filed rather
+than copying it. If the governing instructions say nothing about this, skip
+the step.
+
 ### Step 3 — Generate a Continuation Prompt
 
 Write a continuation prompt to `.prompts/continue-<slug>.md`. The file must follow this exact structure:
@@ -119,10 +136,13 @@ You are resuming a previously parked work session.
 
 **Working directory when parked**: `<absolute cwd>`
 **Primary work directory**: `<absolute path>` <!-- only include if different from CWD -->
+**Governing instructions**: `<absolute path of each parent AGENTS.md>` <!-- only include if Step 2 found any -->
 
 Before doing anything else:
 
-1. Read the parked session state from memory at `/memories/parked-sessions/<slug>.md`
+1. Read the governing instructions, if listed, and run any recall step they
+   prescribe (e.g. reading lessons or topic entities); then read the parked
+   session state from memory at `/memories/parked-sessions/<slug>.md`
 2. Verify the current working directory matches (or is compatible with) the
    parked CWD. If it differs, surface this to the user before acting — they
    may need to `:cd` or open a different worktree.
@@ -145,6 +165,7 @@ I'm picking up where I left off on <task name>. Read the parked session from mem
 
 **CRITICAL rules for the continuation prompt:**
 - Keep the `## system` section brief (under 20 lines). The detailed state lives in memory.
+- Include the **Governing instructions** line whenever Step 2 found a parent `AGENTS.md`; it is the only way the resumed chat learns of it.
 - The `name` in frontmatter must start with "Continue: " for easy recognition in the action palette
 - The `description` should be specific enough to distinguish from other parked tasks
 - Set `auto_submit: false` so the user can add context before starting
@@ -154,7 +175,7 @@ I'm picking up where I left off on <task name>. Read the parked session from mem
 
 Tell the user:
 1. The task slug chosen
-2. The memory file path written
+2. The memory file path written, and any durable knowledge filed in Step 2b
 3. The continuation prompt file path written
 4. How to resume: use the action palette or `/continue-<slug>` in a new chat
 5. How to list all parked sessions: `/parked` in any chat
