@@ -74,13 +74,75 @@ local function mcphub()
     return state, config_manager
 end
 
---- Server name for `root`: readable prefix plus a hash, because worktrees of different repositories
---- share basenames (`worktrees/universe/quercus` vs `worktrees/runtime/quercus`).
---- @param root string
+--- Longest server key we generate.  The provider's tool-name limit is 64 characters, and a tool is exposed as
+--- `<key>__<tool>`, possibly behind an `mcp__` prefix: 40 + 2 + `multi_grep` + 5 stays below it.
+local MAX_NAME = 40
+
+--- Server key for `root`.
+---
+--- `opts.name` when given, else `fff_<parent>_<base>`, lower-cased — the parent is what tells apart worktrees
+--- of different repositories (`worktrees/universe/quercus` vs `worktrees/runtime/quercus`).  Anything but
+--- `[%w_]` becomes `_`.  A hash of the root is appended only when `entries` already holds the key for another
+--- root, or when the key had to be truncated, since truncation could otherwise merge two roots.
+--- @param root string normalized project root
+--- @param entries table<string, table> server entries already configured, keyed by name
+--- @param opts? { name?: string }
 --- @return string
-local function server_name(root)
-    local base = (vim.fn.fnamemodify(root, ':t'):gsub('[^%w_]', '_'))
-    return ('fff_%s_%s'):format(base, vim.fn.sha256(root):sub(1, 6))
+function M.server_name(root, entries, opts)
+    opts = opts or {}
+    local name
+    if opts.name then
+        name = opts.name:gsub('[^%w_]', '_')
+    else
+        local parent, base = vim.fn.fnamemodify(root, ':h:t'), vim.fn.fnamemodify(root, ':t')
+        name = ('fff_%s_%s'):format(parent, base):lower():gsub('[^%w_]', '_')
+    end
+
+    local owner = type((entries or {})[name]) == 'table' and entries[name]._project_root or nil
+    local collides = (entries or {})[name] ~= nil and owner ~= root
+    if collides or #name > MAX_NAME then
+        local hash = '_' .. vim.fn.sha256(root):sub(1, 6)
+        name = name:sub(1, MAX_NAME - #hash) .. hash
+    end
+    return name
+end
+
+--- Entries of the config file `path` that this module wrote, keyed by server name.
+--- @param path string
+--- @return table<string, table>
+local function project_entries(path)
+    local _, config_manager = mcphub()
+    if not config_manager then return {} end
+
+    local file = config_manager.get_file_config(path) or {}
+    local entries = {}
+    for name, entry in pairs(file.mcpServers or {}) do
+        if type(entry) == 'table' and entry._project_root then entries[name] = entry end
+    end
+    return entries
+end
+
+--- Every server key the global config and the overlay define.  A key taken by a global server counts as a
+--- collision too, because the overlay entry would replace that server wholesale.
+--- @return table<string, table>
+local function configured_servers()
+    local state, config_manager = mcphub()
+    if not state or not config_manager then return {} end
+    local global = (config_manager.get_file_config(state.config.config) or {}).mcpServers or {}
+    local overlay = (config_manager.get_file_config(M.config.overlay) or {}).mcpServers or {}
+    return vim.tbl_extend('force', {}, global, overlay)
+end
+
+--- The key of the overlay entry for `root`, or nil.  The key depends on `opts.name` and on collisions at the
+--- time it was chosen, so it is looked up rather than recomputed.
+--- @param root string
+--- @return string|nil
+function M.name_for(root)
+    root = vim.fs.normalize(root)
+    for name, entry in pairs(project_entries(M.config.overlay)) do
+        if entry._project_root == root then return name end
+    end
+    return nil
 end
 
 --- Human-readable label: the last two path components.
@@ -106,9 +168,9 @@ local function spec_for(root, opts)
         name = opts.label or label(root),
         custom_instructions = {
             text = opts.instructions
-                or ('Project-scoped fff index of `%s`, the project you are currently working in.\n\n'):format(root)
-                    .. 'Prefer it over shelling out `rg`/`find` for this tree. It is rooted at the project, so '
-                    .. 'query with project-relative patterns. A file watcher keeps the index current, so edits '
+                or ('Project-scoped fff index of `%s`.\n\n'):format(root)
+                    .. 'Prefer it over shelling out `rg`/`find` for this tree. It is rooted there, so query with '
+                    .. 'patterns relative to that directory. A file watcher keeps the index current, so edits '
                     .. 'made during this session are searchable immediately.',
         },
         --- Marks the entry as ours so `M.prune()` can recognise it across sessions.
@@ -224,16 +286,27 @@ end
 ---
 --- Idempotent: with an unchanged spec this only refreshes the LRU timestamp and, if the hub dropped the
 --- server, restarts it.
---- @param opts? { root?: string, args?: string[], auto_approve?: string[], command?: string, label?: string, instructions?: string }
+--- @param opts? { root?: string, name?: string, args?: string[], auto_approve?: string[], command?: string, label?: string, instructions?: string }
 --- @return string|nil name the server name, or nil when mcphub is not ready yet
 function M.fff(opts)
     opts = opts or {}
     local root = vim.fs.normalize(opts.root or vim.fn.getcwd())
-    local name = server_name(root)
 
     if not mcphub() then
-        notify('mcphub is not ready; skipping ' .. name, vim.log.levels.DEBUG)
+        notify('mcphub is not ready; skipping ' .. root, vim.log.levels.DEBUG)
         return nil
+    end
+    local name = M.server_name(root, configured_servers(), opts)
+
+    -- One entry per root: retire any under another key, whether written by an older version of this module
+    -- (`fff_<base>_<hash>`) or before the project chose a different `name`.
+    for other, entry in pairs(project_entries(M.config.overlay)) do
+        if other ~= name and entry._project_root == root then
+            notify(('renaming %s to %s'):format(other, name))
+            stop(other)
+            write_entry(other, nil)
+            M.state[other] = nil
+        end
     end
 
     -- Compare with the file, not with what this session last wrote: the entry can change or vanish behind
@@ -273,32 +346,18 @@ end
 --- Stop the server for `root`, keeping its catalogue entry.  Suitable for a `.project.lua` teardown.
 --- @param root string
 function M.release(root)
-    local name = server_name(vim.fs.normalize(root))
-    if M.state[name] then stop(name) end
+    local name = M.name_for(root)
+    if name and M.state[name] then stop(name) end
 end
 
 --- Delete the server entry for `root` entirely.
 --- @param root string
 function M.forget(root)
-    local name = server_name(vim.fs.normalize(root))
+    local name = M.name_for(root)
+    if not name then return end
     stop(name)
     write_entry(name, nil)
     M.state[name] = nil
-end
-
---- Entries of the config file `path` that this module wrote, keyed by server name.
---- @param path string
---- @return table<string, table>
-local function project_entries(path)
-    local _, config_manager = mcphub()
-    if not config_manager then return {} end
-
-    local file = config_manager.get_file_config(path) or {}
-    local entries = {}
-    for name, entry in pairs(file.mcpServers or {}) do
-        if type(entry) == 'table' and entry._project_root then entries[name] = entry end
-    end
-    return entries
 end
 
 --- Delete entries that earlier versions of this module wrote into the global config file.  `make install`

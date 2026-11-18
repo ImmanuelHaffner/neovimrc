@@ -33,6 +33,10 @@ end
 --- Reload the hub's view of the config files after editing them on disk.
 local function reload() assert(require('mcphub.utils.config_manager').refresh_config()) end
 
+--- `project.mcp` for its pure functions, which need no hub.
+--- @return table
+local function mcp_pure() return H.fresh 'project.mcp' end
+
 local T = MiniTest.new_set{ hooks = { post_case = H.teardown } }
 
 T['overlay'] = MiniTest.new_set{ hooks = { pre_case = function() setup() end } }
@@ -222,6 +226,63 @@ T['observe']['an adopted server the hub dropped stops counting'] = function()
     mcp.fff{ root = project('mine') }
 
     eq(stopped('fff_foreign'), false)
+end
+
+T['naming'] = MiniTest.new_set()
+
+T['naming']['derived keys name parent and base'] = function()
+    eq(mcp_pure().server_name('/w/universe/quercus', {}, {}), 'fff_universe_quercus')
+    eq(mcp_pure().server_name('/w/runtime/quercus', {}, {}), 'fff_runtime_quercus')
+    eq(mcp_pure().server_name('/home/me/Dot.Files/Neovim-RC', {}, {}), 'fff_dot_files_neovim_rc')
+end
+
+T['naming']['a collision adds a hash'] = function()
+    local root = '/w/universe/quercus'
+    local taken = { fff_universe_quercus = { _project_root = '/other/universe/quercus' } }
+    local name = mcp_pure().server_name(root, taken, {})
+    eq(name:match('^fff_universe_quercus_%x%x%x%x%x%x$') ~= nil, true)
+
+    local own = { fff_universe_quercus = { _project_root = root } }
+    eq(mcp_pure().server_name(root, own, {}), 'fff_universe_quercus')
+end
+
+T['naming']['an explicit name wins'] = function()
+    eq(mcp_pure().server_name('/w/universe/quercus', {}, { name = 'fff-nvim' }), 'fff_nvim')
+end
+
+T['naming']['the cap keeps keys unique'] = function()
+    local stem = ('x'):rep(59)
+    local a = mcp_pure().server_name('/w/p/' .. stem .. 'a', {}, {})
+    local b = mcp_pure().server_name('/w/p/' .. stem .. 'b', {}, {})
+    eq(#a <= 40 and #b <= 40, true)
+    eq(a ~= b, true)
+end
+
+T['naming']['the old key is migrated'] = function()
+    setup()
+    local root = project('universe/quercus')
+    H.write_json(env.overlay, { mcpServers = {
+        fff_quercus_1a2b3c = { command = 'fff-mcp', disabled = false, _project_root = root },
+    } })
+    reload()
+
+    local name = mcp.fff{ root = root }
+
+    eq(name, 'fff_universe_quercus')
+    eq(vim.tbl_keys(H.read_json(env.overlay).mcpServers), { name })
+    eq(stopped('fff_quercus_1a2b3c'), true)
+    eq(mcp.state.fff_quercus_1a2b3c, nil)
+end
+
+T['naming']['name_for follows the file'] = function()
+    setup()
+    local root = project('proj')
+    mcp.fff{ root = root }
+
+    mcp.fff{ root = root, name = 'x' }
+
+    eq(mcp.name_for(root), 'x')
+    eq(vim.tbl_keys(H.read_json(env.overlay).mcpServers), { 'x' })
 end
 
 T['prune'] = MiniTest.new_set()
