@@ -226,6 +226,21 @@ local function is_running(name)
     return (M.state[name] or {}).running == true
 end
 
+--- Was `server` (an entry of the hub's server list) read from the overlay, i.e. is it project-scoped?
+--- @param server { config_source?: string }
+--- @return boolean
+function M.is_project_server(server) return server.config_source == M.config.overlay end
+
+--- The connected project servers that belong to `dir`: the one of the project governing it, if any.
+--- @param dir string
+--- @return string[]
+function M.servers_for_dir(dir)
+    local root = require'project'.find_root(dir)
+    local name = root and M.name_for(root)
+    if name and status_of(name) == 'connected' then return { name } end
+    return {}
+end
+
 --- Start `name` unless the hub already has it connected.
 ---
 --- Does nothing while the hub is not ready: the entry we just wrote has `disabled = false`, so the hub

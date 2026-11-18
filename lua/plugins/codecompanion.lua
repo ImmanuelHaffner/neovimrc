@@ -238,12 +238,12 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                                     'kgmemory',
                                     'neovim',  -- all tools from the Neovim MCP server
                                     -- The `fff*` and `mcphub` entries are deliberately NOT listed here.
-                                    -- Project-scoped fff servers are created on demand by `.project.lua`
-                                    -- and named `fff_<project>_<hash>` (see `lua/project/mcp.lua`), so no
-                                    -- static list can name them, and `mcphub`'s native server -- which
-                                    -- exposes `get_current_servers` and `toggle_mcp_server` -- is only worth
-                                    -- offering while it is connected.  `sync_mcp_tools()` below rewrites
-                                    -- both kinds of entry in this very table from the hub's live state.
+                                    -- `sync_mcp_tools()` below writes the global ones into this very table
+                                    -- from the hub's live state: the static `fff_universe` / `fff_runtime`
+                                    -- and `mcphub`'s native server, each only while it is connected.
+                                    -- Project-scoped fff servers never go here, since that would hand
+                                    -- every chat every project's index; `lua/project/chat.lua` attaches
+                                    -- them to each chat from the directory it was opened in.
                                 },
                             },
                             groups = {
@@ -946,32 +946,24 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
 
             -- Keep the dynamic MCP entries of `default_tools` in sync with the hub's live state.
             --
-            -- Two kinds of entry cannot be written down statically: project-scoped fff servers, created
-            -- on the fly by `.project.lua` and named `fff_<project>_<hash>` (see `lua/project/mcp.lua`),
-            -- and `mcphub`'s own native server, which is only worth exposing while it is connected.
-            -- CodeCompanion reads `default_tools` when a chat is created (`chat/init.lua`), so rewriting
-            -- that live table is enough for every chat opened afterwards.
+            -- The global `fff*` servers and `mcphub`'s own native server are only worth exposing while
+            -- they are connected, so they cannot be written down statically.  CodeCompanion reads
+            -- `default_tools` when a chat is created (`chat/init.lua`), so rewriting that live table is
+            -- enough for every chat opened afterwards.
             local function sync_mcp_tools()
                 local tools = require('codecompanion.config').interactions.chat.tools.opts.default_tools
                 if not tools then return end
 
                 -- The entries this function owns; every other entry of `default_tools` is left alone.
-                local function is_dynamic(name)
-                    return type(name) == 'string' and (name == 'mcphub' or name:match('^fff') ~= nil)
-                end
-
                 for i = #tools, 1, -1 do
-                    if is_dynamic(tools[i]) then table.remove(tools, i) end
+                    local name = tools[i]
+                    if type(name) == 'string' and (name == 'mcphub' or name:match('^fff')) then
+                        table.remove(tools, i)
+                    end
                 end
 
                 local state = require('mcphub.state').server_state or {}
-                for _, servers in ipairs{ state.servers or {}, state.native_servers or {} } do
-                    for _, server in ipairs(servers) do
-                        if is_dynamic(server.name) and server.status == 'connected' then
-                            table.insert(tools, server.name)
-                        end
-                    end
-                end
+                vim.list_extend(tools, require'project.chat'.global_tool_names(state))
             end
 
             -- When MCPHub finishes registering tools/resources (may happen after chat is already open),
@@ -988,6 +980,10 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                         if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == 'codecompanion' then
                             local chat = cc.buf_get_chat(buf)
                             if chat then
+                                -- Project servers that have connected since the chat was opened.
+                                -- mcphub's own `servers_updated` handler, registered first, has
+                                -- already made their tool groups by the time this runs.
+                                require'project.chat'.attach(chat)
                                 -- Refresh tools (schema, groups, etc.)
                                 if chat.tools then
                                     chat.tools:refresh({ adapter = chat.adapter })
@@ -1168,6 +1164,7 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                         callback = function()
                             chat_bufs[bufnr] = nil
                             tailing[bufnr] = nil
+                            require'project.chat'.forget(bufnr)
                         end,
                         desc = 'Forget an unloaded CodeCompanion chat buffer',
                     })
@@ -1258,6 +1255,10 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                     -- Auto-include neovim context on chat initialization
                     local chat = cc.buf_get_chat(request.buf)
                     if chat then
+                        -- The project servers of the directory this chat was opened from.  This
+                        -- fires after the chat loaded `default_tools`, so these add to them.
+                        require'project.chat'.attach(chat)
+
                         local ok, ext = pcall(require, 'codecompanion._extensions.editor_context')
                         if ok and ext.exports then
                             local context = ext.exports.get_formatted_context(chat.buffer_context)
