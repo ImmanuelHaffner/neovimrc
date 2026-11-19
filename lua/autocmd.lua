@@ -21,6 +21,31 @@ function M.setup()
     })
     --}}}---------------------------------------------------------------------------------------------------------------
 
+    ----- Soft-wrapped prose {{{----------------------------------------------------------------------------------------
+    -- Prose is soft-wrapped, never hard-wrapped, against the code defaults in `config.lua` (`nowrap`, `textwidth=120`,
+    -- `colorcolumn=121`).  `wrap` and `colorcolumn` are window-local, so setting them once on `FileType` is not enough:
+    -- a buffer loaded while hidden (`bufload()`, as the MCP file tools do) runs `FileType` in the autocmd window, and
+    -- when it is shown later it inherits the displaying window's global values.  Hence `BufWinEnter` re-applies them.
+    -- They are set local-only, so the next buffer shown in that window gets the code defaults back.
+    local prose_filetypes = {
+        'markdown', 'mdx', 'pandoc', 'text', 'tex', 'plaintex', 'rst', 'asciidoc', 'org', 'norg', 'typst',
+    }
+    local function wrap_prose(buf)
+        if not vim.tbl_contains(prose_filetypes, vim.bo[buf].filetype) then return end
+        vim.bo[buf].textwidth = 0
+        for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+            local wo = vim.wo[win][0]
+            wo.wrap = true
+            wo.colorcolumn = ''
+        end
+    end
+    vim.api.nvim_create_autocmd({ 'FileType', 'BufWinEnter' }, {
+        callback = function(args) wrap_prose(args.buf) end,
+        group = general_settings_group,
+        desc = 'Soft-wrap prose buffers',
+    })
+    --}}}---------------------------------------------------------------------------------------------------------------
+
     ----- Remove comment leader on o/O {{{------------------------------------------------------------------------------
     vim.api.nvim_create_autocmd('BufEnter', {
         callback = function()
