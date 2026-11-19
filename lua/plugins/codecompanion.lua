@@ -374,14 +374,16 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
                         '.claude/skills',
                     }),
                 },
-                prompt_library = {
+                -- The commands and agents of the Claude Code plugins, as `/<plugin>:<command>` and
+                -- `/<plugin>:agent:<agent>`, beside the markdown prompts.
+                prompt_library = vim.tbl_extend('error', claude.prompt_library(claude_plugins), {
                     markdown = {
                         dirs = {
                             function() return vim.fn.getcwd() .. '/.prompts' end,  -- Project-specific prompts
                             '~/.config/nvim/prompts',                              -- Global prompts
                         },
                     },
-                },
+                }),
                 extensions = {
                     -- Databricks AI Gateway adapters, from the private cc-db-aigateway.nvim.
                     -- Registration happens inside the extension, from the `db_opts` table
