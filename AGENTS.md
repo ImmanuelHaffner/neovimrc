@@ -70,6 +70,7 @@ This rule covers all `.md` files in this repo, including `AGENTS.md`, `README*`,
 │   ├── utils.lua            # Helper utilities
 │   ├── project.lua          # `.project.lua` loader (project-local config, bounded root search)
 │   ├── project/
+│   │   ├── chat.lua         # Attaches project servers to each CodeCompanion chat
 │   │   ├── databricks.lua   # Shared config for the Databricks Scala repos and worktrees
 │   │   └── mcp.lua          # Project-scoped MCP servers (dynamic fff registration)
 │   ├── theme.lua            # Theme/colorscheme settings
@@ -215,10 +216,38 @@ The Makefile detects the OS (Linux/macOS) and runs the appropriate install targe
 - Use `:Lazy` to manage plugins
 - Use `:checkhealth` to diagnose issues
 
+### Testing
+
+```bash
+make test                                      # every tests/test_*.lua, headless
+make test_file FILE=tests/test_project_mcp.lua # one file
+```
+
+Tests use [mini.test](https://github.com/echasnovski/mini.nvim), which the Makefile clones into the ignored `deps/` on first run; plenary and the mcphub fork come from lazy's directory, so the fork is tested as its working copy.
+`tests/minimal_init.lua` prepends the repository to `runtimepath` because `-u` keeps `~/.config/nvim` first, so without it `require` would load the *deployed* copy instead of the working tree under test — which is also why the suite runs before `make install`.
+
+`tests/helpers.lua` provides `H.fake_hub()`: temp global and overlay config files driven through mcphub's real `ConfigManager`, plus a hub stub that records every start and stop in `hub.calls`.
+Logic that needs testing therefore lives in `lua/project/*` modules rather than inside plugin specs.
+
+Where a real hub is the point, test against an isolated one, never the shared hub other sessions are working on.
+Three environment variables give a probe Neovim a hub that neither reads nor writes the real files:
+
+```bash
+export MCPHUB_PORT=27399 MCPHUB_CONFIG=/tmp/mcp-probe/servers.json \
+       MCPHUB_PROJECT_OVERLAY=/tmp/mcp-probe/project-servers.json
+setsid nohup nvim -i NONE --headless --listen localhost:42221 </dev/null >/tmp/mcp-probe/nvim.log 2>&1 &
+nvim --server localhost:42221 --remote-expr "luaeval('require\"project.mcp\".status()')"
+```
+
+The probe loads the deployed configuration, so `make install` first.
+The probe hub still writes the shared `~/.local/state/mcp-hub/logs/mcp-hub.log`, truncating its history.
+
 ## MCP Servers (MCPHub)
 
 MCP servers live in `servers.json` at the repo root — this is the **global MCPHub config**, not an LSP file.
 `make install` deploys it to `~/.config/mcphub/servers.json`; never edit the deployed copy, because MCPHub UI toggles written there are lost on the next install.
+The UI writes there all the same, so before installing run `cmp servers.json ~/.config/mcphub/servers.json` and sync a divergent deployed copy back into this file first: the install overwrites it without a backup.
+Project-scoped servers live in a separate overlay file that `make install` never touches (see **Project-Local Configuration**).
 
 The file must be **strict JSON**: mcphub.nvim parses it with `vim.json.decode`, so despite mcp-hub's own JSON5 support, comments and trailing commas break the entire config.
 Document non-obvious entries here rather than inline.
@@ -250,7 +279,7 @@ mcp-hub resolves placeholders per header value at connect time, so the token is 
 ### Workspace hubs (retired)
 
 Workspace hubs are **off** — `workspace = { enabled = false }` in `lua/plugins/mcphub.lua`.
-There is exactly one `mcp-hub` process, on the pinned port `27373`, shared by every Neovim instance; project-scoped servers come from `.project.lua` instead (see **Project-Local Configuration** below).
+There is exactly one `mcp-hub` process, shared by every Neovim instance, on the pinned port `27373` — `27374` for SSH and client-server sessions, and `$MCPHUB_PORT` when set; project-scoped servers come from `.project.lua` instead (see **Project-Local Configuration** below).
 
 Why they were abandoned: a workspace hub merges the project config over the global one and therefore **re-spawns every enabled global server**, so each enrolled project carried its own duplicate `fff_universe` and `fff_runtime`.
 Three universe indexes at ~3.2 GiB apiece were once live simultaneously — with `Pss` equal to `Rss`, so nothing was shared — on top of ~2.6 GiB per hub for the duplicated Databricks fleet.
@@ -275,6 +304,8 @@ Use bare `$HOME` (not `${HOME}`) in such guards so mcp-hub's placeholder pass le
 
 **Project-scoped.**
 One `fff-mcp` per project root, registered at runtime by `require'project.mcp'.fff{ root = ctx.root }` from that project's `.project.lua`, and shared by every Neovim instance on the hub.
+Its key names the last two path components, lower-cased — `fff_universe_quercus`, `fff_runtime_quercus`, `fff_dotfiles_neovimrc` — so a tool name says which tree it searches; `mcp.fff{ name = … }` overrides it.
+Each chat gets only the project server of the directory it was opened from, plus those of its *companions* that are already running (see **Project-Local Configuration**), so a chat opened from `~/Documents` carries no project index at all; `@{<key>}` still adds any server by hand.
 Never give `~/universe` or `~/runtime` a project-scoped server: the static pair already covers them, and a second server would index the same tree twice.
 The `/fffenroll` prompt (`prompts/fff-enroll.md`) automates enrolling a project.
 
@@ -314,12 +345,25 @@ Semantics worth knowing before editing one:
 - These files are machine-local and covered by the global gitignore; never commit one — the sole exception is this repo's own `.project.lua`, tracked deliberately as the worked example, which therefore re-prompts `vim.secure.read` after every edit.
 
 `lua/project/mcp.lua` registers project-scoped MCP servers from those hooks.
-`mcp.fff{ root = … }` upserts an `fff_<basename>_<hash>` entry through mcphub's `ConfigManager` — always with `merge = false`, because a deep merge would splice the old `args` list element-wise into the new one — and starts it once `hub:is_ready()`.
-`M.config.max_active` caps how many run at once, evicting the least recently used with `disable = true` so a later hub start does not resurrect it.
-Because those names are dynamic they cannot appear in CodeCompanion's `default_tools`; instead `sync_mcp_tools()` in `lua/plugins/codecompanion.lua` rewrites the `fff*` entries of that live table — together with the `mcphub` entry, whose native server is only worth offering while it is connected — from the hub's live state whenever MCPHub fires `servers_updated`, which works because CodeCompanion reads `default_tools` when a chat is created.
+
+- **Where they live.** In an overlay config file of their own, `stdpath('state') .. '/mcphub/project-servers.json'` (`M.config.overlay`, or `$MCPHUB_PROJECT_OVERLAY`), which the hub reads after the global `servers.json` through the fork's `config_overlays` option. Only Neovim writes it, and `make install` never touches it. When these entries lived in the global file, every install dropped them.
+- **Writes.** `mcp.fff{ root = … }` upserts the entry through mcphub's `ConfigManager`, always with `merge = false`, because a deep merge would splice the old `args` list element-wise into the new one. It compares the desired entry with the file rather than with a cache, since the entry can change or vanish behind its back.
+- **Keys.** `M.server_name(root, entries, opts)` derives `fff_<parent>_<base>`, appends `_` plus six hex digits of the root's hash only when the key is taken by another root or had to be truncated, and caps keys at 40 characters so `<key>__multi_grep` stays below the providers' 64-character tool-name limit. Because the key depends on collisions and on `opts.name`, it is looked up by root (`M.name_for(root)`) rather than recomputed, and `mcp.fff` retires any other entry for the same root, which is how older `fff_<base>_<hash>` keys migrate.
+- **No resurrection.** The overlay is `ephemeral`: whichever Neovim spawns a hub first disables every entry in it, so a fresh hub starts none of them. Each Neovim then re-enables what *it* asked for (`wanted`) from `on_ready` (`M.resync()`), so what runs follows where sessions are now, not where they were when the hub last ran.
+- **Cap.** `M.config.max_active` (4) caps running project servers *hub-wide*: `M.observe()`, on every `servers_updated`, adopts servers other Neovims started, so they are counted and evictable. The least recently used is stopped with `disable = true`; an adopted server is never re-enabled by a session that did not ask for it.
+- **Cleanup.** `M.prune()` drops entries whose root has disappeared, as worktrees routinely do, and leftovers older versions wrote into the global file.
+
+`lua/project/chat.lua` decides which chats get which project server.
+CodeCompanion's `default_tools` apply to every chat alike, so it holds only global servers: `sync_mcp_tools()` in `lua/plugins/codecompanion.lua` rewrites its `fff*` and `mcphub` entries from the hub's live state on `servers_updated` (`project.chat.global_tool_names`), which works because CodeCompanion reads `default_tools` when a chat is created.
+`project.chat.attach(chat)` adds the project servers of the chat's directory — the cwd of the window it was opened from, or the originating buffer's directory when that window shows another chat — on `CodeCompanionChatCreated` and again on every `servers_updated`, so a chat opened while its project is still indexing gets the server once it connects.
+Each server is attached at most once per chat, so one the user removed stays removed.
+
+*Companions* are roots passed as `mcp.fff{ companions = { … } }`, for work that spans two repositories.
+A chat from the project also gets a companion's server while it is connected, whichever Neovim started it, but nothing ever registers or starts a server on a companion's behalf, so opening one project does not pay for indexing another.
 
 `lua/project/databricks.lua` holds the shared configuration for the Databricks Scala repositories — the canonical checkouts and every worktree under `~/worktrees/**` — so each of their `.project.lua` files is a three-line stub delegating to it.
 Keeping that logic in one version-controlled module rather than copied into a dozen gitignored files means a fix costs one edit instead of a dozen, and adding a worktree costs three lines.
+It pairs `~/worktrees/universe/<x>` with `~/worktrees/runtime/<x>` as companions when both exist (`M.companions_of`, families in `M.config.worktree_families`), since a change often spans both.
 
 ## LSP Setup
 

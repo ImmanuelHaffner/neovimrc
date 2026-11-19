@@ -87,13 +87,14 @@ Use Neovim MCP file tools for edits (they surface reviewable diffs); use shell o
    end
    ```
 
-   The project's server is named `fff_<basename>_<hash>`. Once its status is `connected`, call its `find_files` tool with a filename you expect in this project; results rooted at the project confirm success. Note that a fresh index takes a moment on a large tree.
+   The project's server is named `fff_<parent>_<base>` after the root's last two path components, lower-cased (e.g. `fff_universe_quercus`), with a short hash appended only on a collision or when a long name had to be truncated; `require('project.mcp').name_for(root)` returns the actual key. Once its status is `connected`, call its `find_files` tool with a filename you expect in this project; results rooted at the project confirm success. Note that a fresh index takes a moment on a large tree, and that this chat only has the tools if it was opened from the project: project servers attach per chat, so verify through a fresh chat opened there, or add the group with `@{<key>}`.
 
 ### Notes and caveats
 
 - `.project.lua` is machine-local: it is covered by the global gitignore, so never commit it and never add it to a repository's tracked files.
 - Do not hand-roll fff flags. They live in `M.config.fff_args` in `lua/project/mcp.lua` (`--no-warmup --content-indexing --no-update-check`, with the file watcher deliberately left on).
-- `M.config.max_active` caps how many project servers run at once; registering a further one stops the least recently used and marks it `disabled`. That is expected, not a failure.
+- `M.config.max_active` caps how many project servers run at once across every Neovim on the hub; registering a further one stops the least recently used and marks it `disabled`. That is expected, not a failure.
+- Projects whose work spans another tree can name it with `mcp.fff{ root = ctx.root, companions = { … } }`: chats from the project then also get the companion's server while it is running, without ever starting it. Databricks worktrees get this automatically through `require'project.databricks'.load(ctx)`.
 - If the hub is not ready yet, registration still writes the entry and the hub spawns it when it starts, so a "not ready" message is benign.
 
 ### Report
