@@ -285,6 +285,19 @@ T['naming']['name_for follows the file'] = function()
     eq(vim.tbl_keys(H.read_json(env.overlay).mcpServers), { 'x' })
 end
 
+T['companions'] = MiniTest.new_set()
+
+T['companions']['are recorded but never registered or started'] = function()
+    setup()
+    local companion = project('runtime/x')
+
+    local name = mcp.fff{ root = project('universe/x'), companions = { companion .. '/' } }
+
+    eq(mcp.state[name].companions, { companion })
+    eq(vim.tbl_keys(H.read_json(env.overlay).mcpServers), { name })
+    eq(vim.tbl_contains(env.hub.calls, function(call) return call[2] ~= name end, { predicate = true }), false)
+end
+
 T['prune'] = MiniTest.new_set()
 
 T['prune']['drops overlay entries whose root is gone'] = function()

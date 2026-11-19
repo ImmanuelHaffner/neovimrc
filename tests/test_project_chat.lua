@@ -68,6 +68,24 @@ local function report(name, status)
     H.set_servers{ { name = name, status = status, config_source = env.overlay } }
 end
 
+--- Report every name in `names` as a connected overlay server.
+--- @param names string[]
+local function connected(names)
+    H.set_servers(vim.tbl_map(function(name)
+        return { name = name, status = 'connected', config_source = env.overlay }
+    end, names))
+end
+
+--- Put an entry for `root` into the overlay as another Neovim would, without this session asking for it.
+--- @param name string
+--- @param root string
+local function foreign_entry(name, root)
+    local file = H.read_json(env.overlay)
+    file.mcpServers[name] = { command = 'fff-mcp', args = { root }, disabled = false, _project_root = root }
+    H.write_json(env.overlay, file)
+    assert(require('mcphub.utils.config_manager').refresh_config())
+end
+
 local T = MiniTest.new_set{ hooks = { pre_case = setup, post_case = teardown } }
 
 T['global tool names exclude project servers'] = function()
@@ -145,6 +163,37 @@ T['a chat opened from a chat window falls back to the buffer path'] = function()
 
     eq(chat_mod.chat_dir(chat), root)
     eq(chat_mod.attach(chat), { name })
+end
+
+T['companions'] = MiniTest.new_set()
+
+T['companions']['an absent companion adds nothing'] = function()
+    local root, companion = project('universe/x'), project('runtime/x')
+    local name = mcp.fff{ root = root, companions = { companion } }
+    connected{ name }
+
+    eq(chat_mod.attach(fake_chat(window_in(root))), { name })
+end
+
+T['companions']['a connected companion is attached too'] = function()
+    local root, companion = project('universe/x'), project('runtime/x')
+    foreign_entry('fff_runtime_x', companion)
+    local name = mcp.fff{ root = root, companions = { companion } }
+    connected{ name, 'fff_runtime_x' }
+
+    eq(chat_mod.attach(fake_chat(window_in(root))), { name, 'fff_runtime_x' })
+end
+
+T['companions']['a companion that connects later is attached then'] = function()
+    local root, companion = project('universe/x'), project('runtime/x')
+    foreign_entry('fff_runtime_x', companion)
+    local name = mcp.fff{ root = root, companions = { companion } }
+    connected{ name }
+    local chat = fake_chat(window_in(root))
+
+    eq(chat_mod.attach(chat), { name })
+    connected{ name, 'fff_runtime_x' }
+    eq(chat_mod.attach(chat), { 'fff_runtime_x' })
 end
 
 return T

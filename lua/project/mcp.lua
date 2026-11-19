@@ -58,7 +58,8 @@ M.config = {
 
 --- Project-scoped servers we manage, keyed by server name.  `wanted` is this session's intent, which
 --- `M.resync()` restores after a hub spawn disabled the overlay; eviction and `M.release()` clear it.
---- @type table<string, { root: string, last_used: integer, spec: table, running: boolean, wanted: boolean }>
+--- `companions` are the roots `M.fff` was given as such, normalized.
+--- @type table<string, { root: string, last_used: integer, spec: table, running: boolean, wanted: boolean, companions?: string[] }>
 M.state = {}
 
 --- @param msg string
@@ -231,14 +232,23 @@ end
 --- @return boolean
 function M.is_project_server(server) return server.config_source == M.config.overlay end
 
---- The connected project servers that belong to `dir`: the one of the project governing it, if any.
+--- The connected project servers that belong to `dir`: the one of the project governing it, then those of
+--- its companions.  Companions count only while connected, whoever started them, and are never started here.
 --- @param dir string
 --- @return string[]
 function M.servers_for_dir(dir)
     local root = require'project'.find_root(dir)
-    local name = root and M.name_for(root)
-    if name and status_of(name) == 'connected' then return { name } end
-    return {}
+    local own = root and M.name_for(root)
+    if not own then return {} end
+
+    local names = {}
+    for _, candidate in ipairs{ root, unpack((M.state[own] or {}).companions or {}) } do
+        local name = candidate == root and own or M.name_for(candidate)
+        if name and status_of(name) == 'connected' and not vim.tbl_contains(names, name) then
+            table.insert(names, name)
+        end
+    end
+    return names
 end
 
 --- Start `name` unless the hub already has it connected.
@@ -301,7 +311,11 @@ end
 ---
 --- Idempotent: with an unchanged spec this only refreshes the LRU timestamp and, if the hub dropped the
 --- server, restarts it.
---- @param opts? { root?: string, name?: string, args?: string[], auto_approve?: string[], command?: string, label?: string, instructions?: string }
+---
+--- `companions` are roots whose servers a chat from this project also gets, if they happen to be connected
+--- (`M.servers_for_dir`): the sibling worktree of a change spanning two repositories, say.  They are only
+--- recorded, never registered or started, so opening one project does not pay for indexing another.
+--- @param opts? { root?: string, name?: string, companions?: string[], args?: string[], auto_approve?: string[], command?: string, label?: string, instructions?: string }
 --- @return string|nil name the server name, or nil when mcphub is not ready yet
 function M.fff(opts)
     opts = opts or {}
@@ -334,11 +348,14 @@ function M.fff(opts)
             return nil
         end
     end
+    local companions = vim.tbl_map(vim.fs.normalize, opts.companions or {})
     local known = M.state[name]
     if known then
-        known.spec, known.last_used, known.wanted = spec, os.time(), true
+        known.spec, known.last_used, known.wanted, known.companions = spec, os.time(), true, companions
     else
-        M.state[name] = { root = root, last_used = os.time(), spec = spec, running = false, wanted = true }
+        M.state[name] = {
+            root = root, last_used = os.time(), spec = spec, running = false, wanted = true, companions = companions,
+        }
     end
 
     ensure_running(name)

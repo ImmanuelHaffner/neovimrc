@@ -24,6 +24,10 @@ M.config = {
     --- the static, global `fff_universe` / `fff_runtime` servers, so a project server would be a second
     --- index of the same tree; code changes belong in a worktree anyway.
     canonical_checkouts = { vim.fs.normalize('~/universe'), vim.fs.normalize('~/runtime') },
+    --- Directories holding worktrees of different repositories under shared names.  A change often spans a
+    --- Universe and a Runtime worktree of the same name, so each is the other's companion: a chat from one
+    --- also gets the other's index, while that one is running.
+    worktree_families = { vim.fs.normalize('~/worktrees/universe'), vim.fs.normalize('~/worktrees/runtime') },
     --- Attach to a running DBR runtime.  Upserted by `name`, so it exists exactly once however many
     --- projects register it and however often this runs.
     dap_config = {
@@ -92,6 +96,24 @@ local function ensure_dap_config()
     dap.configurations.scala = configs
 end
 
+--- The existing worktrees named like `root` in every other worktree family, or `{}` when `root` is not a
+--- worktree directly inside a family.
+--- @param root string
+--- @return string[]
+function M.companions_of(root)
+    root = vim.fs.normalize(root)
+    local family, name = vim.fs.dirname(root), vim.fs.basename(root)
+    local families = vim.tbl_map(vim.fs.normalize, M.config.worktree_families)
+    if not vim.tbl_contains(families, family) then return {} end
+
+    local companions = {}
+    for _, other in ipairs(families) do
+        local candidate = other .. '/' .. name
+        if other ~= family and vim.fn.isdirectory(candidate) == 1 then table.insert(companions, candidate) end
+    end
+    return companions
+end
+
 --- Configure the Databricks project rooted at `ctx.root`.
 --- @param ctx { root: string, cwd: string, cd_mode: string, first: boolean, changed_window: boolean }
 function M.load(ctx)
@@ -103,7 +125,7 @@ function M.load(ctx)
 
     -- A worktree gets its own fff index; the canonical checkouts are served by the global servers.
     if not vim.tbl_contains(M.config.canonical_checkouts, root) then
-        require'project.mcp'.fff{ root = root }
+        require'project.mcp'.fff{ root = root, companions = M.companions_of(root) }
     end
 end
 
