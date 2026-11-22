@@ -13,6 +13,9 @@ return {
         opts = {
             -- Seconds between checks of a finished review's PR for merges and answers; false turns them off.
             follow = { interval = 600 },
+            -- Seconds between asking what awaits me (reviews requested of me; PagerDuty incidents assigned to me,
+            -- where the MCP hub hosts its server), listed under Available; false turns it off.
+            offers = { interval = 600, sources = { 'databricks.pagerduty' } },
             workspaces = {
                 reviews = '~/Documents/databricks/pr-reviews',
             },
