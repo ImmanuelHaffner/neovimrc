@@ -21,7 +21,10 @@ return {
                 runtime = { reviews = '~/worktrees/runtime/pr-reviews' },
             },
             tasks = {
-                review = { jobs = 8, isaac = true },
+                -- `on`: steps whose agents run on an arclet of the task's own.  Only the panel and the judge right
+                -- after it gain from one: the drafter and the verifier are single short agents, and an arclet that
+                -- stopped while the task waited for me has to fetch the PR again first.
+                review = { jobs = 8, isaac = true, on = { agents = 'arclet', synthesis = 'arclet' } },
             },
         },
     },
