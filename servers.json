@@ -122,6 +122,20 @@
         "DBEXEC_NO_CERT_REFRESH": "1"
       }
     },
+    "databricks_fortress_ira": {
+      "args": [
+        "repo",
+        "run",
+        "mcp",
+        "start-single",
+        "fortress-ira"
+      ],
+      "command": "dbexec",
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
+    },
     "databricks_genie": {
       "args": [
         "repo",
@@ -180,7 +194,7 @@
         "github_read_api_call"
       ],
       "command": "dbexec",
-      "disabled": true,
+      "disabled": false,
       "env": {
         "DBEXEC_NO_CERT_REFRESH": "1"
       }
@@ -324,6 +338,20 @@
       ],
       "autoApprove": [
         "pagerduty_query"
+      ],
+      "command": "dbexec",
+      "disabled": false,
+      "env": {
+        "DBEXEC_NO_CERT_REFRESH": "1"
+      }
+    },
+    "databricks_rolodex": {
+      "args": [
+        "repo",
+        "run",
+        "mcp",
+        "start-single",
+        "rolodex"
       ],
       "command": "dbexec",
       "disabled": false,
@@ -629,7 +657,9 @@
         "list_directory",
         "read_file",
         "read_with_fingerprint",
-        "view_image"
+        "view_image",
+        "apply_edit",
+        "write_file"
       ],
       "disabled": false,
       "disabled_resources": [],

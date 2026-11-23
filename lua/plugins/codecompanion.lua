@@ -874,42 +874,45 @@ Don't announce tool names to the user (say "I'll edit the file", not "I'll use t
             -- Meta-groups: combine tools from multiple MCP servers by prefix.
             -- After mcphub registers dynamic tools (e.g. `databricks_slack__slack_read_api_call`),
             -- we scan the tool registry and build groups that aggregate tools from several servers.
+            local db_dev_servers = {
+                'databricks_confluence',
+                'databricks_devportal',
+                'databricks_github',
+                'databricks_glean',
+                'databricks_jira',
+                'databricks_safe',
+                'databricks_testman',
+            }
+            -- `databricks_google` (~90 tools) and `databricks_storage_console` (~50) stay out of the dev and
+            -- incident groups for their size; add them to a chat by their own group when needed.
             local meta_groups = {
-                ['db_all'] = {
-                    description = 'All Databricks MCP servers',
-                    servers = {
+                ['db_dev'] = {
+                    description = 'Databricks development: DevPortal, Testman, SAFE, GitHub, Jira, Confluence, Glean',
+                    servers = db_dev_servers,
+                },
+                -- A superset of `db_dev`, because mitigation and the fix need the same tools as development.
+                ['db_incident'] = {
+                    description = 'Incident triage to fix: db_dev plus PagerDuty, Slack, observability, logs, data',
+                    servers = vim.list_extend(vim.deepcopy(db_dev_servers), {
                         'databricks_client_v2',
-                        'databricks_confluence',
                         'databricks_debug_copilot',
-                        'databricks_devportal',
+                        'databricks_fortress_ira',
                         'databricks_genie',
-                        'databricks_glean',
-                        'databricks_google',
-                        'databricks_jira',
                         'databricks_logs_summariser',
                         'databricks_observability',
                         'databricks_pagerduty',
-                        'databricks_safe',
+                        'databricks_rolodex',
                         'databricks_slack',
-                        'databricks_storage_console',
-                        'databricks_testman',
-                        'databricks_github',
-                    },
+                    }),
                 },
-                ['db_dev'] = {
-                    description = 'Full developer toolkit',
+                ['db_postmortem'] = {
+                    description = 'Postmortems: Google Docs, Confluence, Jira, Slack, PagerDuty, Glean',
                     servers = {
                         'databricks_confluence',
-                        'databricks_devportal',
                         'databricks_glean',
+                        'databricks_google',
                         'databricks_jira',
-                        'databricks_safe',
-                        'databricks_github',
-                    },
-                },
-                ['db_comms'] = {
-                    description = 'Incident investigation: PagerDuty, Slack, Jira, platform, Confluence',
-                    servers = {
+                        'databricks_pagerduty',
                         'databricks_slack',
                     },
                 },
