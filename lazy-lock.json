@@ -64,7 +64,7 @@
   "nvu.nvim": { "branch": "dev", "commit": "9d71282cffca534d4f23cb80536b140b4d14e0fb" },
   "outline.nvim": { "branch": "main", "commit": "2a132953b944561d45b52e4541ebfff71934a742" },
   "pesto.nvim": { "branch": "dev", "commit": "24df9f5567fcff5c3c117d0dc37c93beced11dcf" },
-  "pigmentor.nvim": { "branch": "dev", "commit": "6aa7daa38de9ac49f552b025e6c208d7e9baa100" },
+  "pigmentor.nvim": { "branch": "dev", "commit": "b4472ae1d3e17a1e049df23448efc5d6438b1a71" },
   "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
   "reactive.nvim": { "branch": "master", "commit": "0588b5c2b0cf49bd2232fe4366b3516c32edee44" },
   "render-markdown.nvim": { "branch": "main", "commit": "640a3ec6d538bad17c328be373c7cad0293d9589" },
