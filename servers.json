@@ -95,7 +95,10 @@
         "get_ui_probe_artifacts",
         "list_agents",
         "query_prometheus_metrics",
-        "resolve_regional_context"
+        "resolve_regional_context",
+        "find_investigations",
+        "get_agent_session",
+        "poll_agent_response"
       ],
       "command": "dbexec",
       "disabled": false,
@@ -114,7 +117,9 @@
       "autoApprove": [
         "devportal_get_service_info",
         "devportal_get_api_info",
-        "devportal_read_api_call"
+        "devportal_read_api_call",
+        "devportal_get_team_test_health",
+        "devportal_get_test_investigation_context"
       ],
       "command": "dbexec",
       "disabled": false,
@@ -259,7 +264,25 @@
         "docs_document_export_as_markdown",
         "docs_document_create_from_markdown",
         "docs_document_batch_update",
-        "docs_document_create"
+        "docs_document_create",
+        "docs_document_export",
+        "drive_file_export",
+        "drive_permission_list",
+        "gmail_thread_list",
+        "slides_page_get",
+        "tasks_task_get",
+        "tasks_task_list",
+        "tasks_tasklist_get",
+        "tasks_tasklist_list",
+        "gmail_thread_get",
+        "docs_document_edit_section",
+        "docs_document_find_replace",
+        "docs_document_tab_create",
+        "docs_document_tab_rename",
+        "docs_suggestion_list",
+        "docs_suggestion_resolve",
+        "docs_document_apply_template_styles",
+        "docs_comment_create"
       ],
       "command": "dbexec",
       "disabled": false,
